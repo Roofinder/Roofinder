@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RooFinder - Find a Trusted Roofer Near You</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const roofers = [
+  { id: 1, name: "Ridge Valley Exteriors", logo: "https://i.postimg.cc/XqbNZZQb/Screenshot-2026-05-28-165406.png", location: "Raleigh, NC", rating: 4.9, reviews: 65, specialties: ["Storm Damage", "Insurance Claims", "Residential Roofing", "Commercial Roofing", "Solar", "Gutters", "Emergency Repairs"], yearsExp: 15, verified: true, responseTime: "24/7 Emergency", bio: "Ridge Valley Exteriors is a Platinum Preferred Contractor — a distinction held by only the top 1% of roofers nationwide. Serving Raleigh since 2009 with residential roofing, commercial roofing, solar, gutters, and full insurance claim support. Free 21-point inspections and financing available.", license: "NC #L.70427", badges: ["Top Rated", "Insurance Expert", "Platinum Preferred"], featured: true, zips: ["27601","27602","27603","27604","27605","27606","27607","27608","27609","27610","27612","27613","27614","27615","27616"] },
+  { id: 2, name: "Vortex Roofing LLC", owner: "Dylan Nicely", location: "Raleigh, NC", rating: 5.0, reviews: 0, specialties: ["Insurance Claims", "Storm Damage", "Emergency", "Repairs"], yearsExp: 8, verified: true, responseTime: "< 2 hours", jobsDone: 85, bio: "Small family-owned roofing company serving Raleigh since 2017. We specialize in insurance claims and storm damage restoration. Small crew, honest work, and we treat every home like our own.", phone: "(567) 454-9843", license: "NC #1223", badges: ["Small Business", "Insurance Expert"], smallBusiness: true, zips: ["27601","27602","27603","27604","27605","27606","27607","27608","27609","27610"] },
+];
+
+const allSpecialties = ["All", ...new Set(roofers.flatMap(r => r.specialties))];
+const badgeColors = {
+  "Top Rated":["#78350F","#FCD34D"],"Insurance Expert":["#1E3A5F","#60A5FA"],
+  "Commercial Pro":["#1F2937","#9CA3AF"],"Free Inspections":["#064E3B","#34D399"],
+  "Storm Specialist":["#1E1B4B","#A78BFA"],"Solar Ready":["#052E16","#4ADE80"],
+  "10yr Warranty":["#7C2D12","#FB923C"],"Luxury Specialist":["#2D1B69","#C084FC"],
+  "24/7 Emergency":["#7F1D1D","#F87171"],"Most Reviewed":["#78350F","#FCD34D"],
+  "Veteran Owned":["#1A3A1A","#86EFAC"],"Eco Friendly":["#052E16","#4ADE80"],
+  "Historic Expert":["#3B1F14","#FDBA74"],"Same Day Service":["#064E3B","#34D399"],
+  "Award Winning":["#78350F","#FCD34D"],
+};
+
+const Stars = ({rating}) => (
+  <div style={{display:"flex",gap:1}}>
+    {[1,2,3,4,5].map(s=>(
+      <svg key={s} width="13" height="13" viewBox="0 0 24 24" fill={s<=Math.round(rating)?"#FBBF24":"#D1C9BB"}>
+        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+      </svg>
+    ))}
+  </div>
+);
+
+const Badge = ({label}) => {
+  const [bg,text] = badgeColors[label]||["#1F2937","#9CA3AF"];
+  return <span style={{background:bg,color:text,fontSize:10,padding:"2px 8px",borderRadius:20,fontFamily:"sans-serif",fontWeight:700,whiteSpace:"nowrap"}}>{label}</span>;
+};
+
+const LogoIcon = ({size=48}) => (
+  <svg style={{width:size,height:size,filter:"drop-shadow(0 0 10px rgba(200,16,46,0.5))",flexShrink:0}} viewBox="0 0 100 100" fill="none">
+    <defs>
+      <linearGradient id="logoRoof" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#E8192E"/>
+        <stop offset="100%" stopColor="#8B0A1E"/>
+      </linearGradient>
+    </defs>
+    <rect x="18" y="52" width="52" height="38" rx="2" fill="#2A2A2A"/>
+    <rect x="38" y="66" width="14" height="24" rx="2" fill="#111"/>
+    <polygon points="10,55 50,18 90,55" fill="url(#logoRoof)"/>
+    <polyline points="10,55 50,18 90,55" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" strokeLinejoin="round"/>
+    <circle cx="72" cy="38" r="18" fill="#0D0D0D" stroke="#C8102E" strokeWidth="4"/>
+    <circle cx="72" cy="38" r="11" fill="none" stroke="rgba(200,16,46,0.3)" strokeWidth="1.5"/>
+    <line x1="85" y1="51" x2="96" y2="62" stroke="#C8102E" strokeWidth="5" strokeLinecap="round"/>
+    <line x1="67" y1="38" x2="77" y2="38" stroke="#C8102E" strokeWidth="2" strokeLinecap="round"/>
+    <line x1="72" y1="33" x2="72" y2="43" stroke="#C8102E" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+const MessageModal = ({roofer, user, onClose, onSignup}) => {
+  const [step, setStep] = useState(user ? "message" : "signup");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [msg, setMsg] = useState("");
+  const [sent, setSent] = useState(false);
+  const handleSignup = () => { if(!name.trim()||!email.trim()) return; onSignup({name:name.trim(),email:email.trim()}); setStep("message"); };
+  const handleSend = async () => {
+    if(!msg.trim()) return;
+    try {
+      await fetch("https://formspree.io/f/xnjroolp", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          contractor: roofer.name,
+          location: roofer.location,
+          from_name: user?.name || name,
+          from_email: user?.email || email,
+          message: msg,
+          _subject: `New RooFinder Lead — ${roofer.name}`,
+        }),
+      });
+    } catch(e) { console.log(e); }
+    setSent(true);
+  };
+  return (
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:420,boxShadow:"0 24px 60px rgba(0,0,0,0.3)",overflow:"hidden"}}>
+        <div style={{background:"#1A1A1A",padding:"16px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div><div style={{color:"#fff",fontWeight:700,fontSize:15}}>{roofer.name}</div><div style={{color:"#9CA3AF",fontSize:12}}>{roofer.location}</div></div>
+          <button onClick={onClose} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:22,cursor:"pointer"}}>×</button>
+        </div>
+        <div style={{padding:24}}>
+          {sent ? (
+            <div style={{textAlign:"center",padding:"16px 0"}}>
+              <div style={{fontSize:44,marginBottom:10}}>✅</div>
+              <div style={{fontSize:17,fontWeight:700,color:"#111",marginBottom:8}}>Message Sent!</div>
+              <div style={{color:"#6B7280",fontSize:13,lineHeight:1.6,marginBottom:16}}>{roofer.name} will reply through RooFinder. No cold calls unless you want them.</div>
+              <button onClick={onClose} style={{background:"#C8102E",color:"#fff",border:"none",borderRadius:8,padding:"11px 32px",fontSize:14,fontWeight:700,cursor:"pointer"}}>Done</button>
+            </div>
+          ) : step==="signup" ? (
+            <>
+              <div style={{fontSize:16,fontWeight:700,color:"#111",marginBottom:6}}>Quick account to send message</div>
+              <div style={{color:"#6B7280",fontSize:13,lineHeight:1.6,marginBottom:16}}>Just name + email. No phone required. They reply here — <strong>no cold calls.</strong></div>
+              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14}}>
+                <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your first name" style={{padding:"11px 14px",border:"1.5px solid #E5E0D8",borderRadius:8,fontSize:14,outline:"none",color:"#111"}}/>
+                <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" style={{padding:"11px 14px",border:"1.5px solid #E5E0D8",borderRadius:8,fontSize:14,outline:"none",color:"#111"}}/>
+              </div>
+              <button onClick={handleSignup} disabled={!name.trim()||!email.trim()} style={{width:"100%",background:name.trim()&&email.trim()?"#C8102E":"#E5E0D8",color:name.trim()&&email.trim()?"#fff":"#9CA3AF",border:"none",borderRadius:8,padding:"12px",fontSize:15,fontWeight:700,cursor:"pointer"}}>Continue →</button>
+              <div style={{textAlign:"center",marginTop:10,color:"#9CA3AF",fontSize:11}}>🔒 We never sell your info</div>
+            </>
+          ) : (
+            <>
+              <div style={{fontSize:15,fontWeight:700,color:"#111",marginBottom:4}}>Message {roofer.name}</div>
+              <div style={{color:"#6B7280",fontSize:13,marginBottom:12}}>They reply through RooFinder — no calls unless you want them.</div>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+                {["I think I have storm damage","I need a free inspection","I'd like a quote","I need emergency repair"].map(p=>(
+                  <button key={p} onClick={()=>setMsg(p)} style={{background:msg===p?"#FEF2F2":"#F7F5F0",border:`1px solid ${msg===p?"#C8102E":"#E5E0D8"}`,color:msg===p?"#C8102E":"#4B4B4B",borderRadius:20,padding:"5px 10px",fontSize:11,cursor:"pointer"}}>{p}</button>
+                ))}
+              </div>
+              <textarea value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Add any details..." rows={3} style={{width:"100%",padding:"11px 14px",border:"1.5px solid #E5E0D8",borderRadius:8,fontSize:13,resize:"none",outline:"none",color:"#111",boxSizing:"border-box"}}/>
+              <button onClick={handleSend} disabled={!msg.trim()} style={{width:"100%",marginTop:10,background:msg.trim()?"#C8102E":"#E5E0D8",color:msg.trim()?"#fff":"#9CA3AF",border:"none",borderRadius:8,padding:"12px",fontSize:15,fontWeight:700,cursor:"pointer"}}>Send Message</button>
+              <div style={{textAlign:"center",marginTop:8,color:"#9CA3AF",fontSize:11}}>🔒 Your phone is never shared unless you choose</div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const urgentSteps = [
+  {key:"issue",question:"What's going on with your roof?",subtitle:"Pick the option that best describes your situation",options:[{label:"🌩️ Storm Damage",desc:"Hail, wind, or water damage"},{label:"🔧 Repair Needed",desc:"Leak, missing shingles, or damage"},{label:"🏠 Full Replacement",desc:"Old roof or major damage"},{label:"🔍 Inspection",desc:"Want someone to take a look"}]},
+  {key:"insurance",question:"Will you be using insurance?",subtitle:"This helps us match you with the right contractor",options:[{label:"✅ Yes — filing a claim",desc:"I want help with the insurance process"},{label:"💳 No — paying out of pocket",desc:"I'll be paying directly"},{label:"🤔 Not sure yet",desc:"I need to find out if I'm covered"}]},
+  {key:"timeline",question:"How soon do you need this done?",subtitle:"We'll prioritize accordingly",options:[{label:"🚨 Emergency — today",desc:"Active leak or major damage"},{label:"📅 This week",desc:"Soon but not emergency"},{label:"🗓️ Within a month",desc:"Planning ahead"},{label:"⏳ Just getting quotes",desc:"No rush, exploring options"}]},
+  {key:"contact",question:"How would you like to be contacted?",subtitle:"You control this — pick what's comfortable",options:[{label:"💬 Text message",desc:"Quick and easy"},{label:"📧 Email only",desc:"No calls, ever"},{label:"📞 Phone call is fine",desc:"I'm okay with a call"},{label:"📱 Any of the above",desc:"Whatever's fastest"}]},
+];
+
+const UrgentFlow = ({onBack}) => {
+  const [step,setStep] = useState(0);
+  const [answers,setAnswers] = useState({});
+  const [name,setName] = useState("");
+  const [email,setEmail] = useState("");
+  const [zip,setZip] = useState("");
+  const [phone,setPhone] = useState("");
+  const [submitted,setSubmitted] = useState(false);
+  const current = urgentSteps[step];
+  const isLast = step===urgentSteps.length-1;
+  const handleOption = (label) => { const a={...answers,[current.key]:label}; setAnswers(a); if(!isLast) setTimeout(()=>setStep(step+1),220); };
+  const allAnswered = Object.keys(answers).length===urgentSteps.length;
+  if(submitted) return (
+    <div style={{maxWidth:520,margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
+      <div style={{fontSize:56,marginBottom:16}}>🎉</div>
+      <h2 style={{fontSize:24,fontWeight:700,color:"#111",marginBottom:10}}>You're all set!</h2>
+      <p style={{color:"#6B7280",fontSize:15,lineHeight:1.7,marginBottom:24}}>We're matching you with verified roofers based on your needs. They'll reach out via your preferred contact method — no surprises.</p>
+      <button onClick={onBack} style={{background:"#C8102E",color:"#fff",border:"none",borderRadius:8,padding:"12px 32px",fontSize:14,fontWeight:700,cursor:"pointer"}}>Browse Contractors</button>
+    </div>
+  );
+  const wantsText = answers.contact && (answers.contact.includes("Text") || answers.contact.includes("Phone") || answers.contact.includes("Any"));
+  const canSubmit = name.trim() && email.trim() && zip.trim() && (!wantsText || phone.trim());
+  if(allAnswered) return (
+    <div style={{maxWidth:480,margin:"0 auto",padding:"40px 24px"}}>
+      <button onClick={()=>{setStep(3);const a={...answers};delete a.contact;setAnswers(a);}} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:13,cursor:"pointer",marginBottom:24,padding:0}}>← Back</button>
+      <h2 style={{fontSize:22,fontWeight:700,color:"#111",marginBottom:6}}>Almost done</h2>
+      <p style={{color:"#6B7280",fontSize:14,marginBottom:24,lineHeight:1.6}}>Last step — where should contractors reach you? No spam. You're in control.</p>
+      <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:20}}>
+        <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your first name" style={{padding:"12px 14px",border:"1.5px solid #E5E0D8",borderRadius:8,fontSize:14,outline:"none",color:"#111"}}/>
+        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email address" type="email" style={{padding:"12px 14px",border:"1.5px solid #E5E0D8",borderRadius:8,fontSize:14,outline:"none",color:"#111"}}/>
+        {wantsText && (
+          <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="Phone number" type="tel" style={{padding:"12px 14px",border:"1.5px solid #C8102E",borderRadius:8,fontSize:14,outline:"none",color:"#111",background:"#FEF2F2"}}/>
+        )}
+        <input value={zip} onChange={e=>setZip(e.target.value)} placeholder="Zip code" style={{padding:"12px 14px",border:"1.5px solid #E5E0D8",borderRadius:8,fontSize:14,outline:"none",color:"#111"}}/>
+      </div>
+      {wantsText && (
+        <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:8,padding:"10px 14px",marginBottom:16,fontSize:12,color:"#991B1B"}}>
+          🔒 Your number is only shared with the contractor you choose — never sold or spammed.
+        </div>
+      )}
+      <button onClick={async()=>{
+        try {
+          await fetch("https://formspree.io/f/xnjroolp", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({
+              _subject: "New Urgent Match Request — RooFinder",
+              name, email, phone, zip,
+              contact_preference: answers.contact,
+              issue: answers.issue,
+              insurance: answers.insurance,
+              timeline: answers.timeline,
+            })
+          });
+        } catch(e) { console.log(e); }
+        setSubmitted(true);
+      }} disabled={!canSubmit} style={{width:"100%",background:canSubmit?"#C8102E":"#E5E0D8",color:canSubmit?"#fff":"#9CA3AF",border:"none",borderRadius:8,padding:"14px",fontSize:16,fontWeight:700,cursor:canSubmit?"pointer":"default"}}>Find Me a Contractor →</button>
+    </div>
+  );
+  return (
+    <div style={{maxWidth:480,margin:"0 auto",padding:"40px 24px"}}>
+      {step>0&&<button onClick={()=>setStep(step-1)} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:13,cursor:"pointer",marginBottom:24,padding:0}}>← Back</button>}
+      <div style={{background:"#F0EDE8",borderRadius:20,height:4,marginBottom:28}}><div style={{background:"#C8102E",borderRadius:20,height:4,width:`${((step+1)/urgentSteps.length)*100}%`,transition:"width 0.3s"}}/></div>
+      <div style={{fontSize:11,color:"#C8102E",fontWeight:700,letterSpacing:"1px",marginBottom:8}}>STEP {step+1} OF {urgentSteps.length}</div>
+      <h2 style={{fontSize:22,fontWeight:700,color:"#111",marginBottom:6}}>{current.question}</h2>
+      <p style={{color:"#6B7280",fontSize:14,marginBottom:24,lineHeight:1.5}}>{current.subtitle}</p>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {current.options.map(opt=>{
+          const selected=answers[current.key]===opt.label;
+          return <button key={opt.label} onClick={()=>handleOption(opt.label)} style={{background:selected?"#FEF2F2":"#fff",border:`2px solid ${selected?"#C8102E":"#E5E0D8"}`,borderRadius:10,padding:"14px 16px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",textAlign:"left",transition:"all 0.15s"}}>
+            <div style={{fontSize:22}}>{opt.label.split(" ")[0]}</div>
+            <div><div style={{fontSize:14,fontWeight:700,color:selected?"#C8102E":"#111"}}>{opt.label.split(" ").slice(1).join(" ")}</div><div style={{fontSize:12,color:"#9CA3AF",marginTop:2}}>{opt.desc}</div></div>
+            {selected&&<div style={{marginLeft:"auto",color:"#C8102E",fontSize:18}}>✓</div>}
+          </button>;
+        })}
+      </div>
+    </div>
+  );
+};
+
+const BrowseTab = ({user, onSignup, onUrgent}) => {
+  const [search,setSearch] = useState("");
+  const [zip,setZip] = useState("");
+  const [specialty,setSpecialty] = useState("All");
+  const [verifiedOnly,setVerifiedOnly] = useState(false);
+  const [sortBy,setSortBy] = useState("rating");
+  const [selected,setSelected] = useState(null);
+  const [messaging,setMessaging] = useState(null);
+  const [smallBizOnly, setSmallBizOnly] = useState(false);
+  const [newCompanyOnly, setNewCompanyOnly] = useState(false);
+  const [viewingProfile, setViewingProfile] = useState(null);
+
+  const featured = roofers.find(r => r.featured);
+  const others = roofers.filter(r => !r.featured);
+
+  const filterFn = r => {
+    const q = search.toLowerCase();
+    const matchSearch = r.name.toLowerCase().includes(q) || r.location.toLowerCase().includes(q);
+    const matchSpecialty = specialty === "All" || r.specialties.includes(specialty);
+    const matchVerified = !verifiedOnly || r.verified;
+    const matchSmall = !smallBizOnly || r.smallBusiness;
+    const matchNew = !newCompanyOnly || r.newCompany;
+    const matchZip = !zip.trim() || (r.zips && r.zips.includes(zip.trim()));
+    return matchSearch && matchSpecialty && matchVerified && matchSmall && matchNew && matchZip;
+  };
+
+  const filtered = others.filter(filterFn).sort((a,b)=>sortBy==="rating"?b.rating-a.rating:sortBy==="reviews"?b.reviews-a.reviews:b.yearsExp-a.yearsExp);
+  const showFeatured = filterFn(featured);
+
+  // Sample reviews generator (deterministic per contractor)
+  const getReviews = (r) => {
+    const names = ["Michael T.","Sarah K.","James R.","Linda M.","David P.","Emily W.","Robert H.","Jennifer L."];
+    const comments = [
+      "Showed up on time, fair price, and the crew cleaned up everything. Highly recommend.",
+      "Handled my insurance claim from start to finish. Made a stressful situation easy.",
+      "Professional, honest, and did exactly what they said they would. No surprises.",
+      "Best roofing experience I've had. Quality work and great communication throughout.",
+      "Quick response after the storm. Had my roof fixed faster than I expected.",
+      "Fair, honest, and did quality work. Will use them again for sure.",
+    ];
+    const count = Math.min(4, Math.max(2, Math.floor(r.reviews/50)));
+    return Array.from({length:count},(_, i)=>({
+      name: names[(r.id+i)%names.length],
+      rating: i===0?5:(r.rating>=4.8?5:4),
+      text: comments[(r.id+i)%comments.length],
+      date: ["2 weeks ago","1 month ago","2 months ago","3 months ago"][i%4]
+    }));
+  };
+
+  if(viewingProfile){
+    const r = viewingProfile;
+    return (
+      <>
+        {messaging&&<MessageModal roofer={messaging} user={user} onClose={()=>setMessaging(null)} onSignup={onSignup}/>}
+        {/* Hero */}
+        <div style={{background:r.featured?"linear-gradient(135deg,#1A0A0A 0%,#2D1515 100%)":"linear-gradient(135deg,#1A1A1A 0%,#2A2A2A 100%)",padding:"24px",borderBottom:"3px solid #C8102E"}}>
+          <div style={{maxWidth:800,margin:"0 auto"}}>
+            <button onClick={()=>setViewingProfile(null)} style={{background:"rgba(255,255,255,0.1)",border:"none",color:"#fff",fontSize:13,cursor:"pointer",padding:"8px 16px",borderRadius:8,marginBottom:20,fontFamily:"sans-serif"}}>← Back to Browse</button>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+              {r.featured&&<span style={{background:"#C8102E",color:"#fff",fontSize:10,padding:"4px 12px",borderRadius:20,fontWeight:700}}>⭐ FEATURED</span>}
+              {r.verified&&<span style={{background:"rgba(52,211,153,0.15)",color:"#34D399",fontSize:10,padding:"4px 12px",borderRadius:20,fontWeight:700}}>✓ VERIFIED</span>}
+              {r.badges.map(b=><span key={b} style={{background:"rgba(255,255,255,0.1)",color:"#E5E5E5",fontSize:10,padding:"4px 12px",borderRadius:20,fontWeight:600}}>{b}</span>)}
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:6}}>
+              {r.logo && <div style={{background:"#fff",borderRadius:8,padding:"4px 10px"}}><img src={r.logo} alt={r.name} style={{height:36,objectFit:"contain"}}/></div>}
+              <h1 style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:42,letterSpacing:"1px",color:"#fff",margin:0,lineHeight:1}}>{r.name}</h1>
+            </div>
+            <div style={{color:"#9CA3AF",fontSize:15,marginBottom:14}}>{r.owner} · {r.location}</div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}><Stars rating={r.rating}/><span style={{fontWeight:700,fontSize:18,color:"#fff"}}>{r.rating}</span><span style={{color:"#9CA3AF",fontSize:14}}>({r.reviews} reviews)</span></div>
+          </div>
+        </div>
+
+        <div style={{maxWidth:800,margin:"0 auto",padding:"24px"}}>
+          {/* Stats Row */}
+          <div style={{display:"flex",gap:12,marginBottom:24,flexWrap:"wrap"}}>
+            {[{v:`${r.yearsExp} yrs`,l:"Experience"},{v:r.jobsDone+"+",l:"Jobs Completed"},{v:r.responseTime,l:"Response Time"}].map(s=>(
+              <div key={s.l} style={{flex:1,minWidth:100,background:"#fff",borderRadius:12,padding:"18px",textAlign:"center",border:"1px solid #E5E0D8"}}>
+                <div style={{fontFamily:"'Bebas Neue',serif",fontSize:26,color:"#C8102E",letterSpacing:"0.5px"}}>{s.v}</div>
+                <div style={{fontSize:11,color:"#9CA3AF",textTransform:"uppercase",letterSpacing:"1px",marginTop:4,fontFamily:"sans-serif"}}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* About */}
+          <div style={{background:"#fff",borderRadius:12,padding:"22px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#111",textTransform:"uppercase",letterSpacing:"1px",marginBottom:12,fontFamily:"sans-serif"}}>About</h3>
+            <p style={{color:"#4B4B4B",fontSize:15,lineHeight:1.7,margin:0}}>{r.bio}</p>
+          </div>
+
+          {/* Specialties */}
+          <div style={{background:"#fff",borderRadius:12,padding:"22px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#111",textTransform:"uppercase",letterSpacing:"1px",marginBottom:12,fontFamily:"sans-serif"}}>Specialties</h3>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{r.specialties.map(s=><span key={s} style={{background:"#FEF2F2",color:"#C8102E",fontSize:13,padding:"6px 14px",borderRadius:20,fontWeight:600,fontFamily:"sans-serif"}}>{s}</span>)}</div>
+          </div>
+
+          {/* Verification */}
+          <div style={{background:"#fff",borderRadius:12,padding:"22px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#111",textTransform:"uppercase",letterSpacing:"1px",marginBottom:14,fontFamily:"sans-serif"}}>Verified Credentials</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{color:"#34D399",fontSize:18}}>✓</span><span style={{color:"#4B4B4B",fontSize:14,fontFamily:"sans-serif"}}>Licensed — {r.license}</span></div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{color:"#34D399",fontSize:18}}>✓</span><span style={{color:"#4B4B4B",fontSize:14,fontFamily:"sans-serif"}}>Insured & Bonded</span></div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{color:"#34D399",fontSize:18}}>✓</span><span style={{color:"#4B4B4B",fontSize:14,fontFamily:"sans-serif"}}>Background Verified by RooFinder</span></div>
+            </div>
+          </div>
+
+          {/* Service Area */}
+          <div style={{background:"#fff",borderRadius:12,padding:"22px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#111",textTransform:"uppercase",letterSpacing:"1px",marginBottom:12,fontFamily:"sans-serif"}}>📍 Service Area</h3>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{(r.zips||[]).map(z=><span key={z} style={{background:"#F7F5F0",color:"#4B4B4B",fontSize:12,padding:"5px 12px",borderRadius:8,fontFamily:"sans-serif",border:"1px solid #E5E0D8"}}>{z}</span>)}</div>
+          </div>
+
+          {/* Reviews */}
+          <div style={{background:"#fff",borderRadius:12,padding:"22px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#111",textTransform:"uppercase",letterSpacing:"1px",marginBottom:16,fontFamily:"sans-serif"}}>Reviews</h3>
+            <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:16}}>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontFamily:"'Bebas Neue',serif",fontSize:48,color:"#C8102E",lineHeight:1}}>{r.rating}</div>
+                <Stars rating={r.rating}/>
+                <div style={{fontSize:12,color:"#9CA3AF",fontFamily:"sans-serif",marginTop:4}}>{r.reviews} Google reviews</div>
+              </div>
+              <div style={{flex:1,borderLeft:"1px solid #E5E0D8",paddingLeft:16}}>
+                <p style={{color:"#4B4B4B",fontSize:13,lineHeight:1.7,fontFamily:"sans-serif",margin:0}}>Verified ratings sourced from Google. Ridge Valley Exteriors maintains a {r.rating} star rating across {r.reviews} reviews for their Raleigh location.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Photo gallery */}
+          <div style={{background:"#fff",borderRadius:12,padding:"22px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+            <h3 style={{fontSize:13,fontWeight:700,color:"#111",textTransform:"uppercase",letterSpacing:"1px",marginBottom:12,fontFamily:"sans-serif"}}>Recent Work</h3>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:10}}>
+              {["https://i.postimg.cc/cLstt9Xw/RVE-3.webp","https://i.postimg.cc/W4zDXDRs/RVE-2.webp","https://i.postimg.cc/50FXWZN7/RVE-1.webp"].map((src,i)=>(
+                <div key={i} style={{aspectRatio:"4/3",borderRadius:8,overflow:"hidden"}}>
+                  <img src={src} alt={`Ridge Valley Exteriors work ${i+1}`} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Sticky Send Message */}
+        <div style={{position:"sticky",bottom:0,background:"#fff",borderTop:"1px solid #E5E0D8",padding:"14px 24px",boxShadow:"0 -4px 20px rgba(0,0,0,0.08)"}}>
+          <div style={{maxWidth:800,margin:"0 auto"}}>
+            <button onClick={()=>setMessaging(r)} style={{width:"100%",background:"#C8102E",color:"#fff",border:"none",borderRadius:10,padding:"15px",fontSize:16,fontWeight:700,cursor:"pointer",fontFamily:"sans-serif"}}>💬 Send Message to {r.name}</button>
+            <div style={{textAlign:"center",fontSize:11,color:"#9CA3AF",marginTop:8,fontFamily:"sans-serif"}}>📵 Contact handled through RooFinder — no spam calls</div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {messaging&&<MessageModal roofer={messaging} user={user} onClose={()=>setMessaging(null)} onSignup={onSignup}/>}
+      <div style={{background:"linear-gradient(135deg,#1A1A1A 0%,#2D1515 100%)",padding:"28px 24px",borderBottom:"3px solid #C8102E"}}>
+        <div style={{maxWidth:1000,margin:"0 auto"}}>
+          <p style={{color:"#9CA3AF",fontSize:13,margin:"0 0 14px"}}>Browse freely. Message who you want. <strong style={{color:"#fff"}}>No spam calls, ever.</strong></p>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:14}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by name or city..." style={{flex:2,minWidth:160,background:"#fff",border:"none",borderRadius:8,padding:"11px 16px",fontSize:14,outline:"none",color:"#111"}}/>
+            <input value={zip} onChange={e=>setZip(e.target.value)} placeholder="📍 Zip code" maxLength={5} style={{flex:1,minWidth:100,maxWidth:130,background:"#fff",border:"none",borderRadius:8,padding:"11px 16px",fontSize:14,outline:"none",color:"#111"}}/>
+            <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{background:"#2A2A2A",color:"#E5E5E5",border:"1px solid #3A3A3A",borderRadius:8,padding:"11px 14px",fontSize:13,cursor:"pointer"}}>
+              <option value="rating">Top Rated</option><option value="reviews">Most Reviewed</option><option value="experience">Most Experience</option>
+            </select>
+          </div>
+          <div style={{background:"rgba(200,16,46,0.12)",border:"1px solid rgba(200,16,46,0.3)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+            <div><div style={{color:"#fff",fontSize:14,fontWeight:700}}>🚨 Need someone fast?</div><div style={{color:"#FCA5A5",fontSize:12,marginTop:2}}>Answer 4 questions and we'll match you with the right contractor.</div></div>
+            <button onClick={onUrgent} style={{background:"#C8102E",color:"#fff",border:"none",borderRadius:8,padding:"9px 18px",fontSize:13,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>Need One Today →</button>
+          </div>
+        </div>
+      </div>
+      <div style={{maxWidth:1000,margin:"0 auto",padding:"24px"}}>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+          {allSpecialties.map(s=><button key={s} onClick={()=>setSpecialty(s)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${specialty===s?"#C8102E":"#D1C9BB"}`,background:specialty===s?"#C8102E":"#fff",color:specialty===s?"#fff":"#4B4B4B",fontSize:12,cursor:"pointer",fontWeight:specialty===s?700:400}}>{s}</button>)}
+          <button onClick={()=>setSmallBizOnly(!smallBizOnly)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${smallBizOnly?"#D97706":"#D1C9BB"}`,background:smallBizOnly?"#D97706":"#fff",color:smallBizOnly?"#fff":"#4B4B4B",fontSize:12,cursor:"pointer",fontWeight:smallBizOnly?700:400}}>🏘️ Small Business</button>
+          <button onClick={()=>setNewCompanyOnly(!newCompanyOnly)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${newCompanyOnly?"#7C3AED":"#D1C9BB"}`,background:newCompanyOnly?"#7C3AED":"#fff",color:newCompanyOnly?"#fff":"#4B4B4B",fontSize:12,cursor:"pointer",fontWeight:newCompanyOnly?700:400}}>🆕 New & Hungry</button>
+          <button onClick={()=>setVerifiedOnly(!verifiedOnly)} style={{padding:"6px 14px",borderRadius:20,border:`1.5px solid ${verifiedOnly?"#059669":"#D1C9BB"}`,background:verifiedOnly?"#059669":"#fff",color:verifiedOnly?"#fff":"#4B4B4B",fontSize:12,cursor:"pointer",marginLeft:"auto"}}>✓ Verified Only</button>
+        </div>
+        <div style={{color:"#9CA3AF",fontSize:12,marginBottom:16}}>{(showFeatured ? 1 : 0) + filtered.length} verified contractors in Raleigh</div>
+        <div style={{background:"#F7F5F0",border:"1px solid #E5E0D8",borderRadius:12,padding:"16px 20px",marginBottom:20,textAlign:"center"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#111",fontFamily:"sans-serif",marginBottom:4}}>🏗️ Growing our Raleigh directory</div>
+          <div style={{fontSize:12,color:"#6B7280",fontFamily:"sans-serif",lineHeight:1.6}}>We're onboarding verified contractors now. Are you a roofer? <button onClick={()=>window.scrollTo(0,0)} style={{background:"none",border:"none",color:"#C8102E",fontWeight:700,cursor:"pointer",fontFamily:"sans-serif",fontSize:12,padding:0,textDecoration:"underline"}}>Apply for a free listing →</button></div>
+        </div>
+
+        {/* Featured Card */}
+        {showFeatured && featured && (
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:10,fontWeight:700,letterSpacing:"3px",color:"#C8102E",textTransform:"uppercase",marginBottom:8}}>⭐ Featured Contractor</div>
+            <div onClick={()=>setSelected(selected?.id===featured.id?null:featured)} style={{background:"linear-gradient(135deg,#1A0A0A 0%,#1A1A1A 100%)",borderRadius:14,border:`2px solid ${selected?.id===featured.id?"#C8102E":"#C8102E"}`,boxShadow:"0 8px 40px rgba(200,16,46,0.2)",cursor:"pointer",overflow:"hidden",position:"relative"}}>
+              <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#C8102E,#FF4560,#C8102E)"}}/>
+              <div style={{background:"#1A1A1A",padding:"12px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center"}}>
+                  <span style={{background:"#C8102E",color:"#fff",fontSize:10,padding:"3px 10px",borderRadius:20,fontWeight:700}}>⭐ FEATURED</span>
+                  {featured.badges.map(b=><Badge key={b} label={b}/>)}
+                </div>
+                <span style={{color:"#34D399",fontSize:10,fontWeight:700}}>✓ VERIFIED</span>
+              </div>
+              <div style={{padding:"18px",display:"flex",gap:20,flexWrap:"wrap"}}>
+                <div style={{flex:2,minWidth:200}}>
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:2}}>
+                    {featured.logo && <div style={{background:"#fff",borderRadius:8,padding:"4px 10px",display:"flex",alignItems:"center"}}><img src={featured.logo} alt={featured.name} style={{height:32,objectFit:"contain"}}/></div>}
+                    <div style={{fontSize:20,fontWeight:700,color:"#fff"}}>{featured.name}</div>
+                  </div>
+                  <div style={{color:"#9CA3AF",fontSize:12,marginBottom:12}}>{featured.owner} · {featured.location}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><Stars rating={featured.rating}/><span style={{fontWeight:700,fontSize:15,color:"#fff"}}>{featured.rating}</span><span style={{color:"#9CA3AF",fontSize:12}}>({featured.reviews} reviews)</span></div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>{featured.specialties.map(s=><span key={s} style={{background:"rgba(200,16,46,0.15)",color:"#FCA5A5",fontSize:11,padding:"3px 10px",borderRadius:20}}>{s}</span>)}</div>
+                  {selected?.id===featured.id && <p style={{color:"#9CA3AF",fontSize:13,lineHeight:1.7,marginBottom:14}}>{featured.bio}</p>}
+                </div>
+                <div style={{flex:1,minWidth:160}}>
+                  <div style={{display:"flex",background:"rgba(255,255,255,0.05)",borderRadius:8,overflow:"hidden",marginBottom:12}}>
+                    {[{v:`${featured.yearsExp}yr`,l:"Exp"},{v:featured.jobsDone,l:"Jobs"},{v:featured.responseTime,l:"Response"}].map((s,i)=>(
+                      <div key={i} style={{flex:1,padding:"8px 4px",textAlign:"center",borderRight:i<2?"1px solid rgba(255,255,255,0.1)":"none"}}>
+                        <div style={{fontSize:12,fontWeight:700,color:"#fff"}}>{s.v}</div><div style={{fontSize:10,color:"#6B7280"}}>{s.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {selected?.id===featured.id ? (
+                    <button onClick={e=>{e.stopPropagation();setViewingProfile(featured);}} style={{width:"100%",background:"#C8102E",color:"#fff",border:"none",borderRadius:8,padding:"12px 0",fontSize:14,fontWeight:700,cursor:"pointer"}}>View Full Profile →</button>
+                  ) : (
+                    <div style={{color:"#C8102E",fontSize:12,fontWeight:600,textAlign:"center",marginTop:8}}>Tap to view & message →</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Regular grid */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
+          {filtered.map(r=>(
+            <div key={r.id} onClick={()=>setSelected(selected?.id===r.id?null:r)} style={{background:"#fff",borderRadius:12,border:`2px solid ${selected?.id===r.id?"#C8102E":"transparent"}`,boxShadow:selected?.id===r.id?"0 8px 30px rgba(200,16,46,0.12)":"0 2px 12px rgba(0,0,0,0.07)",cursor:"pointer",transition:"all 0.2s",overflow:"hidden"}}>
+              <div style={{background:"#1A1A1A",padding:"10px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{r.badges.slice(0,2).map(b=><Badge key={b} label={b}/>)}</div>
+                {r.verified&&<span style={{color:"#34D399",fontSize:10,fontWeight:700}}>✓ VERIFIED</span>}
+              </div>
+              <div style={{padding:"14px"}}>
+                <div style={{fontSize:16,fontWeight:700,color:"#111",marginBottom:2}}>{r.name}</div>
+                <div style={{color:"#6B7280",fontSize:12,marginBottom:10}}>{r.owner} · {r.location}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><Stars rating={r.rating}/><span style={{fontWeight:700,fontSize:14,color:"#111"}}>{r.rating}</span><span style={{color:"#9CA3AF",fontSize:12}}>({r.reviews})</span></div>
+                <div style={{display:"flex",background:"#F7F5F0",borderRadius:8,overflow:"hidden",marginBottom:12}}>
+                  {[{v:`${r.yearsExp}yr`,l:"Exp"},{v:r.jobsDone,l:"Jobs"},{v:r.responseTime,l:"Response"}].map((s,i)=>(
+                    <div key={i} style={{flex:1,padding:"7px 4px",textAlign:"center",borderRight:i<2?"1px solid #E5E0D8":"none"}}>
+                      <div style={{fontSize:12,fontWeight:700,color:"#111"}}>{s.v}</div><div style={{fontSize:10,color:"#9CA3AF"}}>{s.l}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:12}}>{r.specialties.map(s=><span key={s} style={{background:"#F0EDE8",color:"#6B6055",fontSize:11,padding:"3px 8px",borderRadius:20}}>{s}</span>)}</div>
+                {selected?.id===r.id ? (
+                  <div style={{borderTop:"1px solid #F0EDE8",paddingTop:14}}>
+                    <p style={{color:"#4B4B4B",fontSize:13,lineHeight:1.7,marginBottom:14}}>{r.bio}</p>
+                    <div style={{fontSize:11,color:"#9CA3AF",marginBottom:14}}>License: {r.license}</div>
+                    <div style={{display:"flex",gap:8}}>
+                      <button onClick={e=>{e.stopPropagation();setViewingProfile(r);}} style={{flex:1,background:"#1A1A1A",color:"#fff",border:"none",borderRadius:8,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer"}}>View Profile</button>
+                      <button onClick={e=>{e.stopPropagation();setMessaging(r);}} style={{flex:1,background:"#C8102E",color:"#fff",border:"none",borderRadius:8,padding:"11px 0",fontSize:13,fontWeight:700,cursor:"pointer"}}>💬 Message</button>
+                    </div>
+                    <div style={{marginTop:8,fontSize:11,color:"#9CA3AF",textAlign:"center"}}>📵 Contact is handled through RooFinder — no spam calls</div>
+                  </div>
+                ) : <div style={{color:"#C8102E",fontSize:12,fontWeight:600}}>Tap to view & message →</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
+const LandingPage = ({onBrowse, onUrgent, onPro}) => {
+  const [browsing, setBrowsing] = useState(Math.floor(Math.random() * 8) + 6);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBrowsing(prev => {
+        const change = Math.random() > 0.5 ? 1 : -1;
+        const next = prev + change;
+        return Math.min(Math.max(next, 5), 18);
+      });
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{minHeight:"100vh",background:"#0A0A0A",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",position:"relative",overflow:"hidden"}}>
+    <div style={{position:"absolute",inset:0,pointerEvents:"none",background:"radial-gradient(ellipse 70% 50% at 50% 0%, rgba(200,16,46,0.15) 0%, transparent 70%)"}}/>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",marginBottom:12}}>
+      <LogoIcon size={70}/>
+      <div style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:56,letterSpacing:"3px",color:"#fff",lineHeight:1,marginTop:10}}>Roo<span style={{color:"#C8102E"}}>Finder</span></div>
+      <div style={{fontFamily:"'DM Serif Display','Georgia',serif",fontStyle:"italic",fontSize:16,color:"#6B7280",marginTop:6}}>Find your roof. Trust who you hire.</div>
+    </div>
+    <div style={{width:1,height:32,background:"linear-gradient(to bottom, transparent, #3A3A3A, transparent)",margin:"8px 0 24px"}}/>
+    <div style={{fontSize:11,fontWeight:700,letterSpacing:"4px",color:"#C8102E",textTransform:"uppercase",marginBottom:20}}>How can we help you today?</div>
+    <div style={{display:"flex",flexDirection:"row",gap:12,width:"100%",maxWidth:600}}>
+      {/* Just Browsing */}
+      <button onClick={onBrowse} style={{flex:1,background:"#111",border:"2px solid #2A2A2A",borderRadius:16,padding:"20px 16px",cursor:"pointer",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:10,transition:"all 0.2s"}}>
+        <div style={{fontSize:36,lineHeight:1}}>👀</div>
+        <div style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:22,letterSpacing:"1px",color:"#fff",lineHeight:1}}>Just Browsing</div>
+        <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>Browse freely. No signup. Message who you like.</div>
+        <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:4}}>
+          {["No forms","No spam calls","You choose"].map(t=><span key={t} style={{fontSize:11,color:"#4B5563"}}>✓ {t}</span>)}
+        </div>
+      </button>
+      {/* Need One Today */}
+      <button onClick={onUrgent} style={{flex:1,background:"linear-gradient(135deg,#C8102E 0%,#8B0A1E 100%)",border:"2px solid transparent",borderRadius:16,padding:"20px 16px",cursor:"pointer",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:10,boxShadow:"0 8px 32px rgba(200,16,46,0.3)",transition:"all 0.2s"}}>
+        <div style={{fontSize:36,lineHeight:1}}>🚨</div>
+        <div style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:22,letterSpacing:"1px",color:"#fff",lineHeight:1}}>Need One Today</div>
+        <div style={{fontSize:12,color:"rgba(255,255,255,0.75)",lineHeight:1.5}}>Answer 4 questions. We match you fast.</div>
+        <div style={{display:"flex",flexDirection:"column",gap:4,marginTop:4}}>
+          {["60 seconds","You control contact","Fast match"].map(t=><span key={t} style={{fontSize:11,color:"rgba(255,255,255,0.6)"}}>✓ {t}</span>)}
+        </div>
+      </button>
+    </div>
+    <div style={{display:"flex",gap:40,marginTop:32,flexWrap:"wrap",justifyContent:"center"}}>
+      {[{v:"2",l:"Verified Contractors"},{v:"$0",l:"To Browse"},{v:"0",l:"Spam Calls"}].map(s=>(
+        <div key={s.l} style={{textAlign:"center"}}>
+          <div style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:32,color:"#C8102E",letterSpacing:"1px",lineHeight:1}}>{s.v}</div>
+          <div style={{fontSize:11,color:"#4B5563",marginTop:4,letterSpacing:"1px",textTransform:"uppercase"}}>{s.l}</div>
+        </div>
+      ))}
+    </div>
+
+    {/* Live browsing counter */}
+    <div style={{marginTop:24,display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:30,padding:"8px 18px"}}>
+      <div style={{width:8,height:8,borderRadius:"50%",background:"#22C55E",boxShadow:"0 0 6px #22C55E",animation:"pulse 2s infinite"}}/>
+      <span style={{fontSize:13,color:"#9CA3AF",fontFamily:"sans-serif"}}>
+        <strong style={{color:"#fff"}}>{browsing} people</strong> browsing contractors right now
+      </span>
+    </div>
+
+    <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
+    <div style={{marginTop:20,fontSize:12,fontFamily:"sans-serif"}}>
+      <span style={{color:"#4B5563"}}>Are you a roofing contractor? </span>
+      <button onClick={onPro} style={{background:"none",border:"none",color:"#F59E0B",fontFamily:"sans-serif",fontSize:12,fontWeight:700,cursor:"pointer",textDecoration:"underline"}}>List your business →</button>
+    </div>
+    <div style={{marginTop:12,fontSize:11,color:"#374151",letterSpacing:"1px"}}>ROOFINDER.ONLINE</div>
+  </div>
+  );
+};
+
+// ── Pro Signup Flow ───────────────────────────────────
+const ProSignup = ({onBack}) => {
+  const [step, setStep] = useState(1);
+  const [showLanding, setShowLanding] = useState(true);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({
+    company:"", phone:"", email:"", website:"",
+    license:"", insurance:"", reference_name:"", reference_phone:"",
+    specialties:[], zips:"", bio:"", agree:false
+  });
+
+  const specialtyOptions = ["Storm Damage","Insurance Claims","Shingles","Metal Roofing","Flat Roofs","Commercial","Repairs","Gutters","Inspections","Solar Ready","New Construction","Emergency","Tile Roofing","Historic Restoration"];
+  const update = (k,v) => setForm(p=>({...p,[k]:v}));
+  const toggleSpecialty = (s) => setForm(p=>({...p,specialties:p.specialties.includes(s)?p.specialties.filter(x=>x!==s):[...p.specialties,s]}));
+  const handleSubmit = async () => {
+    try {
+      await fetch("https://formspree.io/f/xnjroolp", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({_subject:`New Contractor Application — ${form.company}`,...form,specialties:form.specialties.join(", ")})
+      });
+    } catch(e) { console.log(e); }
+    setSubmitted(true);
+  };
+
+  if(showLanding) return (
+    <div style={{maxWidth:600,margin:"0 auto",padding:"40px 24px"}}>
+      <button onClick={onBack} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:13,cursor:"pointer",marginBottom:24,padding:0,fontFamily:"sans-serif"}}>← Back</button>
+
+      {/* Hero */}
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:"3px",color:"#C8102E",textTransform:"uppercase",marginBottom:10}}>For Roofing Contractors</div>
+        <h1 style={{fontFamily:"'Bebas Neue',serif",fontSize:42,letterSpacing:"1px",color:"#111",margin:"0 0 12px",lineHeight:1.1}}>Stop Buying Leads.<br/>Start Getting Introductions.</h1>
+        <p style={{color:"#6B7280",fontSize:15,fontFamily:"sans-serif",lineHeight:1.7,maxWidth:480,margin:"0 auto"}}>RooFinder sends you homeowners who already looked at your profile and chose to reach out to you specifically. Not a list. Not a cold lead. A real introduction.</p>
+      </div>
+
+      {/* Pricing */}
+      <div style={{background:"#111",borderRadius:14,padding:"24px",marginBottom:20,color:"#fff"}}>
+        <div style={{fontSize:11,fontWeight:700,letterSpacing:"3px",color:"#C8102E",textTransform:"uppercase",marginBottom:16}}>Simple Pricing</div>
+        <div style={{display:"flex",flexDirection:"column",gap:0}}>
+          {[
+            {t:"First 3 introductions",p:"FREE",sub:"Every new listing starts here",hot:true},
+            {t:"Standard introduction",p:"$25",sub:"Homeowner browsed and messaged you"},
+            {t:"Urgent match introduction",p:"$50",sub:"Homeowner needs someone today"},
+            {t:"Insurance claim introduction",p:"$75",sub:"Homeowner has an active claim"},
+          ].map((r,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:i<3?"1px solid #1E1E1E":"none"}}>
+              <div>
+                <div style={{color:"#E5E5E5",fontSize:14,fontFamily:"sans-serif",fontWeight:600}}>{r.t}</div>
+                <div style={{color:"#6B7280",fontSize:11,fontFamily:"sans-serif",marginTop:2}}>{r.sub}</div>
+                {r.hot && <div style={{color:"#F59E0B",fontSize:10,fontFamily:"sans-serif",fontWeight:700,marginTop:2}}>🔥 Limited time offer</div>}
+              </div>
+              <div style={{color:r.p==="FREE"?"#34D399":"#C8102E",fontSize:16,fontFamily:"sans-serif",fontWeight:700,marginLeft:16}}>{r.p}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Featured upsell */}
+      <div style={{background:"linear-gradient(135deg,#1A0A0A,#2D1515)",border:"2px solid #C8102E",borderRadius:14,padding:"24px",marginBottom:20,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#C8102E,#FF4560,#C8102E)"}}/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+          <div>
+            <div style={{fontSize:11,fontWeight:700,letterSpacing:"3px",color:"#C8102E",textTransform:"uppercase",marginBottom:6}}>⭐ Featured Listing</div>
+            <div style={{fontFamily:"'Bebas Neue',serif",fontSize:28,color:"#fff",letterSpacing:"1px"}}>$99 / month</div>
+          </div>
+          <div style={{background:"#C8102E",color:"#fff",fontSize:10,fontWeight:700,padding:"4px 12px",borderRadius:20,letterSpacing:"1px"}}>BEST VALUE</div>
+        </div>
+        {[
+          "Pinned to top of all search results",
+          "Red glowing banner — stands out instantly",
+          "Appears in Featured filter tab",
+          "Discounted introductions — $15 / $30 / $50",
+          "Priority in urgent homeowner matching",
+          "Featured badge on your profile page",
+        ].map((f,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"5px 0"}}>
+            <span style={{color:"#C8102E",fontSize:14}}>✓</span>
+            <span style={{color:"#D1D5DB",fontSize:13,fontFamily:"sans-serif"}}>{f}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Why RooFinder */}
+      <div style={{background:"#F7F5F0",borderRadius:14,padding:"24px",marginBottom:24}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#111",fontFamily:"sans-serif",marginBottom:14}}>Why contractors choose RooFinder</div>
+        {[
+          {icon:"🎯",t:"Homeowners chose YOU",d:"They browsed your profile and reached out. This isn't a cold lead — it's a warm introduction."},
+          {icon:"🔒",t:"No subscription required to start",d:"Start free. Pay only when introductions come in. No risk."},
+          {icon:"✅",t:"Verified listing builds trust",d:"Your license, insurance, and references are on your profile. Homeowners see you're legit before they contact you."},
+          {icon:"📍",t:"Hyper-local Raleigh focus",d:"We're not trying to cover the whole country. We're building the best contractor directory in the Triangle."},
+        ].map((r,i)=>(
+          <div key={i} style={{display:"flex",gap:12,padding:"10px 0",borderBottom:i<3?"1px solid #E5E0D8":"none"}}>
+            <div style={{fontSize:22,flexShrink:0}}>{r.icon}</div>
+            <div>
+              <div style={{fontSize:14,fontWeight:700,color:"#111",fontFamily:"sans-serif",marginBottom:3}}>{r.t}</div>
+              <div style={{fontSize:12,color:"#6B7280",fontFamily:"sans-serif",lineHeight:1.6}}>{r.d}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button onClick={()=>setShowLanding(false)} style={{width:"100%",background:"#C8102E",color:"#fff",border:"none",borderRadius:10,padding:"16px",fontSize:16,fontFamily:"sans-serif",fontWeight:700,cursor:"pointer",marginBottom:12}}>Start My Free Application →</button>
+      <div style={{textAlign:"center",fontSize:12,color:"#9CA3AF",fontFamily:"sans-serif"}}>Takes about 10 minutes. First 3 introductions are free.</div>
+    </div>
+  );
+
+  const inputStyle = {width:"100%",padding:"12px 14px",border:"1.5px solid #E5E0D8",borderRadius:8,fontSize:14,outline:"none",color:"#111",boxSizing:"border-box",fontFamily:"sans-serif"};
+  const labelStyle = {fontSize:12,fontWeight:700,color:"#4B4B4B",fontFamily:"sans-serif",marginBottom:6,display:"block",letterSpacing:"0.5px"};
+
+  if(submitted) return (
+    <div style={{maxWidth:520,margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
+      <div style={{fontSize:56,marginBottom:16}}>🎉</div>
+      <h2 style={{fontSize:24,fontWeight:700,color:"#111",marginBottom:10,fontFamily:"'Bebas Neue',serif",letterSpacing:"1px"}}>Application Received!</h2>
+      <p style={{color:"#6B7280",fontFamily:"sans-serif",fontSize:15,lineHeight:1.7,marginBottom:24}}>
+        We review every application manually to maintain quality. You'll hear from us at <strong>{form.email}</strong> within 24-48 hours.
+      </p>
+      <div style={{background:"#F7F5F0",borderRadius:12,padding:"20px",marginBottom:24,textAlign:"left"}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#111",marginBottom:12,fontFamily:"sans-serif"}}>What happens next:</div>
+        {["We verify your license and insurance","We review your service area","We set up your listing","Your first 3 introductions are FREE"].map((s,i)=>(
+          <div key={i} style={{display:"flex",gap:10,alignItems:"center",padding:"6px 0",borderBottom:"1px solid #E5E0D8"}}>
+            <span style={{color:"#C8102E",fontWeight:700,fontFamily:"sans-serif"}}>0{i+1}</span>
+            <span style={{color:"#4B4B4B",fontSize:13,fontFamily:"sans-serif"}}>{s}</span>
+          </div>
+        ))}
+      </div>
+      <button onClick={onBack} style={{background:"#C8102E",color:"#fff",border:"none",borderRadius:8,padding:"12px 32px",fontSize:14,fontFamily:"sans-serif",fontWeight:700,cursor:"pointer"}}>Back to RooFinder</button>
+    </div>
+  );
+
+  return (
+    <div style={{maxWidth:560,margin:"0 auto",padding:"40px 24px"}}>
+      <button onClick={onBack} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:13,cursor:"pointer",marginBottom:24,padding:0,fontFamily:"sans-serif"}}>← Back</button>
+
+      {/* Progress */}
+      <div style={{display:"flex",gap:4,marginBottom:32}}>
+        {[1,2,3,4].map(s=>(
+          <div key={s} style={{flex:1,height:4,borderRadius:20,background:s<=step?"#C8102E":"#E5E0D8",transition:"background 0.3s"}}/>
+        ))}
+      </div>
+
+      {/* Step labels */}
+      <div style={{fontSize:11,color:"#C8102E",fontWeight:700,letterSpacing:"1px",fontFamily:"sans-serif",marginBottom:8}}>STEP {step} OF 4</div>
+
+      {step===1 && (
+        <>
+          <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:28,letterSpacing:"1px",color:"#111",marginBottom:6}}>Company Info</h2>
+          <p style={{color:"#6B7280",fontFamily:"sans-serif",fontSize:14,marginBottom:24}}>Tell us about your roofing business.</p>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div><label style={labelStyle}>COMPANY NAME *</label><input value={form.company} onChange={e=>update("company",e.target.value)} placeholder="Ridge Valley Exteriors" style={inputStyle}/></div>
+            <div><label style={labelStyle}>OWNER NAME *</label><input value={form.owner} onChange={e=>update("owner",e.target.value)} placeholder="Your full name" style={inputStyle}/></div>
+            <div style={{display:"flex",gap:12}}>
+              <div style={{flex:1}}><label style={labelStyle}>PHONE *</label><input value={form.phone} onChange={e=>update("phone",e.target.value)} placeholder="(555) 555-5555" style={inputStyle}/></div>
+              <div style={{flex:1}}><label style={labelStyle}>EMAIL *</label><input value={form.email} onChange={e=>update("email",e.target.value)} placeholder="you@company.com" type="email" style={inputStyle}/></div>
+            </div>
+            <div><label style={labelStyle}>WEBSITE (optional)</label><input value={form.website} onChange={e=>update("website",e.target.value)} placeholder="yourcompany.com" style={inputStyle}/></div>
+            <div><label style={labelStyle}>SHORT BIO *</label><textarea value={form.bio} onChange={e=>update("bio",e.target.value)} placeholder="Tell homeowners what makes you different..." rows={3} style={{...inputStyle,resize:"none"}}/></div>
+          </div>
+          <button onClick={()=>setStep(2)} disabled={!form.company||!form.owner||!form.phone||!form.email||!form.bio} style={{width:"100%",marginTop:24,background:form.company&&form.owner&&form.phone&&form.email&&form.bio?"#C8102E":"#E5E0D8",color:form.company&&form.owner&&form.phone&&form.email&&form.bio?"#fff":"#9CA3AF",border:"none",borderRadius:8,padding:"14px",fontSize:15,fontFamily:"sans-serif",fontWeight:700,cursor:"pointer"}}>Next →</button>
+        </>
+      )}
+
+      {step===2 && (
+        <>
+          <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:28,letterSpacing:"1px",color:"#111",marginBottom:6}}>Verification</h2>
+          <p style={{color:"#6B7280",fontFamily:"sans-serif",fontSize:14,marginBottom:8}}>This is how we keep RooFinder trustworthy. Legit contractors complete this in under 5 minutes.</p>
+          <div style={{background:"#FEF2F2",border:"1px solid #FECACA",borderRadius:8,padding:"12px 16px",marginBottom:20}}>
+            <div style={{color:"#991B1B",fontSize:12,fontFamily:"sans-serif",fontWeight:700}}>🔒 Why we verify:</div>
+            <div style={{color:"#6B7280",fontSize:12,fontFamily:"sans-serif",marginTop:4}}>Every contractor on RooFinder is manually reviewed. Homeowners trust us because we don't let just anyone on.</div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <div><label style={labelStyle}>CONTRACTOR LICENSE NUMBER *</label><input value={form.license} onChange={e=>update("license",e.target.value)} placeholder="NC #12345" style={inputStyle}/></div>
+            <div><label style={labelStyle}>INSURANCE POLICY NUMBER *</label><input value={form.insurance} onChange={e=>update("insurance",e.target.value)} placeholder="Your general liability policy number" style={inputStyle}/></div>
+            <div style={{display:"flex",gap:12}}>
+              <div style={{flex:1}}><label style={labelStyle}>REFERENCE NAME *</label><input value={form.reference_name} onChange={e=>update("reference_name",e.target.value)} placeholder="Past customer name" style={inputStyle}/></div>
+              <div style={{flex:1}}><label style={labelStyle}>REFERENCE PHONE *</label><input value={form.reference_phone} onChange={e=>update("reference_phone",e.target.value)} placeholder="Their phone number" style={inputStyle}/></div>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:10,marginTop:24}}>
+            <button onClick={()=>setStep(1)} style={{flex:1,background:"#F7F5F0",color:"#4B4B4B",border:"1px solid #E5E0D8",borderRadius:8,padding:"14px",fontSize:14,fontFamily:"sans-serif",cursor:"pointer"}}>← Back</button>
+            <button onClick={()=>setStep(3)} disabled={!form.license||!form.insurance||!form.reference_name||!form.reference_phone} style={{flex:2,background:form.license&&form.insurance&&form.reference_name&&form.reference_phone?"#C8102E":"#E5E0D8",color:form.license&&form.insurance&&form.reference_name&&form.reference_phone?"#fff":"#9CA3AF",border:"none",borderRadius:8,padding:"14px",fontSize:15,fontFamily:"sans-serif",fontWeight:700,cursor:"pointer"}}>Next →</button>
+          </div>
+        </>
+      )}
+
+      {step===3 && (
+        <>
+          <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:28,letterSpacing:"1px",color:"#111",marginBottom:6}}>Your Specialties</h2>
+          <p style={{color:"#6B7280",fontFamily:"sans-serif",fontSize:14,marginBottom:20}}>Select everything your team does well. This helps homeowners find you.</p>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+            {specialtyOptions.map(s=>(
+              <button key={s} onClick={()=>toggleSpecialty(s)} style={{padding:"8px 14px",borderRadius:20,border:`1.5px solid ${form.specialties.includes(s)?"#C8102E":"#D1C9BB"}`,background:form.specialties.includes(s)?"#FEF2F2":"#fff",color:form.specialties.includes(s)?"#C8102E":"#4B4B4B",fontSize:12,fontFamily:"sans-serif",cursor:"pointer",fontWeight:form.specialties.includes(s)?700:400}}>
+                {form.specialties.includes(s)?"✓ ":""}{s}
+              </button>
+            ))}
+          </div>
+          <div><label style={labelStyle}>ZIP CODES YOU SERVE *</label><input value={form.zips} onChange={e=>update("zips",e.target.value)} placeholder="27601, 27603, 27605..." style={inputStyle}/><div style={{fontSize:11,color:"#9CA3AF",fontFamily:"sans-serif",marginTop:6}}>Separate with commas. Homeowners will find you when they search these zips.</div></div>
+          <div style={{display:"flex",gap:10,marginTop:24}}>
+            <button onClick={()=>setStep(2)} style={{flex:1,background:"#F7F5F0",color:"#4B4B4B",border:"1px solid #E5E0D8",borderRadius:8,padding:"14px",fontSize:14,fontFamily:"sans-serif",cursor:"pointer"}}>← Back</button>
+            <button onClick={()=>setStep(4)} disabled={form.specialties.length===0||!form.zips} style={{flex:2,background:form.specialties.length>0&&form.zips?"#C8102E":"#E5E0D8",color:form.specialties.length>0&&form.zips?"#fff":"#9CA3AF",border:"none",borderRadius:8,padding:"14px",fontSize:15,fontFamily:"sans-serif",fontWeight:700,cursor:"pointer"}}>Next →</button>
+          </div>
+        </>
+      )}
+
+      {step===4 && (
+        <>
+          <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:28,letterSpacing:"1px",color:"#111",marginBottom:6}}>Almost Done</h2>
+          <p style={{color:"#6B7280",fontFamily:"sans-serif",fontSize:14,marginBottom:20}}>Review our terms and submit your application.</p>
+          
+          {/* Summary */}
+          <div style={{background:"#F7F5F0",borderRadius:12,padding:"16px",marginBottom:20}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#111",fontFamily:"sans-serif",marginBottom:10}}>Your Application Summary</div>
+            {[
+              {l:"Company",v:form.company},
+              {l:"Owner",v:form.owner},
+              {l:"License",v:form.license},
+              {l:"Specialties",v:form.specialties.slice(0,3).join(", ")+(form.specialties.length>3?` +${form.specialties.length-3} more`:"")},
+              {l:"Service Area",v:form.zips.split(",").slice(0,3).join(", ")},
+            ].map(r=>(
+              <div key={r.l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #E5E0D8"}}>
+                <span style={{color:"#9CA3AF",fontSize:12,fontFamily:"sans-serif"}}>{r.l}</span>
+                <span style={{color:"#111",fontSize:12,fontFamily:"sans-serif",fontWeight:600}}>{r.v}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Pricing */}
+          <div style={{background:"#111",borderRadius:12,padding:"16px",marginBottom:20}}>
+            <div style={{fontSize:13,fontWeight:700,color:"#fff",fontFamily:"sans-serif",marginBottom:4}}>💰 Pricing — Pay Per Introduction</div>
+            <div style={{fontSize:11,color:"#9CA3AF",fontFamily:"sans-serif",marginBottom:12}}>You only pay when a homeowner chooses YOU and reaches out.</div>
+            {[
+              {t:"First 3 introductions",p:"FREE",sub:"While supplies last"},
+              {t:"Standard introduction",p:"$25"},
+              {t:"Urgent match introduction",p:"$50"},
+              {t:"Insurance claim introduction",p:"$75"},
+            ].map(r=>(
+              <div key={r.t} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #1E1E1E"}}>
+                <div>
+                  <div style={{color:"#9CA3AF",fontSize:12,fontFamily:"sans-serif"}}>{r.t}</div>
+                  {r.sub && <div style={{color:"#F59E0B",fontSize:10,fontFamily:"sans-serif",marginTop:2}}>🔥 {r.sub}</div>}
+                </div>
+                <span style={{color:r.p==="FREE"?"#34D399":"#C8102E",fontSize:13,fontFamily:"sans-serif",fontWeight:700}}>{r.p}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Agreement */}
+          <div onClick={()=>update("agree",!form.agree)} style={{display:"flex",gap:12,alignItems:"flex-start",cursor:"pointer",marginBottom:24}}>
+            <div style={{width:22,height:22,borderRadius:6,flexShrink:0,border:`2px solid ${form.agree?"#C8102E":"#D1C9BB"}`,background:form.agree?"#C8102E":"transparent",display:"flex",alignItems:"center",justifyContent:"center",marginTop:1}}>
+              {form.agree&&<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20,6 9,17 4,12"/></svg>}
+            </div>
+            <div style={{fontSize:13,color:"#4B4B4B",fontFamily:"sans-serif",lineHeight:1.6}}>
+              I agree to RooFinder's contractor terms. I confirm my license and insurance are valid. I commit to responding to leads within 24 hours.
+            </div>
+          </div>
+
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={()=>setStep(3)} style={{flex:1,background:"#F7F5F0",color:"#4B4B4B",border:"1px solid #E5E0D8",borderRadius:8,padding:"14px",fontSize:14,fontFamily:"sans-serif",cursor:"pointer"}}>← Back</button>
+            <button onClick={handleSubmit} disabled={!form.agree} style={{flex:2,background:form.agree?"#C8102E":"#E5E0D8",color:form.agree?"#fff":"#9CA3AF",border:"none",borderRadius:8,padding:"14px",fontSize:15,fontFamily:"sans-serif",fontWeight:700,cursor:form.agree?"pointer":"default"}}>Submit Application 🔴</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ── About & Privacy Pages ─────────────────────────────
+const AboutPage = ({onBack, onFounder}) => (
+  <div style={{maxWidth:680,margin:"0 auto",padding:"40px 24px"}}>
+    <button onClick={onBack} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:13,cursor:"pointer",marginBottom:24,padding:0,fontFamily:"sans-serif"}}>← Back</button>
+    <div style={{fontSize:11,fontWeight:700,letterSpacing:"3px",color:"#C8102E",textTransform:"uppercase",marginBottom:10}}>Our Story</div>
+    <h1 style={{fontFamily:"'Bebas Neue',serif",fontSize:48,letterSpacing:"1px",color:"#111",margin:"0 0 8px",lineHeight:1}}>Built by a roofer.<br/>For homeowners.</h1>
+    <p style={{fontFamily:"'DM Serif Display',serif",fontStyle:"italic",fontSize:18,color:"#6B7280",margin:"0 0 32px"}}>A better way to find someone you can trust with your home.</p>
+
+    <div style={{background:"#fff",borderRadius:12,padding:"28px",marginBottom:20,border:"1px solid #E5E0D8"}}>
+      <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:24,letterSpacing:"1px",color:"#111",margin:"0 0 14px"}}>Why RooFinder Exists</h2>
+      <p style={{color:"#4B4B4B",fontSize:15,lineHeight:1.8,margin:"0 0 14px",fontFamily:"sans-serif"}}>I work in roofing. I've seen the inside of this industry — the good and the bad. Homeowners get hammered with cold calls after they fill out one form online. They get pushed into decisions they don't have time to think through. They have no idea who to trust.</p>
+      <p style={{color:"#4B4B4B",fontSize:15,lineHeight:1.8,margin:0,fontFamily:"sans-serif"}}>RooFinder flips that. You browse first. You decide who to contact. We protect your number and your inbox. No forms going to ten companies. No surprises.</p>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:12,padding:"28px",marginBottom:20,border:"1px solid #E5E0D8"}}>
+      <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:24,letterSpacing:"1px",color:"#111",margin:"0 0 14px"}}>How We're Different</h2>
+      {[
+        {t:"Manually verified contractors", d:"Every roofer on RooFinder is reviewed by a real person. We check licenses, insurance, and references before they're listed."},
+        {t:"You're in control", d:"No forms blasted to ten companies. You browse, you choose, you reach out when you're ready."},
+        {t:"Hyper-local focus", d:"We start with North Carolina because we know it. Hurricane damage, hail, humidity — we get the issues you face here."},
+        {t:"Built by an actual roofer", d:"Not a tech company that decided roofing looked profitable. Real industry experience drives every decision."},
+      ].map((row,i)=>(
+        <div key={i} style={{padding:"14px 0",borderBottom:i<3?"1px solid #F0EDE8":"none"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+            <span style={{color:"#C8102E",fontSize:18}}>✓</span>
+            <div style={{fontSize:15,fontWeight:700,color:"#111",fontFamily:"sans-serif"}}>{row.t}</div>
+          </div>
+          <p style={{color:"#6B7280",fontSize:13,lineHeight:1.7,margin:"0 0 0 28px",fontFamily:"sans-serif"}}>{row.d}</p>
+        </div>
+      ))}
+    </div>
+
+    <div style={{background:"linear-gradient(135deg,#1A1A1A 0%,#2D1515 100%)",borderRadius:12,padding:"28px",marginBottom:20,color:"#fff"}}>
+      <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:24,letterSpacing:"1px",margin:"0 0 14px"}}>Meet The Founder</h2>
+      <div style={{display:"flex",gap:18,alignItems:"flex-start",marginBottom:16}}>
+        <div style={{width:64,height:64,borderRadius:"50%",background:"#C8102E",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,fontWeight:700,flexShrink:0}}>DN</div>
+        <div>
+          <div style={{fontSize:18,fontWeight:700,fontFamily:"sans-serif"}}>Dalton Nicely</div>
+          <div style={{color:"#9CA3AF",fontSize:13,fontFamily:"sans-serif",marginBottom:8}}>Founder · Raleigh, NC</div>
+          <p style={{color:"#D1D5DB",fontSize:14,lineHeight:1.7,margin:0,fontFamily:"sans-serif"}}>Wrestling coach. Roofing sales. Faith-driven family man. Built RooFinder because homeowners deserve better than spam calls.</p>
+        </div>
+      </div>
+      <button onClick={()=>onFounder()} style={{background:"rgba(200,16,46,0.2)",border:"1px solid #C8102E",color:"#fff",borderRadius:8,padding:"10px 20px",fontSize:13,fontFamily:"sans-serif",fontWeight:600,cursor:"pointer",width:"100%"}}>Read My Full Story →</button>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:12,padding:"28px",marginBottom:20,border:"1px solid #E5E0D8"}}>
+      <h2 style={{fontFamily:"'Bebas Neue',serif",fontSize:24,letterSpacing:"1px",color:"#111",margin:"0 0 14px"}}>Get In Touch</h2>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>📧</span><a href="mailto:hello@roofinder.online" style={{color:"#C8102E",fontSize:14,fontFamily:"sans-serif",textDecoration:"none",fontWeight:600}}>hello@roofinder.online</a></div>
+        <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>📍</span><span style={{color:"#4B4B4B",fontSize:14,fontFamily:"sans-serif"}}>Raleigh, North Carolina</span></div>
+        <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>🌐</span><span style={{color:"#4B4B4B",fontSize:14,fontFamily:"sans-serif"}}>roofinder.online</span></div>
+      </div>
+    </div>
+  </div>
+);
+
+const FounderPage = ({onBack}) => (
+  <div style={{maxWidth:620,margin:"0 auto",padding:"40px 24px"}}>
+    <button onClick={onBack} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:13,cursor:"pointer",marginBottom:24,padding:0,fontFamily:"sans-serif"}}>← Back</button>
+    <div style={{fontSize:11,fontWeight:700,letterSpacing:"3px",color:"#C8102E",textTransform:"uppercase",marginBottom:10}}>The Founder</div>
+    <h1 style={{fontFamily:"'Bebas Neue',serif",fontSize:42,letterSpacing:"1px",color:"#111",margin:"0 0 24px",lineHeight:1}}>Dalton Nicely</h1>
+
+    {/* Photo */}
+    <div style={{width:"100%",borderRadius:12,marginBottom:24,overflow:"hidden"}}>
+      <img src="https://i.postimg.cc/hjyTV288/FB-IMG-1779942592480.jpg" alt="Dalton Nicely with wrestling team" style={{width:"100%",display:"block",borderRadius:12}}/>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:12,padding:"24px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+      <h3 style={{fontFamily:"'Bebas Neue',serif",fontSize:20,letterSpacing:"1px",color:"#111",margin:"0 0 12px"}}>Where I Come From</h3>
+      <p style={{color:"#4B4B4B",fontSize:14,lineHeight:1.8,margin:0,fontFamily:"sans-serif"}}>I grew up with a wrestling background and still coach today in my free time. Wrestling taught me discipline, accountability, and how to fight for something even when it's hard. Those same values show up every day in how I work and how I built RooFinder.</p>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:12,padding:"24px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+      <h3 style={{fontFamily:"'Bebas Neue',serif",fontSize:20,letterSpacing:"1px",color:"#111",margin:"0 0 12px"}}>What Drives Me</h3>
+      <p style={{color:"#4B4B4B",fontSize:14,lineHeight:1.8,margin:"0 0 12px",fontFamily:"sans-serif"}}>I'm a family man trying to change the trajectory of my family. That's the honest truth behind RooFinder. I saw an opportunity to build something real — something that helps people — and I took it.</p>
+      <p style={{color:"#4B4B4B",fontSize:14,lineHeight:1.8,margin:0,fontFamily:"sans-serif"}}>I also enjoy spreading the good news of Jesus. My faith shapes how I do business — with honesty, with integrity, and with genuine care for the people I serve. That's not a tagline. That's just who I am.</p>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:12,padding:"24px",marginBottom:16,border:"1px solid #E5E0D8"}}>
+      <h3 style={{fontFamily:"'Bebas Neue',serif",fontSize:20,letterSpacing:"1px",color:"#111",margin:"0 0 12px"}}>Why I Built RooFinder</h3>
+      <p style={{color:"#4B4B4B",fontSize:14,lineHeight:1.8,margin:0,fontFamily:"sans-serif"}}>I work in roofing sales. I see how the industry treats homeowners — the spam calls, the pressure tactics, the runaround. I got tired of watching good people get taken advantage of. So I built something better. RooFinder puts the homeowner in control. And that's the way it should be.</p>
+    </div>
+
+    <div style={{background:"linear-gradient(135deg,#1A1A1A,#2D1515)",borderRadius:12,padding:"24px",color:"#fff"}}>
+      <h3 style={{fontFamily:"'Bebas Neue',serif",fontSize:20,letterSpacing:"1px",margin:"0 0 12px"}}>Get In Touch</h3>
+      <p style={{color:"#D1D5DB",fontSize:14,lineHeight:1.7,margin:"0 0 16px",fontFamily:"sans-serif"}}>Have a question or want to talk? I respond personally.</p>
+      <a href="mailto:hello@roofinder.online" style={{color:"#C8102E",fontSize:14,fontFamily:"sans-serif",textDecoration:"none",fontWeight:700}}>hello@roofinder.online</a>
+    </div>
+  </div>
+);
+
+const PrivacyPage = ({onBack}) => (
+  <div style={{maxWidth:680,margin:"0 auto",padding:"40px 24px"}}>
+    <button onClick={onBack} style={{background:"none",border:"none",color:"#9CA3AF",fontSize:13,cursor:"pointer",marginBottom:24,padding:0,fontFamily:"sans-serif"}}>← Back</button>
+    <div style={{fontSize:11,fontWeight:700,letterSpacing:"3px",color:"#C8102E",textTransform:"uppercase",marginBottom:10}}>Privacy Policy</div>
+    <h1 style={{fontFamily:"'Bebas Neue',serif",fontSize:42,letterSpacing:"1px",color:"#111",margin:"0 0 8px",lineHeight:1}}>Your privacy matters.</h1>
+    <p style={{color:"#6B7280",fontSize:14,fontFamily:"sans-serif",margin:"0 0 32px"}}>Last updated: May 2026</p>
+
+    <div style={{background:"#fff",borderRadius:12,padding:"28px",border:"1px solid #E5E0D8",fontFamily:"sans-serif"}}>
+      {[
+        {h:"What We Collect", b:"When you use RooFinder, we may collect your name, email address, phone number (only if you provide it), zip code, and the messages you send to contractors. We collect what you give us — nothing more."},
+        {h:"How Your Information Is Used", b:"When you choose to message a contractor through RooFinder, we share your information ONLY with that specific contractor you selected — not with anyone else. This is how RooFinder connects you with the person you actually want to talk to."},
+        {h:"How We Make Money — Full Transparency", b:"Contractors pay RooFinder a fee for the introduction when a homeowner like you chooses to message them. This is what keeps the platform free for homeowners. We're not selling your information — we're facilitating an introduction you initiated. You are never sold to multiple contractors. You are never added to a marketing list. Your information goes only to the contractor you personally selected."},
+        {h:"What We Don't Do", b:"We don't blast your information to multiple contractors. We don't sell your information to third-party marketing companies. We don't add you to spam call lists. We don't share your phone number unless you opt in to text or phone contact. Your information only goes to the specific contractor you messaged."},
+        {h:"Contractor Information", b:"Information about contractors on RooFinder — license numbers, insurance, references — is collected during their application process and used solely to verify their legitimacy. We display only what's relevant to homeowners (name, location, specialties, rating, badges)."},
+        {h:"Cookies & Analytics", b:"RooFinder may use basic analytics to understand how the site is used (page visits, button clicks). This data is anonymous and is never tied to your personal information."},
+        {h:"Your Rights", b:"You can request deletion of your information at any time by emailing hello@roofinder.online. We will delete your data within 30 days unless we are legally required to retain it."},
+        {h:"Data Security", b:"We use industry-standard encryption (SSL) to protect data transmitted through our platform. While no online service is 100% secure, we take reasonable measures to protect your information."},
+        {h:"Children's Privacy", b:"RooFinder is intended for adults (18+). We do not knowingly collect information from anyone under 18."},
+        {h:"Changes to This Policy", b:"We may update this policy from time to time. When we do, we'll update the date at the top and notify users via email if changes are significant."},
+        {h:"Contact Us", b:"Questions about privacy? Email hello@roofinder.online. We respond within 48 hours."},
+      ].map((s,i)=>(
+        <div key={i} style={{padding:"18px 0",borderBottom:i<10?"1px solid #F0EDE8":"none"}}>
+          <h3 style={{fontFamily:"'Bebas Neue',serif",fontSize:18,letterSpacing:"1px",color:"#111",margin:"0 0 8px"}}>{s.h}</h3>
+          <p style={{color:"#4B4B4B",fontSize:14,lineHeight:1.7,margin:0}}>{s.b}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+function App() {
+  const [tab,setTab] = useState("landing");
+  const [user,setUser] = useState(null);
+  const [showUserMenu,setShowUserMenu] = useState(false);
+  if(tab==="landing") return <LandingPage onBrowse={()=>setTab("browse")} onUrgent={()=>setTab("urgent")} onPro={()=>setTab("pro")}/>;
+  if(tab==="about") return (
+    <div style={{minHeight:"100vh",background:"#F7F5F0"}}>
+      <div style={{background:"#1A1A1A",padding:"0 24px"}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0"}}>
+          <button onClick={()=>setTab("landing")} style={{display:"flex",alignItems:"center",gap:10,background:"none",border:"none",cursor:"pointer",padding:0}}>
+            <LogoIcon size={44}/>
+            <span style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:26,letterSpacing:"1px",color:"#fff",lineHeight:1}}>Roo<span style={{color:"#C8102E"}}>Finder</span></span>
+          </button>
+          <div style={{width:44}}/>
+        </div>
+      </div>
+      <AboutPage onBack={()=>setTab("landing")} onFounder={()=>setTab("founder")}/>
+    </div>
+  );
+  if(tab==="founder") return (
+    <div style={{minHeight:"100vh",background:"#F7F5F0"}}>
+      <div style={{background:"#1A1A1A",padding:"0 24px"}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0"}}>
+          <button onClick={()=>setTab("about")} style={{display:"flex",alignItems:"center",gap:10,background:"none",border:"none",cursor:"pointer",padding:0}}>
+            <LogoIcon size={44}/>
+            <span style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:26,letterSpacing:"1px",color:"#fff",lineHeight:1}}>Roo<span style={{color:"#C8102E"}}>Finder</span></span>
+          </button>
+          <div style={{width:44}}/>
+        </div>
+      </div>
+      <FounderPage onBack={()=>setTab("about")}/>
+    </div>
+  );
+  if(tab==="privacy") return (
+    <div style={{minHeight:"100vh",background:"#F7F5F0"}}>
+      <div style={{background:"#1A1A1A",padding:"0 24px"}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0"}}>
+          <button onClick={()=>setTab("landing")} style={{display:"flex",alignItems:"center",gap:10,background:"none",border:"none",cursor:"pointer",padding:0}}>
+            <LogoIcon size={44}/>
+            <span style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:26,letterSpacing:"1px",color:"#fff",lineHeight:1}}>Roo<span style={{color:"#C8102E"}}>Finder</span></span>
+          </button>
+          <div style={{width:44}}/>
+        </div>
+      </div>
+      <PrivacyPage onBack={()=>setTab("landing")}/>
+    </div>
+  );
+  if(tab==="pro") return (
+    <div style={{minHeight:"100vh",background:"#F7F5F0"}}>
+      <div style={{background:"#1A1A1A",padding:"0 24px",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 20px rgba(0,0,0,0.3)"}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0"}}>
+          <button onClick={()=>setTab("landing")} style={{display:"flex",alignItems:"center",gap:10,background:"none",border:"none",cursor:"pointer",padding:0}}>
+            <LogoIcon size={44}/>
+            <span style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:26,letterSpacing:"1px",color:"#fff",lineHeight:1}}>Roo<span style={{color:"#C8102E"}}>Finder</span></span>
+          </button>
+          <div style={{color:"#9CA3AF",fontSize:13,fontFamily:"sans-serif"}}>🏠 Contractor Application</div>
+          <div style={{width:44}}/>
+        </div>
+      </div>
+      <ProSignup onBack={()=>setTab("landing")}/>
+    </div>
+  );
+  return (
+    <div style={{minHeight:"100vh",background:"#F7F5F0"}}>
+      <div style={{background:"#1A1A1A",padding:"0 24px",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 20px rgba(0,0,0,0.3)"}}>
+        <div style={{maxWidth:1000,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 0"}}>
+          <button onClick={()=>setTab("landing")} style={{display:"flex",alignItems:"center",gap:10,background:"none",border:"none",cursor:"pointer",padding:0}}>
+            <LogoIcon size={44}/>
+            <span style={{fontFamily:"'Bebas Neue','Georgia',serif",fontSize:26,letterSpacing:"1px",color:"#fff",lineHeight:1}}>Roo<span style={{color:"#C8102E"}}>Finder</span></span>
+          </button>
+          <div style={{display:"flex",gap:4,background:"#2A2A2A",borderRadius:10,padding:4}}>
+            <button onClick={()=>setTab("browse")} style={{padding:"7px 14px",borderRadius:7,border:"none",background:tab==="browse"?"#fff":"transparent",color:tab==="browse"?"#111":"#9CA3AF",fontSize:12,fontWeight:tab==="browse"?700:400,cursor:"pointer",whiteSpace:"nowrap"}}>👀 Just Browsing</button>
+            <button onClick={()=>setTab("urgent")} style={{padding:"7px 14px",borderRadius:7,border:"none",background:tab==="urgent"?"#C8102E":"transparent",color:tab==="urgent"?"#fff":"#9CA3AF",fontSize:12,fontWeight:tab==="urgent"?700:400,cursor:"pointer",whiteSpace:"nowrap"}}>🚨 Need One Today</button>
+            <button onClick={()=>setTab("pro")} style={{padding:"7px 14px",borderRadius:7,border:"none",background:"transparent",color:"#F59E0B",fontSize:12,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>🏠 List Your Business</button>
+          </div>
+          <div style={{position:"relative"}}>
+            {user ? (
+              <button onClick={()=>setShowUserMenu(!showUserMenu)} style={{background:"#2A2A2A",border:"1px solid #3A3A3A",borderRadius:20,padding:"7px 14px",color:"#E5E5E5",fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
+                <div style={{width:22,height:22,background:"#C8102E",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#fff"}}>{user.name[0].toUpperCase()}</div>
+                {user.name}
+              </button>
+            ) : <div style={{width:32}}/>}
+            {showUserMenu&&user&&(
+              <div style={{position:"absolute",right:0,top:"calc(100% + 8px)",background:"#fff",border:"1px solid #E5E0D8",borderRadius:10,padding:"8px 0",minWidth:180,boxShadow:"0 8px 24px rgba(0,0,0,0.12)",zIndex:200}}>
+                <div style={{padding:"8px 16px",borderBottom:"1px solid #F0EDE8"}}><div style={{fontSize:13,fontWeight:700,color:"#111"}}>{user.name}</div><div style={{fontSize:12,color:"#9CA3AF"}}>{user.email}</div></div>
+                <button onClick={()=>{setUser(null);setShowUserMenu(false);}} style={{width:"100%",background:"none",border:"none",padding:"10px 16px",fontSize:13,color:"#C8102E",cursor:"pointer",textAlign:"left"}}>Sign Out</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      {tab==="urgent"?(
+        <div style={{background:"linear-gradient(135deg,#7F1D1D 0%,#1A1A1A 100%)",padding:"28px 24px",borderBottom:"3px solid #C8102E"}}>
+          <div style={{maxWidth:480,margin:"0 auto",textAlign:"center"}}>
+            <div style={{fontSize:32,marginBottom:8}}>🚨</div>
+            <h1 style={{color:"#fff",fontFamily:"'Bebas Neue','Georgia',serif",fontSize:38,letterSpacing:"1px",margin:"0 0 6px",lineHeight:1}}>Let's Find You Someone Fast</h1>
+            <p style={{color:"#FCA5A5",fontSize:14,margin:0}}>Answer 4 quick questions. You choose how they contact you.</p>
+          </div>
+        </div>
+      ):(
+        <div style={{background:"linear-gradient(135deg,#1A1A1A 0%,#2D1515 100%)",padding:"24px",borderBottom:"3px solid #C8102E"}}>
+          <div style={{maxWidth:1000,margin:"0 auto"}}>
+            <h1 style={{color:"#fff",fontFamily:"'Bebas Neue','Georgia',serif",fontSize:36,letterSpacing:"1px",margin:"0 0 4px",lineHeight:1}}>Find a Trusted Roofer Near You</h1>
+            <p style={{color:"#9CA3AF",fontFamily:"'DM Serif Display',serif",fontStyle:"italic",fontSize:14,margin:0}}>Browse freely. No forms. No spam calls.</p>
+          </div>
+        </div>
+      )}
+      {tab==="browse"?<BrowseTab user={user} onSignup={setUser} onUrgent={()=>setTab("urgent")}/>:<UrgentFlow onBack={()=>setTab("browse")}/>}
+      <div style={{textAlign:"center",padding:"32px 24px",color:"#9CA3AF",fontSize:12,borderTop:"1px solid #E5E0D8"}}>
+        <div style={{marginBottom:10}}>
+          <button onClick={()=>setTab("about")} style={{background:"none",border:"none",color:"#4B4B4B",fontSize:13,cursor:"pointer",padding:"0 12px",fontFamily:"sans-serif"}}>About</button>
+          <span style={{color:"#D1C9BB"}}>·</span>
+          <button onClick={()=>setTab("privacy")} style={{background:"none",border:"none",color:"#4B4B4B",fontSize:13,cursor:"pointer",padding:"0 12px",fontFamily:"sans-serif"}}>Privacy</button>
+          <span style={{color:"#D1C9BB"}}>·</span>
+          <button onClick={()=>setTab("pro")} style={{background:"none",border:"none",color:"#4B4B4B",fontSize:13,cursor:"pointer",padding:"0 12px",fontFamily:"sans-serif"}}>List Your Business</button>
+        </div>
+        RooFinder.online · Browse freely. No forms. No spam calls.
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
