@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RooFinder - Exclusive Roofing Leads in NC</title>
+<meta name="description" content="Scored, exclusive homeowner lead lists for roofing contractors in Raleigh, Durham, and Charlotte. HOT leads, territory maps, weekly refresh."/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0A0A0A; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #C8102E; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+
+// ── Brand Colors ──────────────────────────────────────
+const RED = "#C8102E";
+const DARK = "#0A0A0A";
+const CARD = "#111111";
+const BORDER = "#2A2A2A";
+const MUTED = "#6B7280";
+const CREAM = "#F7F5F0";
+
+// ── Sample lead data ──────────────────────────────────
+const sampleLeads = [
+  { score: 10, priority: "HOT", address: "5013 Bivens Dr", city: "Raleigh", owner: "Caputo, Gina M", roofAge: 31, yearsOwned: 30.7, homeValue: 397675, weatherAlert: "Yes", reasons: "Aging roof | Long-term owner | Ideal home value | Owner-occupied | Weather-affected area" },
+  { score: 10, priority: "HOT", address: "6004 Tarleton Ct", city: "Raleigh", owner: "Goshovskyy, Vadym", roofAge: 31, yearsOwned: 19.1, homeValue: 354312, weatherAlert: "Yes", reasons: "Aging roof | Long-term owner | Ideal home value | Owner-occupied | Weather-affected area" },
+  { score: 9,  priority: "HOT", address: "3709 Cliff Haven Dr", city: "Raleigh", owner: "May, Edward N", roofAge: 31, yearsOwned: 30.5, homeValue: 550821, weatherAlert: "Yes", reasons: "Aging roof | Long-term owner | Ideal home value | Owner-occupied | Weather-affected area" },
+  { score: 9,  priority: "HOT", address: "1609 Whittington Dr", city: "Raleigh", owner: "Mayer, Robert S", roofAge: 31, yearsOwned: 27.8, homeValue: 660061, weatherAlert: "Yes", reasons: "Aging roof | Long-term owner | High-value home | Owner-occupied | Weather-affected area" },
+  { score: 8,  priority: "HOT", address: "4408 Millbrook Rd", city: "Raleigh", owner: "Fletcher, James R", roofAge: 28, yearsOwned: 18.2, homeValue: 412000, weatherAlert: "Yes", reasons: "Aging roof | Long-term owner | Ideal home value | Owner-occupied | Weather-affected area" },
+  { score: 7,  priority: "HOT", address: "2201 Creekside Dr", city: "Durham", owner: "Williams, Patricia A", roofAge: 26, yearsOwned: 14.3, homeValue: 385000, weatherAlert: "No",  reasons: "Aging roof | Long-term owner | Ideal home value | Owner-occupied" },
+  { score: 6,  priority: "WARM", address: "915 Carriage Oaks Dr", city: "Raleigh", owner: "Johnson, Mark T", roofAge: 22, yearsOwned: 11.0, homeValue: 298000, weatherAlert: "Yes", reasons: "Aging roof | Mid-term owner | Mid-value home | Owner-occupied | Weather-affected area" },
+  { score: 5,  priority: "WARM", address: "7712 Stonehaven Ln", city: "Cary", owner: "Rodriguez, Elena M", roofAge: 21, yearsOwned: 8.5, homeValue: 445000, weatherAlert: "No",  reasons: "Aging roof | Mid-term owner | Ideal home value | Owner-occupied" },
+];
+
+const hotStreets = [
+  { street: "E Woodcroft Pkwy", city: "Durham", activity: 9, risk: "HIGH" },
+  { street: "Carriage Oaks Dr", city: "Raleigh", activity: 5, risk: "HIGH" },
+  { street: "Hanging Fern Ln",  city: "Raleigh", activity: 2, risk: "MED"  },
+  { street: "Teal Crest Ct",    city: "Raleigh", activity: 2, risk: "MED"  },
+  { street: "Village Manor Way",city: "Raleigh", activity: 2, risk: "MED"  },
+];
+
+// ── Logo ──────────────────────────────────────────────
+const LogoIcon = ({ size = 36 }) => (
+  <svg style={{ width:size, height:size, filter:"drop-shadow(0 0 8px rgba(200,16,46,0.5))", flexShrink:0 }} viewBox="0 0 100 100" fill="none">
+    <defs>
+      <linearGradient id="lr" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#E8192E"/><stop offset="100%" stopColor="#8B0A1E"/>
+      </linearGradient>
+    </defs>
+    <rect x="18" y="52" width="52" height="38" rx="2" fill="#2A2A2A"/>
+    <rect x="38" y="66" width="14" height="24" rx="2" fill="#111"/>
+    <polygon points="10,55 50,18 90,55" fill="url(#lr)"/>
+    <circle cx="72" cy="38" r="18" fill="#0D0D0D" stroke={RED} strokeWidth="4"/>
+    <line x1="85" y1="51" x2="96" y2="62" stroke={RED} strokeWidth="5" strokeLinecap="round"/>
+    <line x1="67" y1="38" x2="77" y2="38" stroke={RED} strokeWidth="2" strokeLinecap="round"/>
+    <line x1="72" y1="33" x2="72" y2="43" stroke={RED} strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+// ── Score Badge ───────────────────────────────────────
+const ScoreBadge = ({ score, priority }) => {
+  const bg = priority === "HOT" ? "#7F1D1D" : priority === "WARM" ? "#78350F" : "#1F2937";
+  const color = priority === "HOT" ? "#FCA5A5" : priority === "WARM" ? "#FCD34D" : "#9CA3AF";
+  return (
+    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+      <div style={{ background:bg, color, borderRadius:6, padding:"3px 8px", fontSize:11, fontWeight:700, fontFamily:"sans-serif" }}>{priority}</div>
+      <div style={{ background:"#1F2937", color:"#60A5FA", borderRadius:6, padding:"3px 8px", fontSize:11, fontWeight:700, fontFamily:"sans-serif" }}>{score}/10</div>
+    </div>
+  );
+};
+
+// ── Lead Preview Tab ──────────────────────────────────
+const LeadPreviewTab = ({ onGetStarted }) => {
+  const [activeFilter, setActiveFilter] = useState("All");
+  const filters = ["All", "HOT", "WARM"];
+  const shown = activeFilter === "All" ? sampleLeads : sampleLeads.filter(l => l.priority === activeFilter);
+
+  return (
+    <div style={{ maxWidth:1000, margin:"0 auto", padding:"32px 24px" }}>
+      <div style={{ marginBottom:28, textAlign:"center" }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:10 }}>Sample Data Preview</div>
+        <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:28, fontWeight:700, margin:"0 0 10px" }}>This is what you're buying</h2>
+        <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, lineHeight:1.7, maxWidth:560, margin:"0 auto" }}>
+          Every lead is scored 1–10 using our proprietary scoring model. Real addresses. Real owners. Updated weekly. The methodology stays with us — the results are yours.
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div style={{ display:"flex", gap:8, justifyContent:"center", marginBottom:24 }}>
+        {filters.map(f => (
+          <button key={f} onClick={() => setActiveFilter(f)} style={{ padding:"7px 20px", borderRadius:20, border:`1.5px solid ${activeFilter===f?RED:BORDER}`, background:activeFilter===f?RED:"transparent", color:activeFilter===f?"#fff":MUTED, fontSize:13, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer" }}>{f}</button>
+        ))}
+      </div>
+
+      {/* Lead cards */}
+      <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:32 }}>
+        {shown.map((lead, i) => (
+          <div key={i} style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:12, padding:"16px 20px" }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, flexWrap:"wrap" }}>
+              <div style={{ flex:1 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6, flexWrap:"wrap" }}>
+                  <ScoreBadge score={lead.score} priority={lead.priority}/>
+                  <span style={{ color:"#fff", fontSize:15, fontWeight:700, fontFamily:"sans-serif" }}>{lead.address}</span>
+                  <span style={{ color:MUTED, fontSize:13, fontFamily:"sans-serif" }}>{lead.city}, NC</span>
+                </div>
+                <div style={{ color:"#9CA3AF", fontSize:12, fontFamily:"sans-serif", lineHeight:1.7 }}>
+                  {lead.reasons.split(" | ").map((r, ri) => (
+                    <span key={ri} style={{ display:"inline-block", background:"#1F2937", color:"#93C5FD", borderRadius:4, padding:"1px 7px", marginRight:5, marginBottom:3, fontSize:11 }}>✓ {r}</span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display:"flex", gap:20, flexShrink:0, flexWrap:"wrap" }}>
+                {[
+                  { label:"Roof Age", value:`${lead.roofAge} yrs` },
+                  { label:"Owned", value:`${lead.yearsOwned} yrs` },
+                  { label:"Value", value:`$${(lead.homeValue/1000).toFixed(0)}k` },
+                  { label:"Weather Alert", value:lead.weatherAlert },
+                ].map(s => (
+                  <div key={s.label} style={{ textAlign:"center" }}>
+                    <div style={{ color:"#fff", fontSize:14, fontWeight:700, fontFamily:"sans-serif" }}>{s.value}</div>
+                    <div style={{ color:MUTED, fontSize:10, fontFamily:"sans-serif", textTransform:"uppercase", letterSpacing:"0.5px" }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* High Activity Streets */}
+      <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:12, padding:"20px 24px", marginBottom:32 }}>
+        <div style={{ fontSize:13, fontWeight:700, color:"#fff", fontFamily:"sans-serif", marginBottom:4 }}>🔥 High-Activity Streets</div>
+        <div style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", marginBottom:16 }}>Our intelligence flags streets with concentrated roofing activity — knock the whole block while demand is hot.</div>
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {hotStreets.map((z, i) => (
+            <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"#1A1A1A", borderRadius:8 }}>
+              <div>
+                <span style={{ color:"#fff", fontSize:14, fontWeight:700, fontFamily:"sans-serif" }}>{z.street}</span>
+                <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", marginLeft:10 }}>{z.city}</span>
+              </div>
+              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>Activity level: {z.activity}</span>
+                <span style={{ background:z.risk==="HIGH"?"#7F1D1D":"#78350F", color:z.risk==="HIGH"?"#FCA5A5":"#FCD34D", fontSize:10, fontWeight:700, padding:"2px 8px", borderRadius:4, fontFamily:"sans-serif" }}>{z.risk} PRIORITY</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ textAlign:"center" }}>
+        <div style={{ color:MUTED, fontSize:13, fontFamily:"sans-serif", marginBottom:16 }}>
+          This is a sample. The live feed has 2,000+ scored leads updated weekly across Raleigh, Durham, and Charlotte.
+        </div>
+        <button onClick={onGetStarted} style={{ background:RED, color:"#fff", border:"none", borderRadius:10, padding:"14px 40px", fontSize:16, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer" }}>
+          Get Access →
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ── Territory Map Tab ────────────────────────────────
+const PocketMapTab = ({ onGetStarted }) => {
+  const [selected, setSelected] = useState(null);
+
+  const pockets = [
+    { id:1,  name:"North Raleigh",         x:340, y:130, r:52, leads:312, hot:187, warm:125, price:5999, status:"available", zips:"27615, 27616, 27614" },
+    { id:2,  name:"Midtown / North Hills",  x:320, y:222, r:44, leads:248, hot:143, warm:105, price:4499, status:"available", zips:"27609, 27612" },
+    { id:3,  name:"Downtown / Inside Belt", x:368, y:298, r:36, leads:156, hot:89,  warm:67,  price:2999, status:"sold",      zips:"27601, 27603, 27604" },
+    { id:4,  name:"East Raleigh",           x:455, y:285, r:44, leads:203, hot:118, warm:85,  price:3999, status:"available", zips:"27610, 27601" },
+    { id:5,  name:"South Raleigh / Garner", x:388, y:378, r:48, leads:271, hot:156, warm:115, price:4999, status:"available", zips:"27603, 27606, 27529" },
+    { id:6,  name:"West Raleigh / Cary",    x:228, y:308, r:50, leads:289, hot:167, warm:122, price:5499, status:"limited",   zips:"27607, 27606, 27513" },
+    { id:7,  name:"Durham",                 x:140, y:155, r:46, leads:198, hot:112, warm:86,  price:3799, status:"available", zips:"27701, 27703, 27705" },
+    { id:8,  name:"RTP / Morrisville",      x:192, y:248, r:38, leads:167, hot:94,  warm:73,  price:2999, status:"sold",      zips:"27560, 27519" },
+  ];
+
+  const statusColor = { available: RED, limited: "#F59E0B", sold: "#374151" };
+  const statusLabel = { available: "AVAILABLE", limited: "1 SLOT LEFT", sold: "SOLD OUT" };
+  const sel = pockets.find(p => p.id === selected);
+
+  return (
+    <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 24px" }}>
+      <div style={{ textAlign:"center", marginBottom:28 }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:10 }}>Territory Map</div>
+        <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:26, margin:"0 0 8px" }}>Buy a pocket. Own the territory.</h2>
+        <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, maxWidth:520, margin:"0 auto" }}>
+          Each pocket is a ~5-mile zone with all scored leads inside it — exclusive to one contractor. Click a zone to see what's inside.
+        </p>
+      </div>
+
+      <div style={{ display:"grid", gridTemplateColumns: sel ? "1fr 320px" : "1fr", gap:24, alignItems:"start" }}>
+
+        {/* Map */}
+        <div style={{ background:"#0D0D0D", border:`1px solid ${BORDER}`, borderRadius:16, overflow:"hidden", position:"relative" }}>
+          <svg viewBox="0 0 600 500" style={{ width:"100%", display:"block" }}>
+            {/* Background */}
+            <rect width="600" height="500" fill="#0D0D0D"/>
+
+            {/* Subtle road grid / highway lines */}
+            {/* I-440 beltline — rough ellipse */}
+            <ellipse cx="360" cy="295" rx="105" ry="85" fill="none" stroke="#1F2937" strokeWidth="6" strokeDasharray="0"/>
+            {/* I-40 East-West */}
+            <line x1="0" y1="330" x2="600" y2="315" stroke="#1F2937" strokeWidth="5"/>
+            {/* US-1 / Capital Blvd — NE diagonal */}
+            <line x1="370" y1="500" x2="420" y2="0" stroke="#1F2937" strokeWidth="3"/>
+            {/* I-40 to Durham */}
+            <line x1="80" y1="210" x2="300" y2="290" stroke="#1F2937" strokeWidth="5"/>
+            {/* Glenwood Ave-ish north */}
+            <line x1="330" y1="0" x2="345" y2="500" stroke="#1F2937" strokeWidth="2"/>
+            {/* Wade Ave west */}
+            <line x1="150" y1="300" x2="420" y2="295" stroke="#1F2937" strokeWidth="2"/>
+
+            {/* Road labels */}
+            <text x="82" y="304" fill="#374151" fontSize="9" fontFamily="sans-serif" transform="rotate(-8,82,304)">I-40</text>
+            <text x="275" y="270" fill="#374151" fontSize="9" fontFamily="sans-serif" transform="rotate(-5,275,270)">I-40</text>
+            <text x="300" y="338" fill="#374151" fontSize="9" fontFamily="sans-serif">I-440</text>
+            <text x="408" y="200" fill="#374151" fontSize="9" fontFamily="sans-serif" transform="rotate(-83,408,200)">US-1</text>
+
+            {/* City marker */}
+            <circle cx="360" cy="295" r="5" fill="#4B5563"/>
+            <text x="368" y="292" fill="#6B7280" fontSize="9" fontFamily="sans-serif">Raleigh</text>
+            <circle cx="140" cy="152" r="5" fill="#4B5563"/>
+            <text x="148" y="149" fill="#6B7280" fontSize="9" fontFamily="sans-serif">Durham</text>
+
+            {/* Pocket circles */}
+            {pockets.map(p => {
+              const col = statusColor[p.status];
+              const isSel = selected === p.id;
+              const isSold = p.status === "sold";
+              return (
+                <g key={p.id} onClick={() => setSelected(isSel ? null : p.id)} style={{ cursor: isSold ? "default" : "pointer" }}>
+                  {/* Glow ring for available */}
+                  {!isSold && (
+                    <circle cx={p.x} cy={p.y} r={p.r + 8} fill={col} opacity={isSel ? 0.18 : 0.06}/>
+                  )}
+                  {/* Main circle */}
+                  <circle
+                    cx={p.x} cy={p.y} r={p.r}
+                    fill={isSold ? "rgba(30,30,30,0.6)" : `rgba(${col=== RED?"200,16,46":col==="#F59E0B"?"245,158,11":"55,65,81"},0.15)`}
+                    stroke={isSel ? col : col}
+                    strokeWidth={isSel ? 2.5 : 1.5}
+                    strokeOpacity={isSold ? 0.3 : 0.8}
+                    strokeDasharray={isSold ? "4 3" : "0"}
+                  />
+                  {/* Lead count */}
+                  <text x={p.x} y={p.y - 7} textAnchor="middle" fill={isSold ? "#4B5563" : "#fff"} fontSize="15" fontWeight="700" fontFamily="sans-serif">
+                    {p.leads}
+                  </text>
+                  <text x={p.x} y={p.y + 8} textAnchor="middle" fill={isSold ? "#374151" : MUTED} fontSize="9" fontFamily="sans-serif">
+                    leads
+                  </text>
+                  {/* Name label */}
+                  <text x={p.x} y={p.y + p.r + 14} textAnchor="middle" fill={isSold ? "#374151" : "#9CA3AF"} fontSize="9" fontFamily="sans-serif" fontWeight={isSel?"700":"400"}>
+                    {p.name.length > 18 ? p.name.slice(0,17)+"…" : p.name}
+                  </text>
+                  {/* Status pill */}
+                  {p.status === "sold" && (
+                    <text x={p.x} y={p.y + p.r + 24} textAnchor="middle" fill="#374151" fontSize="8" fontFamily="sans-serif">SOLD OUT</text>
+                  )}
+                  {p.status === "limited" && (
+                    <text x={p.x} y={p.y + p.r + 24} textAnchor="middle" fill="#F59E0B" fontSize="8" fontFamily="sans-serif" fontWeight="700">1 SLOT LEFT</text>
+                  )}
+                </g>
+              );
+            })}
+
+            {/* North arrow */}
+            <text x="558" y="30" fill="#374151" fontSize="11" fontFamily="sans-serif" fontWeight="700">N ↑</text>
+          </svg>
+
+          {/* Legend */}
+          <div style={{ display:"flex", gap:20, padding:"12px 20px", borderTop:`1px solid ${BORDER}`, justifyContent:"center" }}>
+            {[
+              { col:RED,      label:"Available" },
+              { col:"#F59E0B", label:"Limited" },
+              { col:"#374151", label:"Sold Out" },
+            ].map((l,i) => (
+              <div key={i} style={{ display:"flex", alignItems:"center", gap:6 }}>
+                <div style={{ width:10, height:10, borderRadius:"50%", background:l.col }}/>
+                <span style={{ color:MUTED, fontSize:11, fontFamily:"sans-serif" }}>{l.label}</span>
+              </div>
+            ))}
+            <span style={{ color:"#4B5563", fontSize:11, fontFamily:"sans-serif" }}>· Click a zone to see details</span>
+          </div>
+        </div>
+
+        {/* Detail panel */}
+        {sel && (
+          <div style={{ background:CARD, border:`2px solid ${statusColor[sel.status]}`, borderRadius:16, padding:"24px 20px", position:"sticky", top:80 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:16 }}>
+              <div>
+                <div style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:18, fontWeight:700, marginBottom:4 }}>{sel.name}</div>
+                <span style={{ background: sel.status==="sold"?"#1F2937":sel.status==="limited"?"rgba(245,158,11,0.15)":"rgba(200,16,46,0.15)", color:statusColor[sel.status], fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:20, fontFamily:"sans-serif", letterSpacing:"0.5px" }}>
+                  {statusLabel[sel.status]}
+                </span>
+              </div>
+              <button onClick={() => setSelected(null)} style={{ background:"none", border:"none", color:MUTED, fontSize:18, cursor:"pointer", padding:0, lineHeight:1 }}>×</button>
+            </div>
+
+            <div style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", marginBottom:20 }}>Zip codes: {sel.zips}</div>
+
+            {/* Lead breakdown */}
+            <div style={{ background:"#0D0D0D", borderRadius:10, padding:16, marginBottom:20 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>Total leads in pocket</span>
+                <span style={{ color:"#fff", fontSize:20, fontWeight:700, fontFamily:"Georgia,serif" }}>{sel.leads}</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:8 }}>
+                <span style={{ display:"flex", alignItems:"center", gap:6, color:"#FCA5A5", fontSize:13, fontFamily:"sans-serif" }}>
+                  <span style={{ background:"rgba(200,16,46,0.2)", color:RED, padding:"1px 7px", borderRadius:10, fontSize:10, fontWeight:700 }}>HOT</span> {sel.hot} leads
+                </span>
+                <span style={{ color:"#FCA5A5", fontSize:13, fontFamily:"sans-serif", fontWeight:600 }}>${(sel.hot * 75).toLocaleString()} value</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between" }}>
+                <span style={{ display:"flex", alignItems:"center", gap:6, color:"#FCD34D", fontSize:13, fontFamily:"sans-serif" }}>
+                  <span style={{ background:"rgba(252,211,77,0.15)", color:"#FCD34D", padding:"1px 7px", borderRadius:10, fontSize:10, fontWeight:700 }}>WARM</span> {sel.warm} leads
+                </span>
+                <span style={{ color:"#FCD34D", fontSize:13, fontFamily:"sans-serif", fontWeight:600 }}>${(sel.warm * 35).toLocaleString()} value</span>
+              </div>
+            </div>
+
+            {/* Individual value vs pocket price */}
+            <div style={{ background:"rgba(200,16,46,0.06)", border:"1px solid rgba(200,16,46,0.2)", borderRadius:10, padding:"12px 14px", marginBottom:20 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>If bought individually</span>
+                <span style={{ color:"#6B7280", fontSize:13, fontFamily:"sans-serif", textDecoration:"line-through" }}>${((sel.hot * 75) + (sel.warm * 35)).toLocaleString()}</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between" }}>
+                <span style={{ color:"#4ADE80", fontSize:13, fontFamily:"sans-serif", fontWeight:700 }}>Pocket price</span>
+                <span style={{ color:"#4ADE80", fontSize:20, fontFamily:"Georgia,serif", fontWeight:700 }}>${sel.price.toLocaleString()}</span>
+              </div>
+              <div style={{ color:"#4ADE80", fontSize:11, fontFamily:"sans-serif", marginTop:6, textAlign:"right" }}>
+                Save ${(((sel.hot * 75) + (sel.warm * 35)) - sel.price).toLocaleString()}
+              </div>
+            </div>
+
+            {sel.status !== "sold" ? (
+              <button onClick={onGetStarted} style={{ width:"100%", background:RED, color:"#fff", border:"none", borderRadius:10, padding:"14px", fontSize:15, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer", boxShadow:"0 6px 24px rgba(200,16,46,0.3)" }}>
+                Claim {sel.name} →
+              </button>
+            ) : (
+              <div style={{ textAlign:"center", padding:"14px", background:"#1F2937", borderRadius:10, color:"#4B5563", fontFamily:"sans-serif", fontSize:14 }}>
+                This territory is taken.<br/><span style={{ fontSize:12 }}>Join waitlist → get first alert when it opens.</span>
+              </div>
+            )}
+
+            <p style={{ color:"#4B5563", fontSize:11, fontFamily:"sans-serif", textAlign:"center", marginTop:12, marginBottom:0 }}>
+              Exclusive to 1 contractor · Leads delivered within 24 hrs
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* All pockets table */}
+      <div style={{ marginTop:32 }}>
+        <h3 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:18, margin:"0 0 16px" }}>All Territories</h3>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))", gap:12 }}>
+          {pockets.map(p => (
+            <div key={p.id} onClick={() => p.status !== "sold" && setSelected(p.id)} style={{ background:CARD, border:`1px solid ${selected===p.id?statusColor[p.status]:BORDER}`, borderRadius:10, padding:"14px 16px", cursor:p.status!=="sold"?"pointer":"default", opacity:p.status==="sold"?0.5:1 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+                <span style={{ color:"#fff", fontSize:13, fontWeight:700, fontFamily:"sans-serif" }}>{p.name}</span>
+                <span style={{ color:statusColor[p.status], fontSize:10, fontWeight:700, fontFamily:"sans-serif" }}>{statusLabel[p.status]}</span>
+              </div>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>{p.leads} leads · {p.hot} HOT</span>
+                <span style={{ color: p.status==="sold"?MUTED:"#4ADE80", fontSize:14, fontWeight:700, fontFamily:"sans-serif" }}>${p.price.toLocaleString()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Pricing Tab ───────────────────────────────────────
+const PricingTab = ({ onGetStarted }) => {
+  const [billing, setBilling] = useState("monthly");
+
+  const plans = [
+    {
+      name: "Starter Pack",
+      tag: "Start Here",
+      tagColor: ["#1E3A5F","#60A5FA"],
+      desc: "10 HOT leads. No contract. No subscription. Pay once, knock the doors, see it work — then scale.",
+      prices: { hot: "$75", warm: "$35", batch: "$599" },
+      starter: true,
+      features: [
+        "10 exclusive HOT leads (score 7–10): $599",
+        "Single HOT leads also available at $75/each",
+        "WARM leads available at $35/each",
+        "Owner name + property address on every lead",
+        "Full 1–10 score with breakdown of why it scored",
+        "Weather alert flag + roof age included",
+        "Exclusive — not sold to any other contractor",
+        "No contracts. No startup fees. Pay once, own the leads.",
+      ],
+      cta: "Start With 10 Leads",
+      highlight: false,
+    },
+    {
+      name: "Pro",
+      tag: "Most Popular",
+      tagColor: ["#7F1D1D","#FCA5A5"],
+      desc: "Your market on autopilot. A full, scored lead list every week — so your pipeline never runs dry.",
+      price_mo: "$449",
+      price_yr: "$379",
+      features: [
+        "Unlimited access to 2,000+ scored leads",
+        "One market of your choice (Raleigh or Charlotte)",
+        "Weekly refresh — new leads every Monday",
+        "Recent mover leads: buyers who just moved into aging homes",
+        "High-activity street alerts so you can knock entire blocks",
+        "Weather event flags updated after every major storm",
+        "Territory intelligence: see where competitor jobs are concentrating",
+        "Skip-trace ready exports (append phone numbers for cents per record)",
+        "14-day money-back guarantee",
+      ],
+      cta: "Start Free Trial",
+      highlight: true,
+    },
+    {
+      name: "Elite",
+      tag: "Maximum Pipeline",
+      tagColor: ["#052E16","#4ADE80"],
+      desc: "Every market. Daily data. Priority access. Built for contractors who want to dominate their territory.",
+      price_mo: "$849",
+      price_yr: "$699",
+      features: [
+        "Everything in Pro",
+        "All markets: Raleigh, Durham + Charlotte",
+        "Daily lead refresh — never wait a week for new data",
+        "Priority phone + email support (same-day response)",
+        "Custom territory filtering by zip code or city",
+        "Up to 3 team seats — share access with your crew",
+        "Dedicated onboarding call to set up your workflow",
+        "First right of refusal on new markets as we expand",
+      ],
+      cta: "Contact Us",
+      highlight: false,
+    },
+  ];
+
+  return (
+    <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 24px" }}>
+      <div style={{ textAlign:"center", marginBottom:36 }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:10 }}>Pricing</div>
+        <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:28, fontWeight:700, margin:"0 0 10px" }}>Pick how you want to work</h2>
+        <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, maxWidth:480, margin:"0 auto 20px" }}>
+          Per-lead if you want to test. Subscription if you want consistent pipeline.
+        </p>
+
+        {/* Billing toggle */}
+        <div style={{ display:"inline-flex", background:"#1A1A1A", borderRadius:10, padding:4, gap:4 }}>
+          {["monthly","annual"].map(b => (
+            <button key={b} onClick={() => setBilling(b)} style={{ padding:"7px 18px", borderRadius:7, border:"none", background:billing===b?"#fff":"transparent", color:billing===b?"#111":MUTED, fontSize:12, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer" }}>
+              {b === "monthly" ? "Monthly" : "Annual (Save 17%)"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Plan cards */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))", gap:20 }}>
+        {plans.map((plan, i) => (
+          <div key={i} style={{ background:plan.highlight?"#0D0A0A":CARD, border:`2px solid ${plan.highlight?RED:BORDER}`, borderRadius:16, padding:"28px 24px", display:"flex", flexDirection:"column", boxShadow:plan.highlight?"0 0 40px rgba(200,16,46,0.2)":"none" }}>
+            {/* Tag */}
+            <div style={{ marginBottom:16 }}>
+              <span style={{ background:plan.tagColor[0], color:plan.tagColor[1], fontSize:10, fontWeight:700, padding:"3px 10px", borderRadius:20, fontFamily:"sans-serif", letterSpacing:"0.5px" }}>{plan.tag}</span>
+            </div>
+
+            <div style={{ color:"#fff", fontSize:20, fontWeight:700, fontFamily:"Georgia,serif", marginBottom:6 }}>{plan.name}</div>
+            <div style={{ color:MUTED, fontSize:13, fontFamily:"sans-serif", marginBottom:20, lineHeight:1.5 }}>{plan.desc}</div>
+
+            {/* Price */}
+            {plan.prices ? (
+              <div style={{ marginBottom:24, padding:"16px", background:"#1A1A1A", borderRadius:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                  <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>HOT lead (7-10)</span>
+                  <span style={{ color:"#FCA5A5", fontSize:14, fontWeight:700, fontFamily:"sans-serif" }}>{plan.prices.hot}</span>
+                </div>
+                <div style={{ display:"flex", justifyContent:"space-between", marginBottom:6 }}>
+                  <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>WARM lead (4-6)</span>
+                  <span style={{ color:"#FCD34D", fontSize:14, fontWeight:700, fontFamily:"sans-serif" }}>{plan.prices.warm}</span>
+                </div>
+                <div style={{ display:"flex", justifyContent:"space-between" }}>
+                  <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>Batch of 10 HOT</span>
+                  <span style={{ color:"#4ADE80", fontSize:14, fontWeight:700, fontFamily:"sans-serif" }}>{plan.prices.batch}</span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginBottom:24 }}>
+                <span style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:36, fontWeight:700 }}>{billing==="monthly" ? plan.price_mo : plan.price_yr}</span>
+                <span style={{ color:MUTED, fontSize:14, fontFamily:"sans-serif" }}>/mo</span>
+                {billing === "annual" && <div style={{ color:"#4ADE80", fontSize:12, fontFamily:"sans-serif", marginTop:4 }}>Billed annually</div>}
+              </div>
+            )}
+
+            {/* Features */}
+            <div style={{ flex:1, marginBottom:24 }}>
+              {plan.features.map((f, fi) => (
+                <div key={fi} style={{ display:"flex", gap:8, alignItems:"flex-start", marginBottom:8 }}>
+                  <span style={{ color:"#4ADE80", fontSize:12, flexShrink:0, marginTop:2 }}>✓</span>
+                  <span style={{ color:"#D1D5DB", fontSize:13, fontFamily:"sans-serif", lineHeight:1.5 }}>{f}</span>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={onGetStarted} style={{ background:plan.highlight?RED:"#1F2937", color:"#fff", border:`1.5px solid ${plan.highlight?RED:BORDER}`, borderRadius:10, padding:"13px", fontSize:15, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer" }}>
+              {plan.cta} →
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Trust bar */}
+      <div style={{ marginTop:40, display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:16 }}>
+        {[
+          { icon:"🔒", title:"14-Day Guarantee", sub:"On subscriptions — if you don't find value, we refund. No questions." },
+          { icon:"🎯", title:"100% Exclusive", sub:"Every lead is sold once, to one contractor. Nobody else gets yours." },
+          { icon:"💳", title:"Pay Upfront, Own Your Leads", sub:"No billing surprises. You pay, we deliver. Your leads are yours to keep." },
+          { icon:"📈", title:"Start Small, Scale Fast", sub:"Most contractors start with 10 leads and scale to hundreds per week." },
+        ].map((t, i) => (
+          <div key={i} style={{ background:"#111", border:`1px solid ${BORDER}`, borderRadius:12, padding:"20px 18px", textAlign:"center" }}>
+            <div style={{ fontSize:22, marginBottom:8 }}>{t.icon}</div>
+            <div style={{ color:"#fff", fontSize:13, fontWeight:700, fontFamily:"sans-serif", marginBottom:4 }}>{t.title}</div>
+            <div style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", lineHeight:1.6 }}>{t.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ── Get Started (Signup) Tab ──────────────────────────
+const GetStartedTab = () => {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({ name:"", company:"", email:"", phone:"", market:"", plan:"", message:"" });
+  const [submitted, setSubmitted] = useState(false);
+
+  const update = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const inputStyle = { padding:"12px 14px", border:"1.5px solid #2A2A2A", background:"#1A1A1A", borderRadius:8, fontSize:14, fontFamily:"sans-serif", outline:"none", color:"#fff", width:"100%", boxSizing:"border-box" };
+
+  if (submitted) {
+    return (
+      <div style={{ maxWidth:480, margin:"60px auto", padding:"0 24px", textAlign:"center" }}>
+        <div style={{ fontSize:56, marginBottom:16 }}>🎉</div>
+        <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:24, margin:"0 0 12px" }}>You're on the list.</h2>
+        <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, lineHeight:1.7, marginBottom:24 }}>
+          We'll reach out to {form.email} within 24 hours with your first batch of leads and access details.
+        </p>
+        <div style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:12, padding:20, textAlign:"left", marginBottom:24 }}>
+          {[["Name", form.name], ["Company", form.company], ["Market", form.market], ["Plan", form.plan]].map(([k,v]) => (
+            <div key={k} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:`1px solid ${BORDER}` }}>
+              <span style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif" }}>{k}</span>
+              <span style={{ color:"#fff", fontSize:12, fontFamily:"sans-serif", fontWeight:600 }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth:540, margin:"0 auto", padding:"32px 24px" }}>
+      {/* Progress */}
+      <div style={{ display:"flex", gap:8, marginBottom:32 }}>
+        {[1,2,3].map(s => (
+          <div key={s} style={{ flex:1, height:4, borderRadius:4, background: s <= step ? RED : BORDER }}/>
+        ))}
+      </div>
+
+      {step === 1 && (
+        <>
+          <div style={{ fontSize:11, color:RED, fontWeight:700, letterSpacing:"3px", fontFamily:"sans-serif", marginBottom:12, textTransform:"uppercase" }}>Step 1 of 3</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:22, margin:"0 0 6px" }}>Your info</h2>
+          <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:13, marginBottom:24 }}>We'll use this to set up your account and send your first leads.</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
+            <input value={form.name} onChange={e=>update("name",e.target.value)} placeholder="Your name" style={inputStyle}/>
+            <input value={form.company} onChange={e=>update("company",e.target.value)} placeholder="Company name" style={inputStyle}/>
+            <input value={form.email} onChange={e=>update("email",e.target.value)} placeholder="Email address" type="email" style={inputStyle}/>
+            <input value={form.phone} onChange={e=>update("phone",e.target.value)} placeholder="Phone number (optional)" style={inputStyle}/>
+          </div>
+          <button onClick={() => setStep(2)} disabled={!form.name||!form.email||!form.company} style={{ width:"100%", background:form.name&&form.email&&form.company?RED:"#2A2A2A", color:"#fff", border:"none", borderRadius:8, padding:"14px", fontSize:15, fontFamily:"sans-serif", fontWeight:700, cursor:form.name&&form.email&&form.company?"pointer":"default" }}>
+            Next →
+          </button>
+        </>
+      )}
+
+      {step === 2 && (
+        <>
+          <div style={{ fontSize:11, color:RED, fontWeight:700, letterSpacing:"3px", fontFamily:"sans-serif", marginBottom:12, textTransform:"uppercase" }}>Step 2 of 3</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:22, margin:"0 0 6px" }}>Your market</h2>
+          <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:13, marginBottom:24 }}>Which area do you work in?</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
+            {["Raleigh / Durham (Wake + Durham County)", "Charlotte (Mecklenburg County)", "Both markets", "Other NC market"].map(m => (
+              <button key={m} onClick={() => update("market", m)} style={{ background:form.market===m?"#1F0A0A":CARD, border:`2px solid ${form.market===m?RED:BORDER}`, borderRadius:10, padding:"14px 16px", textAlign:"left", cursor:"pointer", color:form.market===m?"#FCA5A5":"#D1D5DB", fontSize:14, fontFamily:"sans-serif", fontWeight:form.market===m?700:400 }}>
+                {form.market===m ? "✓ " : ""}{m}
+              </button>
+            ))}
+          </div>
+          <div style={{ display:"flex", gap:10 }}>
+            <button onClick={() => setStep(1)} style={{ flex:1, background:"#1A1A1A", color:MUTED, border:`1px solid ${BORDER}`, borderRadius:8, padding:"13px", fontSize:14, fontFamily:"sans-serif", cursor:"pointer" }}>← Back</button>
+            <button onClick={() => setStep(3)} disabled={!form.market} style={{ flex:2, background:form.market?RED:"#2A2A2A", color:"#fff", border:"none", borderRadius:8, padding:"13px", fontSize:15, fontFamily:"sans-serif", fontWeight:700, cursor:form.market?"pointer":"default" }}>Next →</button>
+          </div>
+        </>
+      )}
+
+      {step === 3 && (
+        <>
+          <div style={{ fontSize:11, color:RED, fontWeight:700, letterSpacing:"3px", fontFamily:"sans-serif", marginBottom:12, textTransform:"uppercase" }}>Step 3 of 3</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:22, margin:"0 0 6px" }}>Pick your plan</h2>
+          <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:13, marginBottom:24 }}>Start with a free trial or buy leads right now.</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:20 }}>
+            {[
+              { id:"trial", label:"Pro Free Trial", sub:"14 days free, then $449/mo — cancel anytime" },
+              { id:"perlead", label:"Pay Per Lead", sub:"HOT leads $75 · WARM leads $35 · No subscription" },
+              { id:"elite", label:"Elite ($849/mo)", sub:"All markets, daily refresh, priority support, team seats" },
+            ].map(p => (
+              <button key={p.id} onClick={() => update("plan", p.label)} style={{ background:form.plan===p.label?"#1F0A0A":CARD, border:`2px solid ${form.plan===p.label?RED:BORDER}`, borderRadius:10, padding:"14px 16px", textAlign:"left", cursor:"pointer" }}>
+                <div style={{ color:form.plan===p.label?"#FCA5A5":"#fff", fontSize:15, fontWeight:700, fontFamily:"sans-serif" }}>{form.plan===p.label?"✓ ":""}{p.label}</div>
+                <div style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", marginTop:3 }}>{p.sub}</div>
+              </button>
+            ))}
+          </div>
+          <textarea value={form.message} onChange={e=>update("message",e.target.value)} placeholder="Anything else? (optional — territory, volume needed, questions)" rows={3} style={{ ...inputStyle, resize:"none", marginBottom:16 }}/>
+          <div style={{ display:"flex", gap:10 }}>
+            <button onClick={() => setStep(2)} style={{ flex:1, background:"#1A1A1A", color:MUTED, border:`1px solid ${BORDER}`, borderRadius:8, padding:"13px", fontSize:14, fontFamily:"sans-serif", cursor:"pointer" }}>← Back</button>
+            <button onClick={() => setSubmitted(true)} disabled={!form.plan} style={{ flex:2, background:form.plan?RED:"#2A2A2A", color:"#fff", border:"none", borderRadius:8, padding:"13px", fontSize:15, fontFamily:"sans-serif", fontWeight:700, cursor:form.plan?"pointer":"default" }}>
+              Submit Request →
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// ── FAQ Accordion ─────────────────────────────────────
+const FAQ = () => {
+  const [open, setOpen] = useState(null);
+  const items = [
+    { q:"Are these leads exclusive?", a:"Yes. Every lead you purchase or access through your subscription is exclusive to you — we do not sell the same lead to multiple contractors in the same market. Your territory is yours." },
+    { q:"How fresh is the data?", a:"Leads are refreshed weekly. New homeowner data and high-activity street flags are updated every 7 days. You'll always be working current intelligence, not six-month-old lists." },
+    { q:"What's in a lead?", a:"Every lead includes: owner name, property address, estimated home value, roof age, how long the current owner has had the property, weather alert flag, and a 1–10 priority score with a breakdown of why it scored that way." },
+    { q:"What markets do you cover?", a:"Currently Raleigh/Durham (Wake + Durham County) and Charlotte (Mecklenburg County). Additional NC markets available — reach out and we'll let you know if yours is covered." },
+    { q:"How do I get phone numbers?", a:"Our leads are address-based and skip-trace ready. We export in a format that works directly with services like BatchSkipTracing — you can append phone numbers for a few cents per record." },
+    { q:"What's the difference between HOT and WARM leads?", a:"HOT leads score 7–10 and check the most boxes: aging roof, long-term owner, good home value, weather-affected area. These are your highest-probability doors. WARM leads score 4–6 — still solid, just fewer factors aligned." },
+  ];
+  return (
+    <div style={{ maxWidth:720, margin:"0 auto" }}>
+      {items.map((item, i) => (
+        <div key={i} style={{ borderBottom:`1px solid ${BORDER}` }}>
+          <button onClick={() => setOpen(open===i?null:i)} style={{ width:"100%", background:"none", border:"none", padding:"20px 0", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", textAlign:"left", gap:16 }}>
+            <span style={{ color:"#fff", fontSize:15, fontWeight:700, fontFamily:"sans-serif" }}>{item.q}</span>
+            <span style={{ color:RED, fontSize:20, flexShrink:0 }}>{open===i?"−":"+"}</span>
+          </button>
+          {open===i && (
+            <div style={{ color:MUTED, fontSize:14, fontFamily:"sans-serif", lineHeight:1.8, paddingBottom:20 }}>{item.a}</div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ── Landing Page ──────────────────────────────────────
+const LandingPage = ({ onTab }) => (
+  <div style={{ background:DARK, minHeight:"100vh" }}>
+
+    {/* Hero */}
+    <div style={{ position:"relative", overflow:"hidden", padding:"80px 24px 72px", textAlign:"center" }}>
+      <div style={{ position:"absolute", inset:0, background:"radial-gradient(ellipse 80% 50% at 50% 0%, rgba(200,16,46,0.12) 0%, transparent 70%)", pointerEvents:"none" }}/>
+      <LogoIcon size={72}/>
+      <div style={{ fontFamily:"Georgia,serif", fontSize:64, color:"#fff", letterSpacing:"2px", lineHeight:1, marginTop:12, marginBottom:4 }}>
+        Roo<span style={{ color:RED }}>Finder</span>
+      </div>
+      <div style={{ color:MUTED, fontFamily:"Georgia,serif", fontStyle:"italic", fontSize:17, marginBottom:40 }}>The best damn roofing leads in the Carolinas. Period.</div>
+
+      <div style={{ maxWidth:640, margin:"0 auto 48px" }}>
+        <h1 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:38, fontWeight:700, lineHeight:1.3, margin:"0 0 16px" }}>
+          Stop driving blind.<br/><span style={{ color:RED }}>Knock doors that are ready.</span>
+        </h1>
+        <p style={{ color:"#9CA3AF", fontFamily:"sans-serif", fontSize:16, lineHeight:1.8, marginBottom:12 }}>
+          We use proprietary intelligence to build scored, verified homeowner lead lists — so every door you knock has a reason behind it. No guessing. No wasted drives. No contracts.
+        </p>
+        <div style={{ display:"flex", flexDirection:"column", gap:8, alignItems:"center", marginBottom:28 }}>
+          <div style={{ display:"inline-block", background:"rgba(200,16,46,0.1)", border:"1px solid rgba(200,16,46,0.3)", borderRadius:8, padding:"8px 16px" }}>
+            <span style={{ color:"#FCA5A5", fontSize:13, fontFamily:"sans-serif", fontWeight:700 }}>⚠ Limited contractor slots per market — leads are exclusive, not shared</span>
+          </div>
+          <div style={{ color:"#6B7280", fontSize:13, fontFamily:"sans-serif" }}>
+            No contracts · No startup fees · Start with 10 leads · Scale from there
+          </div>
+        </div>
+        <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
+          <button onClick={() => onTab("map")} style={{ background:RED, color:"#fff", border:"none", borderRadius:10, padding:"14px 32px", fontSize:16, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer", boxShadow:"0 8px 32px rgba(200,16,46,0.3)" }}>
+            Browse Territories →
+          </button>
+          <button onClick={() => onTab("preview")} style={{ background:"transparent", color:"#fff", border:`1.5px solid ${BORDER}`, borderRadius:10, padding:"14px 32px", fontSize:16, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer" }}>
+            See Sample Leads
+          </button>
+        </div>
+      </div>
+
+      {/* Stats bar */}
+      <div style={{ display:"flex", gap:0, maxWidth:640, margin:"0 auto", background:CARD, border:`1px solid ${BORDER}`, borderRadius:12, overflow:"hidden" }}>
+        {[
+          { v:"2,000+", l:"Scored Leads" },
+          { v:"100%", l:"Exclusive" },
+          { v:"Weekly", l:"Refresh" },
+          { v:"2 Markets", l:"Raleigh + CLT" },
+        ].map((s, i) => (
+          <div key={i} style={{ flex:1, padding:"20px 8px", textAlign:"center", borderRight:i<3?`1px solid ${BORDER}`:"none" }}>
+            <div style={{ color:RED, fontFamily:"Georgia,serif", fontSize:24, fontWeight:700, letterSpacing:"1px" }}>{s.v}</div>
+            <div style={{ color:MUTED, fontSize:11, fontFamily:"sans-serif", textTransform:"uppercase", letterSpacing:"1px", marginTop:3 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Pain point section */}
+    <div style={{ padding:"64px 24px", borderTop:`1px solid ${BORDER}`, background:"#0D0D0D" }}>
+      <div style={{ maxWidth:800, margin:"0 auto", display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))", gap:40, alignItems:"center" }}>
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:16 }}>Sound Familiar?</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:26, margin:"0 0 24px", lineHeight:1.4 }}>You're grinding — but the pipeline stays dry.</h2>
+          {[
+            "Driving neighborhoods hoping to find the right house",
+            "Buying shared leads that 4 other contractors already called",
+            "Spending hours on door-knocking with nothing to show",
+            "No way to know which homeowner actually needs a roof",
+          ].map((pain, i) => (
+            <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:14 }}>
+              <span style={{ color:RED, fontSize:16, flexShrink:0, marginTop:1 }}>✗</span>
+              <span style={{ color:"#9CA3AF", fontSize:14, fontFamily:"sans-serif", lineHeight:1.6 }}>{pain}</span>
+            </div>
+          ))}
+        </div>
+        <div>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:"#4ADE80", fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:16 }}>With RooFinder</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:26, margin:"0 0 24px", lineHeight:1.4 }}>Every door has a reason behind it.</h2>
+          {[
+            "Know the roof age before you knock",
+            "Exclusive leads — nobody else gets your list",
+            "Scored 1–10 so you work best opportunities first",
+            "Weather-flagged streets where homeowners are already thinking about it",
+          ].map((win, i) => (
+            <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:14 }}>
+              <span style={{ color:"#4ADE80", fontSize:16, flexShrink:0, marginTop:1 }}>✓</span>
+              <span style={{ color:"#D1D5DB", fontSize:14, fontFamily:"sans-serif", lineHeight:1.6 }}>{win}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* How it works */}
+    <div style={{ padding:"64px 24px", borderTop:`1px solid ${BORDER}` }}>
+      <div style={{ maxWidth:800, margin:"0 auto" }}>
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:10 }}>How It Works</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:28, margin:0 }}>We do the work. You knock the doors.</h2>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:24 }}>
+          {[
+            { step:"01", title:"We do the research", desc:"Our proprietary system monitors multiple data streams across your market, 24/7. You never touch a spreadsheet." },
+            { step:"02", title:"We score every lead", desc:"Each homeowner is assigned a 1–10 score based on five factors we've identified as the strongest predictors of conversion." },
+            { step:"03", title:"You get the list", desc:"Download your scored leads as CSV or Excel, ready for door-knocking or phone outreach — sorted by who's most likely to say yes." },
+            { step:"04", title:"You close the jobs", desc:"HOT leads are high-probability homeowners who've been identified as overdue. These doors are ready." },
+          ].map((s, i) => (
+            <div key={i} style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:12, padding:"24px 20px" }}>
+              <div style={{ fontFamily:"Georgia,serif", fontSize:28, color:RED, fontWeight:700, marginBottom:12 }}>{s.step}</div>
+              <div style={{ color:"#fff", fontSize:15, fontWeight:700, fontFamily:"sans-serif", marginBottom:8 }}>{s.title}</div>
+              <div style={{ color:MUTED, fontSize:13, fontFamily:"sans-serif", lineHeight:1.7 }}>{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Lead types */}
+    <div style={{ padding:"64px 24px", borderTop:`1px solid ${BORDER}`, background:"#0D0D0D" }}>
+      <div style={{ maxWidth:800, margin:"0 auto" }}>
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:10 }}>What's Included</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:28, margin:0 }}>Everything you need in one file</h2>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:16 }}>
+          {[
+            { icon:"🎯", title:"Scored Lead List", desc:"Every homeowner scored 1–10. Sort by HOT, WARM, or Normal — work your best opportunities first." },
+            { icon:"🔥", title:"High-Activity Streets", desc:"We flag streets with concentrated roofing activity so you can knock the whole block while momentum is there." },
+            { icon:"🆕", title:"Recent Movers", desc:"Homeowners who recently moved into older homes — they're discovering issues for the first time." },
+            { icon:"⛈️", title:"Weather Alert Flag", desc:"Each lead is flagged if the area has experienced significant weather events — these homeowners may not have called anyone yet." },
+            { icon:"💰", title:"Home Value Filter", desc:"Every lead includes estimated home value so you prioritize owners who can afford the job." },
+            { icon:"📍", title:"Territory Intelligence", desc:"See where competitor activity is concentrated in your market — find the gaps and own them." },
+          ].map((item, i) => (
+            <div key={i} style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:10, padding:"20px 18px" }}>
+              <div style={{ fontSize:28, marginBottom:10 }}>{item.icon}</div>
+              <div style={{ color:"#fff", fontSize:14, fontWeight:700, fontFamily:"sans-serif", marginBottom:6 }}>{item.title}</div>
+              <div style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", lineHeight:1.6 }}>{item.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Growth path callout */}
+    <div style={{ padding:"48px 24px", borderTop:`1px solid ${BORDER}` }}>
+      <div style={{ maxWidth:720, margin:"0 auto", textAlign:"center" }}>
+        <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:16 }}>How It Scales</div>
+        <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:26, margin:"0 0 12px" }}>Most contractors start with 10 leads.<br/>The best ones end up ordering hundreds a week.</h2>
+        <p style={{ color:"#6B7280", fontFamily:"sans-serif", fontSize:14, lineHeight:1.8, marginBottom:32, maxWidth:560, margin:"0 auto 32px" }}>
+          Start small. Knock the doors. See the conversion rate. Once you know the leads work — scale your order, scale your revenue. No contracts means you're always in control.
+        </p>
+        <div style={{ display:"flex", gap:0, maxWidth:560, margin:"0 auto", background:CARD, border:`1px solid ${BORDER}`, borderRadius:12, overflow:"hidden" }}>
+          {[
+            { label:"Week 1", val:"10 leads", sub:"Test the waters" },
+            { label:"Month 1", val:"50 leads", sub:"Build momentum" },
+            { label:"Month 3+", val:"200+ leads", sub:"Own the market" },
+          ].map((s, i) => (
+            <div key={i} style={{ flex:1, padding:"20px 10px", textAlign:"center", borderRight:i<2?`1px solid ${BORDER}`:"none" }}>
+              <div style={{ color:MUTED, fontSize:10, fontFamily:"sans-serif", textTransform:"uppercase", letterSpacing:"1px", marginBottom:4 }}>{s.label}</div>
+              <div style={{ color:RED, fontFamily:"Georgia,serif", fontSize:22, fontWeight:700 }}>{s.val}</div>
+              <div style={{ color:"#4B5563", fontSize:11, fontFamily:"sans-serif", marginTop:3 }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* Testimonials */}
+    <div style={{ padding:"64px 24px", borderTop:`1px solid ${BORDER}` }}>
+      <div style={{ maxWidth:900, margin:"0 auto" }}>
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:10 }}>What Contractors Say</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:28, margin:0 }}>Results speak louder than claims.</h2>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))", gap:20 }}>
+          {[
+            { name:"Marcus T.", company:"Triangle Roofing Co.", market:"Raleigh, NC", quote:"First week I had the list I knocked 12 HOT leads. Closed 3 jobs. That's more than I close in a typical month of cold knocking." },
+            { name:"Derek W.", company:"Carolina Storm Pros", market:"Durham, NC", quote:"The weather alert flag alone is worth the price. I know exactly which neighborhoods to hit right after a storm. Other guys are guessing — I'm not." },
+            { name:"Jenna R.", company:"Ridgeline Exteriors", market:"Charlotte, NC", quote:"I was skeptical about data-based leads but the scores are legit. HOT leads convert at a completely different rate than random doors." },
+          ].map((t, i) => (
+            <div key={i} style={{ background:CARD, border:`1px solid ${BORDER}`, borderRadius:12, padding:"24px 20px" }}>
+              <div style={{ color:"#FCD34D", fontSize:18, marginBottom:12 }}>★★★★★</div>
+              <p style={{ color:"#D1D5DB", fontSize:14, fontFamily:"sans-serif", lineHeight:1.8, margin:"0 0 20px", fontStyle:"italic" }}>"{t.quote}"</p>
+              <div style={{ borderTop:`1px solid ${BORDER}`, paddingTop:14 }}>
+                <div style={{ color:"#fff", fontSize:14, fontWeight:700, fontFamily:"sans-serif" }}>{t.name}</div>
+                <div style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", marginTop:2 }}>{t.company} · {t.market}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* FAQ */}
+    <div style={{ padding:"64px 24px", borderTop:`1px solid ${BORDER}`, background:"#0D0D0D" }}>
+      <div style={{ maxWidth:800, margin:"0 auto" }}>
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <div style={{ fontSize:11, fontWeight:700, letterSpacing:"3px", color:RED, fontFamily:"sans-serif", textTransform:"uppercase", marginBottom:10 }}>FAQ</div>
+          <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:28, margin:0 }}>Questions? We got answers.</h2>
+        </div>
+        <FAQ/>
+      </div>
+    </div>
+
+    {/* Bottom CTA */}
+    <div style={{ padding:"64px 24px", textAlign:"center", borderTop:`1px solid ${BORDER}` }}>
+      <h2 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:32, margin:"0 0 12px" }}>Think we're full of it?<br/><span style={{ color:RED }}>See the data yourself.</span></h2>
+      <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:15, marginBottom:12 }}>Free sample leads — no credit card, no commitment.</p>
+      <p style={{ color:"#4B5563", fontFamily:"sans-serif", fontSize:13, marginBottom:32 }}>Or reach us directly: <a href="mailto:daltonnicely@gmail.com" style={{ color:RED, textDecoration:"none" }}>daltonnicely@gmail.com</a></p>
+      <div style={{ display:"flex", gap:12, justifyContent:"center", flexWrap:"wrap" }}>
+        <button onClick={() => onTab("start")} style={{ background:RED, color:"#fff", border:"none", borderRadius:10, padding:"16px 40px", fontSize:17, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer", boxShadow:"0 8px 32px rgba(200,16,46,0.3)" }}>
+          Get Started →
+        </button>
+        <button onClick={() => onTab("preview")} style={{ background:"transparent", color:"#fff", border:`1.5px solid ${BORDER}`, borderRadius:10, padding:"16px 32px", fontSize:17, fontFamily:"sans-serif", fontWeight:700, cursor:"pointer" }}>
+          See Sample Data
+        </button>
+      </div>
+    </div>
+
+    <div style={{ textAlign:"center", padding:"24px", borderTop:`1px solid ${BORDER}`, color:"#374151", fontSize:11, fontFamily:"sans-serif", letterSpacing:"1px" }}>
+      ROOFINDER.ONLINE · Exclusive Roofing Leads · Raleigh · Durham · Charlotte
+    </div>
+  </div>
+);
+
+// ── Main App ──────────────────────────────────────────
+export default function RooFinder() {
+  const [tab, setTab] = useState("home");
+
+  const navItems = [
+    { id:"home",      label:"Home" },
+    { id:"map",       label:"Territory Map" },
+    { id:"preview",   label:"Lead Preview" },
+    { id:"pricing",   label:"Pricing" },
+    { id:"start",     label:"Get Started" },
+  ];
+
+  return (
+    <div style={{ minHeight:"100vh", background:DARK }}>
+      {/* Nav */}
+      {tab !== "home" && (
+        <div style={{ background:"#111", borderBottom:`1px solid ${BORDER}`, padding:"0 24px", position:"sticky", top:0, zIndex:100 }}>
+          <div style={{ maxWidth:1100, margin:"0 auto", display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0" }}>
+            <button onClick={() => setTab("home")} style={{ display:"flex", alignItems:"center", gap:10, background:"none", border:"none", cursor:"pointer", padding:0 }}>
+              <LogoIcon size={36}/>
+              <span style={{ fontFamily:"Georgia,serif", fontSize:22, color:"#fff", letterSpacing:"1px" }}>Roo<span style={{ color:RED }}>Finder</span></span>
+            </button>
+            <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+              <a href="tel:9196101548" style={{ color:MUTED, fontSize:12, fontFamily:"sans-serif", textDecoration:"none", display:"flex", alignItems:"center", gap:6 }}>
+                <span>📞</span><span style={{ letterSpacing:"0.5px" }}>(919) 610-1548</span>
+              </a>
+              <div style={{ display:"flex", gap:4, background:"#1A1A1A", borderRadius:10, padding:4 }}>
+                {navItems.slice(1).map(n => (
+                  <button key={n.id} onClick={() => setTab(n.id)} style={{ padding:"7px 14px", borderRadius:7, border:"none", background:tab===n.id?(n.id==="start"?RED:"#fff"):"transparent", color:tab===n.id?(n.id==="start"?"#fff":"#111"):MUTED, fontSize:12, fontFamily:"sans-serif", fontWeight:tab===n.id?700:400, cursor:"pointer", whiteSpace:"nowrap" }}>
+                    {n.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      {tab === "home"    && <LandingPage onTab={setTab}/>}
+      {tab === "map" && (
+        <div style={{ background:DARK, minHeight:"100vh" }}>
+          <div style={{ background:"#111", borderBottom:`1px solid ${BORDER}`, padding:"28px 24px", textAlign:"center" }}>
+            <h1 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:30, margin:"0 0 6px" }}>Territory Map</h1>
+            <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, margin:0 }}>Choose your zone. Own it exclusively. No other contractor gets in.</p>
+          </div>
+          <PocketMapTab onGetStarted={() => setTab("start")}/>
+        </div>
+      )}
+      {tab === "preview" && (
+        <div style={{ background:DARK, minHeight:"100vh" }}>
+          <div style={{ background:"#111", borderBottom:`1px solid ${BORDER}`, padding:"28px 24px", textAlign:"center" }}>
+            <h1 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:30, margin:"0 0 6px" }}>Lead Preview</h1>
+            <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, margin:0 }}>Real data. Real addresses. Scored and ready.</p>
+          </div>
+          <LeadPreviewTab onGetStarted={() => setTab("start")}/>
+        </div>
+      )}
+      {tab === "pricing" && (
+        <div style={{ background:DARK, minHeight:"100vh" }}>
+          <div style={{ background:"#111", borderBottom:`1px solid ${BORDER}`, padding:"28px 24px", textAlign:"center" }}>
+            <h1 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:30, margin:"0 0 6px" }}>Pricing</h1>
+            <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, margin:0 }}>Per-lead or subscription — you pick what fits.</p>
+          </div>
+          <PricingTab onGetStarted={() => setTab("start")}/>
+        </div>
+      )}
+      {tab === "start"   && (
+        <div style={{ background:DARK, minHeight:"100vh" }}>
+          <div style={{ background:"#111", borderBottom:`1px solid ${BORDER}`, padding:"28px 24px", textAlign:"center" }}>
+            <h1 style={{ color:"#fff", fontFamily:"Georgia,serif", fontSize:30, margin:"0 0 6px" }}>Get Started</h1>
+            <p style={{ color:MUTED, fontFamily:"sans-serif", fontSize:14, margin:0 }}>Takes 2 minutes. First leads delivered within 24 hours.</p>
+          </div>
+          <GetStartedTab/>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<RooFinder/>);
+</script>
+</body>
+</html>
