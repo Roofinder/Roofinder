@@ -833,4 +833,18 @@ function restoreAll() {
 function updateStats() {
   var visible = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; });
   document.getElementById('stat-total').textContent = visible.length;
-  var kept    = visible.filter(function(l){ r
+  var kept    = visible.filter(function(l){ return statuses[l.address]==='keep'; }).length;
+  var skipped = visible.filter(function(l){ return statuses[l.address]==='skip'; }).length;
+  document.getElementById('stat-kept').textContent = kept;
+  document.getElementById('stat-skipped').textContent = skipped;
+}
+
+function updateMgrCount() {
+  if (!isManager) return;
+  var cnt = LEADS.filter(function(_,i){ return !deleted[i] && !!hidden[i]; }).length;
+  var el = document.getElementById('mgr-count');
+  if (el) el.textContent = cnt > 0 ? cnt + ' hidden' : '';
+}
+</script>
+</body>
+</html>
