@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RooFinder — Pocket Builder</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif}
+
+/* ── LOGIN ── */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(76,175,80,0.12) 0%,transparent 60%),#0a0a0a}
+.login-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:48px 40px;max-width:400px;width:100%;text-align:center}
+.login-logo{font-size:22px;font-weight:800;margin-bottom:4px}.login-logo span{color:#4caf50}
+.login-sub{font-size:13px;color:#888;margin-bottom:32px}
+.login-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;display:block;margin-bottom:8px;text-align:left}
+.login-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px 16px;color:#fff;font-size:14px;font-family:inherit;margin-bottom:16px;outline:none;transition:border-color .2s}
+.login-input:focus{border-color:rgba(76,175,80,0.5)}
+.login-btn{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:14px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
+.login-btn:hover{background:#5cc760}
+.login-err{color:#ff5555;font-size:12px;margin-top:8px;display:none}
+
+/* ── PICKER ── */
+#picker{display:none;min-height:100vh;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(76,175,80,0.08) 0%,transparent 60%),#0a0a0a;padding:60px 24px}
+.picker-wrap{max-width:720px;margin:0 auto}
+.picker-logo{font-size:18px;font-weight:800;margin-bottom:4px}.picker-logo span{color:#4caf50}
+.picker-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(255,165,0,0.12);border:1px solid rgba(255,165,0,0.35);color:#ffa500;padding:3px 10px;border-radius:100px;margin-bottom:32px}
+.picker-title{font-size:26px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px}
+.picker-sub{font-size:14px;color:#666;margin-bottom:36px}
+.market-group{margin-bottom:28px}
+.market-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.pocket-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.pocket-tile{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:14px 16px;cursor:pointer;transition:all .2s}
+.pocket-tile:hover{background:rgba(76,175,80,0.06);border-color:rgba(76,175,80,0.35)}
+.pocket-tile.has-leads{border-color:rgba(76,175,80,0.2);background:rgba(76,175,80,0.04)}
+.pocket-tile-name{font-size:13px;font-weight:600;color:#fff;margin-bottom:4px}
+.pocket-tile-meta{font-size:11px;color:#555}
+.pocket-tile.has-leads .pocket-tile-meta{color:#4caf50}
+.picker-back{background:transparent;border:none;color:#555;font-size:12px;cursor:pointer;font-family:inherit;margin-top:24px;padding:0}
+.picker-back:hover{color:#fff}
+
+/* ── PORTAL ── */
+#portal{display:none}
+nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);padding:0 24px}
+.nav-inner{max-width:1200px;margin:0 auto;height:60px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.nav-logo{font-size:15px;font-weight:800;cursor:pointer}.nav-logo span{color:#4caf50}
+.nav-pocket{font-size:12px;color:#888;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);padding:4px 12px;border-radius:100px}
+.nav-mode{font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:100px}
+.nav-mode.admin{background:rgba(255,165,0,0.15);border:1px solid rgba(255,165,0,0.4);color:#ffa500}
+.nav-mode.manager{background:rgba(255,165,0,0.15);border:1px solid rgba(255,165,0,0.4);color:#ffa500}
+.nav-mode.contractor{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50}
+.nav-stats{display:flex;gap:20px;align-items:center;margin-left:auto}
+.nav-stat-num{font-size:16px;font-weight:800;color:#4caf50}.nav-stat-lbl{font-size:10px;color:#888;letter-spacing:.5px;text-align:right}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#4caf50;display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+#manager-bar{background:rgba(255,165,0,0.05);border-bottom:1px solid rgba(255,165,0,0.15);padding:10px 24px;display:none}
+.mgr-bar-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mgr-tip{font-size:12px;color:#ffa500;flex:1}
+.mgr-count{font-size:12px;color:#888}
+.mgr-btn{background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);color:#ffa500;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s}
+.mgr-btn:hover{background:rgba(255,165,0,0.2)}
+.mgr-btn.danger{border-color:rgba(255,85,85,0.3);color:#ff5555;background:rgba(255,85,85,0.05)}
+.mgr-btn.danger:hover{background:rgba(255,85,85,0.15)}
+.mgr-btn.switch{border-color:rgba(76,175,80,0.3);color:#4caf50;background:rgba(76,175,80,0.06)}
+.mgr-btn.switch:hover{background:rgba(76,175,80,0.14)}
+
+main{max-width:1200px;margin:0 auto;padding:32px 24px}
+.portal-title{font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+.portal-sub{font-size:14px;color:#888;margin-bottom:28px}
+.filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.filter-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:6px 14px;border-radius:100px;cursor:pointer;transition:all .2s;font-family:inherit}
+.filter-btn:hover,.filter-btn.active{background:rgba(76,175,80,0.1);border-color:rgba(76,175,80,0.4);color:#4caf50}
+.search-box{flex:1;min-width:200px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:13px;padding:8px 14px;border-radius:8px;outline:none;font-family:inherit}
+.search-box:focus{border-color:rgba(76,175,80,0.4)}
+.count-tag{font-size:12px;color:#888;white-space:nowrap}
+.table-wrap{border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden}
+.lead-table{width:100%;border-collapse:collapse;font-size:13px}
+.lead-table th{text-align:left;padding:10px 16px;color:#666;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.08)}
+.lead-table td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+.lead-table tr:last-child td{border-bottom:none}
+.lead-table tr:hover td{background:rgba(255,255,255,0.015)}
+.lead-table tr.is-hidden td{opacity:0.35}
+.owner-name{color:#fff;font-weight:600}
+.address{color:#888;font-size:12px;margin-top:2px}
+.value-num{color:#4caf50;font-weight:700}
+.view-btn{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;text-decoration:none;display:inline-block;transition:all .2s}
+.view-btn:hover{background:rgba(76,175,80,0.2)}
+.status-select{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:inherit;outline:none}
+.status-select.knocked{border-color:rgba(76,175,80,0.4);color:#4caf50;background:rgba(76,175,80,0.08)}
+.status-select.interested{border-color:rgba(255,193,7,0.4);color:#ffc107;background:rgba(255,193,7,0.08)}
+.status-select.closed{border-color:rgba(100,200,100,0.5);color:#7fff7f;background:rgba(100,200,100,0.15)}
+.action-btns{display:flex;gap:6px}
+.hide-btn{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#555;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s}
+.hide-btn:hover{border-color:rgba(255,165,0,0.5);color:#ffa500}
+.hide-btn.is-hidden{border-color:rgba(255,165,0,0.4);color:#ffa500;background:rgba(255,165,0,0.08)}
+.hide-btn.is-hidden:hover{border-color:rgba(76,175,80,0.4);color:#4caf50}
+.del-btn{background:transparent;border:1px solid rgba(255,85,85,0.2);color:#ff5555;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s}
+.del-btn:hover{background:rgba(255,85,85,0.12);border-color:rgba(255,85,85,0.5)}
+.empty-pocket{text-align:center;padding:80px 24px;color:#444}
+.empty-pocket-icon{font-size:40px;margin-bottom:16px}
+.empty-pocket-title{font-size:16px;font-weight:600;color:#555;margin-bottom:8px}
+.empty-pocket-sub{font-size:13px;color:#444}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">Roo<span>Finder</span></div>
+    <div class="login-sub">Enter your admin password or contractor access code</div>
+    <label class="login-label">Password / Access Code</label>
+    <input type="password" class="login-input" id="code-input" placeholder="Enter code" onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <button class="login-btn" onclick="tryLogin()">Access Pocket Builder</button>
+    <div class="login-err" id="login-err">Incorrect password or access code.</div>
+  </div>
+</div>
+
+<!-- ── POCKET PICKER (admin) ── -->
+<div id="picker">
+  <div class="picker-wrap">
+    <div class="picker-logo">Roo<span>Finder</span></div>
+    <div class="picker-badge">ADMIN · POCKET BUILDER</div>
+    <div class="picker-title">Select a Pocket</div>
+    <div class="picker-sub">Choose a market and pocket to enter. Green pockets have leads loaded.</div>
+    <div id="picker-markets"></div>
+    <button class="picker-back" onclick="logout()">← Sign out</button>
+  </div>
+</div>
+
+<!-- ── PORTAL ── -->
+<div id="portal">
+  <nav>
+    <div class="nav-inner">
+      <div class="nav-logo" onclick="switchPocket()">Roo<span>Finder</span></div>
+      <div class="nav-pocket" id="nav-pocket-label"></div>
+      <div class="nav-mode" id="mode-badge"></div>
+      <div class="nav-stats">
+        <div class="nav-stat"><div class="nav-stat-num" id="stat-total">0</div><div class="nav-stat-lbl">Leads</div></div>
+        <div class="nav-stat"><div class="nav-stat-num" id="stat-knocked">0</div><div class="nav-stat-lbl">Knocked</div></div>
+        <div class="nav-stat"><div class="nav-stat-num" id="stat-interested">0</div><div class="nav-stat-lbl">Interested</div></div>
+        <div style="font-size:11px;color:#555"><span class="sync-dot"></span>Live</div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="manager-bar">
+    <div class="mgr-bar-inner">
+      <div class="mgr-tip">&#9881;&#65039; Manager Mode &mdash; <strong>Hide</strong> removes from contractor view &nbsp;&middot;&nbsp; <strong>Delete</strong> removes permanently</div>
+      <div class="mgr-count" id="mgr-count"></div>
+      <button class="mgr-btn" onclick="setFilter('hidden',document.querySelector('[data-f=hidden]'))">View Hidden</button>
+      <button class="mgr-btn danger" onclick="restoreAll()">Restore All</button>
+      <button class="mgr-btn switch" onclick="switchPocket()">&#8592; Switch Pocket</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="portal-title" id="portal-title"></div>
+    <div class="portal-sub" id="portal-sub"></div>
+    <div class="filters">
+      <button class="filter-btn active" data-f="all" onclick="setFilter('all',this)">All</button>
+      <button class="filter-btn" data-f="not_knocked" onclick="setFilter('not_knocked',this)">Not Knocked</button>
+      <button class="filter-btn" data-f="interested" onclick="setFilter('interested',this)">Interested</button>
+      <button class="filter-btn" data-f="knocked" onclick="setFilter('knocked',this)">Knocked</button>
+      <button class="filter-btn" data-f="hidden" onclick="setFilter('hidden',this)" id="hidden-filter-btn" style="display:none">Hidden</button>
+      <input class="search-box" id="search" placeholder="Search by name or address..." oninput="renderTable()"/>
+      <span class="count-tag" id="count-tag"></span>
+    </div>
+    <div class="table-wrap">
+      <table class="lead-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Owner</th><th>Home Value</th><th>Sq Ft</th><th>Yr Built</th><th>Roof View</th><th>Status</th><th id="th-actions" style="display:none">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="lead-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Firebase ──────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
+  authDomain: "roofinder-cc880.firebaseapp.com",
+  projectId: "roofinder-cc880",
+  storageBucket: "roofinder-cc880.firebasestorage.app",
+  messagingSenderId: "882068436752",
+  appId: "1:882068436752:web:2ccd00b3580a47ec749795"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// ── Auth config ───────────────────────────────────────────────────
+var ADMIN_PW = 'ROOFADMIN1';
+
+// Maps access code → { slug, role }
+// Add new contractor codes here as you sell pockets
+var CODE_MAP = {
+  'ROOFMGR3':  { slug: 'raleigh-pocket-3', role: 'manager' },
+  'RALEIGH3':  { slug: 'raleigh-pocket-3', role: 'contractor' },
+  // Future pockets: add more codes here
+  // 'CARYECLIPSE': { slug: 'cary-eclipse', role: 'contractor' },
+};
+
+// ── Pocket registry ───────────────────────────────────────────────
+// All pockets across all markets. Only slugs with entries in POCKET_LEADS have live data.
+var ALL_POCKETS = [
+  { market:'Raleigh',         name:'Pocket 3',     slug:'raleigh-pocket-3'         },
+  { market:'Raleigh',         name:'Phantom',      slug:'raleigh-phantom'           },
+  { market:'Raleigh',         name:'Rogue One',    slug:'raleigh-rogue-one'         },
+  { market:'Raleigh',         name:'Alliance',     slug:'raleigh-alliance'          },
+  { market:'Raleigh',         name:'Falcon',       slug:'raleigh-falcon'            },
+  { market:'Raleigh',         name:'Sentinel',     slug:'raleigh-sentinel'          },
+  { market:'Raleigh',         name:'Nexus',        slug:'raleigh-nexus'             },
+  { market:'Raleigh',         name:'Imperial',     slug:'raleigh-imperial'          },
+  { market:'Raleigh',         name:'Vanguard',     slug:'raleigh-vanguard'          },
+  { market:'Raleigh',         name:'Executor',     slug:'raleigh-executor'          },
+  { market:'Raleigh',         name:'Interceptor',  slug:'raleigh-interceptor'       },
+  { market:'Raleigh',         name:'Outpost',      slug:'raleigh-outpost'           },
+  { market:'Raleigh',         name:'Legion',       slug:'raleigh-legion'            },
+  { market:'Raleigh',         name:'Order',        slug:'raleigh-order'             },
+  { market:'Cary',            name:'Eclipse',      slug:'cary-eclipse'              },
+  { market:'Cary',            name:'Titan',        slug:'cary-titan'                },
+  { market:'Cary',            name:'Vector',       slug:'cary-vector'               },
+  { market:'Cary',            name:'Razor',        slug:'cary-razor'                },
+  { market:'Cary',            name:'Venator',      slug:'cary-venator'              },
+  { market:'Cary',            name:'Harbinger',    slug:'cary-harbinger'            },
+  { market:'Cary',            name:'Sovereign',    slug:'cary-sovereign'            },
+  { market:'Cary',            name:'Defiant',      slug:'cary-defiant'              },
+  { market:'Holly Springs',   name:'Rogue',        slug:'holly-springs-rogue'       },
+  { market:'Holly Springs',   name:'Imperial',     slug:'holly-springs-imperial'    },
+  { market:'Holly Springs',   name:'Alliance',     slug:'holly-springs-alliance'    },
+  { market:'Holly Springs',   name:'Falcon',       slug:'holly-springs-falcon'      },
+  { market:'Holly Springs',   name:'Sentinel',     slug:'holly-springs-sentinel'    },
+  { market:'Holly Springs',   name:'Nexus',        slug:'holly-springs-nexus'       },
+  { market:'Wake Forest',     name:'Order',        slug:'wake-forest-order'         },
+  { market:'Wake Forest',     name:'Pathfinder',   slug:'wake-forest-pathfinder'    },
+  { market:'Wake Forest',     name:'Striker',      slug:'wake-forest-striker'       },
+  { market:'Wake Forest',     name:'Warden',       slug:'wake-forest-warden'        },
+  { market:'Wake Forest',     name:'Nomad',        slug:'wake-forest-nomad'         },
+  { market:'Wake Forest',     name:'Renegade',     slug:'wake-forest-renegade'      },
+  { market:'Apex',            name:'Command',      slug:'apex-command'              },
+  { market:'Apex',            name:'Enforcer',     slug:'apex-enforcer'             },
+  { market:'Apex',            name:'Operative',    slug:'apex-operative'            },
+  { market:'Apex',            name:'Squadron',     slug:'apex-squadron'             },
+  { market:'Knightdale',      name:'Sector',       slug:'knightdale-sector'         },
+  { market:'Knightdale',      name:'Bastion',      slug:'knightdale-bastion'        },
+  { market:'Knightdale',      name:'Citadel',      slug:'knightdale-citadel'        },
+  { market:'Fuquay-Varina',   name:'Tempest',      slug:'fuquay-varina-tempest'     },
+  { market:'Fuquay-Varina',   name:'Nova',         slug:'fuquay-varina-nova'        },
+  { market:'Fuquay-Varina',   name:'Shadow',       slug:'fuquay-varina-shadow'      },
+  { market:'Garner',          name:'Eclipse',      slug:'garner-eclipse'            },
+  { market:'Garner',          name:'Titan',        slug:'garner-titan'              },
+  { market:'Garner',          name:'Vector',       slug:'garner-vector'             },
+  { market:'Morrisville',     name:'Razor',        slug:'morrisville-razor'         },
+  { market:'Morrisville',     name:'Harbinger',    slug:'morrisville-harbinger'     },
+  { market:'Morrisville',     name:'Sovereign',    slug:'morrisville-sovereign'     },
+];
+
+// ── Lead data per pocket ──────────────────────────────────────────
+// Add new pocket lead arrays here as you import them.
+var POCKET_LEADS = {
+  'raleigh-pocket-3': [{"address":"3324 Granville Dr","city":"Raleigh","owner":"Pope, James Arthur Pope, Katherine K","year_built":"2004","roof_age":"22","value":"3826357","sqft":"10057"},{"address":"2619 Village Manor Way","city":"Raleigh","owner":"Bricker, Christopher A Bricker, Jennifer D","year_built":"2006","roof_age":"20","value":"1969153","sqft":"7957"},{"address":"4009 John S Raboteau Wynd","city":"Raleigh","owner":"Chaudhry, Abdul Ghafoor Chaudhry, Fauzia G","year_built":"2006","roof_age":"20","value":"1852035","sqft":"7939"},{"address":"607 Runnymede Rd","city":"Raleigh","owner":"Maddison, Laurence B Iii Maddison, Sarah D","year_built":"2005","roof_age":"21","value":"1727323","sqft":"4877"},{"address":"514 E Jones St","city":"Raleigh","owner":"Poulos, Stathis Poulos, Annie","year_built":"2005","roof_age":"21","value":"1504618","sqft":"3696"},{"address":"3316 Darien Dr","city":"Raleigh","owner":"Swift, Steven W","year_built":"2005","roof_age":"21","value":"1486446","sqft":"5526"},{"address":"3504 William Pope Wynd","city":"Raleigh","owner":"Monaco, Thomas J Jr Monaco, Jane H","year_built":"2006","roof_age":"20","value":"1464395","sqft":"6354"},{"address":"2539 Village Manor Way","city":"Raleigh","owner":"Ross, Robert E Ross, Nancy H","year_built":"2005","roof_age":"21","value":"1381180","sqft":"5981"},{"address":"1336 Banbury Rd","city":"Raleigh","owner":"Atkins, Matthew Elliot Wood Atkins, Sarah Elizabeth","year_built":"2006","roof_age":"20","value":"1353532","sqft":"5112"},{"address":"2726 Rothgeb Dr","city":"Raleigh","owner":"Wadsworth, David M Wadsworth, Christine L","year_built":"2005","roof_age":"21","value":"1260770","sqft":"4274"},{"address":"2724 Anderson Dr","city":"Raleigh","owner":"Hunter, Anne Fleming","year_built":"2004","roof_age":"22","value":"1260214","sqft":"3377"},{"address":"3230 Rain Forrest Way","city":"Raleigh","owner":"Garrett, Leland E Garrett, Nancy J","year_built":"2006","roof_age":"20","value":"1208934","sqft":"5462"},{"address":"113 Georgetown Rd","city":"Raleigh","owner":"Toon, Gordon T Toon, Meaghan R","year_built":"2004","roof_age":"22","value":"1165323","sqft":"3498"},{"address":"9403 Carlswood Ct","city":"Raleigh","owner":"Gearing, John Gearing, Karen Carr","year_built":"2006","roof_age":"20","value":"1157519","sqft":"3840"},{"address":"10643 Tarton Fields Cir","city":"Raleigh","owner":"Wolf, Rachel Sullivan Wolf, John Kelly","year_built":"2006","roof_age":"20","value":"1099178","sqft":"4958"},{"address":"9105 Fawn Hill Ct","city":"Raleigh","owner":"Casella, Alicia D","year_built":"2005","roof_age":"21","value":"1088048","sqft":"4035"},{"address":"1208 Harp St","city":"Raleigh","owner":"Merz, Robert L Jr Merz, Patricia J","year_built":"2004","roof_age":"22","value":"874255","sqft":"3079"},{"address":"10701 Biroc Ct","city":"Raleigh","owner":"O'Donnell, Shane M O'Donnell, Jennifer L","year_built":"2004","roof_age":"22","value":"872348","sqft":"4755"},{"address":"2412 Hagney St","city":"Raleigh","owner":"Farrell, Andrew R Farrell, Laura M","year_built":"2006","roof_age":"20","value":"861616","sqft":"6410"},{"address":"11320 Ridgegate Dr","city":"Raleigh","owner":"Angaluri, Srihari V Tangirala, Shubha S","year_built":"2006","roof_age":"20","value":"861353","sqft":"3778"},{"address":"3818 Falls River Ave","city":"Raleigh","owner":"Mayo, William G Mayo, Melissa B","year_built":"2006","roof_age":"20","value":"854678","sqft":"3816"},{"address":"9228 Palm Bay Cir","city":"Raleigh","owner":"Lampkin, Thomas A","year_built":"2004","roof_age":"22","value":"849804","sqft":"4638"},{"address":"11733 Dellcain Ct","city":"Raleigh","owner":"Rhodes, Bradley E Rhodes, Melissa C","year_built":"2006","roof_age":"20","value":"847325","sqft":"4557"},{"address":"9117 Palm Bay Cir","city":"Raleigh","owner":"Patel, Mehul Patel, Parul","year_built":"2004","roof_age":"22","value":"844097","sqft":"3405"},{"address":"11615 Broadfield Ct","city":"Raleigh","owner":"Hallowell, George Holub, Joan","year_built":"2006","roof_age":"20","value":"822096","sqft":"4560"},{"address":"10647 Bedfordtown Dr","city":"Raleigh","owner":"Mcgowan, Keith M Mcgowan, Shannon M","year_built":"2005","roof_age":"21","value":"795042","sqft":"3472"},{"address":"8132 Sommerwell St","city":"Raleigh","owner":"Jones, Todd L Jones, Nicole T","year_built":"2005","roof_age":"21","value":"793482","sqft":"4565"},{"address":"10424 Chandler Way","city":"Raleigh","owner":"Doucette, David O Doucette, Vernonica L","year_built":"2005","roof_age":"21","value":"778023","sqft":"3881"},{"address":"8913 Riverview Park Dr","city":"Raleigh","owner":"Mcelrath, Rodney D Mcelrath, Michelle M","year_built":"2004","roof_age":"22","value":"762712","sqft":"3551"},{"address":"11736 Dellcain Ct","city":"Raleigh","owner":"Moazzam, Sheikh Salman, Aqsa","year_built":"2006","roof_age":"20","value":"737810","sqft":"3334"},{"address":"9301 Stone Mountain Rd","city":"Raleigh","owner":"Nguyen, Johnny Ho, Phung","year_built":"2005","roof_age":"21","value":"724194","sqft":"3575"},{"address":"1704 Wysong Ct","city":"Raleigh","owner":"Whichard, Angela T","year_built":"2004","roof_age":"22","value":"719299","sqft":"2657"},{"address":"11343 Oakcroft Dr","city":"Raleigh","owner":"Rothwell, Kenneth G Rothwell, Jonri S","year_built":"2006","roof_age":"20","value":"718596","sqft":"4208"},{"address":"11708 Broadfield Ct","city":"Raleigh","owner":"Taylor, Brian K Taylor, Alysia N Bailey","year_built":"2006","roof_age":"20","value":"717611","sqft":"3030"},{"address":"1408 Mitford Woods Ct","city":"Raleigh","owner":"Haeri, Mehdi Haeri, Shamim","year_built":"2004","roof_age":"22","value":"712869","sqft":"3476"},{"address":"1128 Hobson Ct","city":"Raleigh","owner":"Austin, William J Jr Austin, Gail Russell","year_built":"2004","roof_age":"22","value":"712566","sqft":"3631"},{"address":"4308 Coldwater Springs Dr","city":"Raleigh","owner":"Jefferson, Marcus Jefferson, Coleenique","year_built":"2006","roof_age":"20","value":"711390","sqft":"4115"},{"address":"10719 Friendly Neighbor Ln","city":"Raleigh","owner":"Zeitouni, Salim Zeitouni, Lilian","year_built":"2006","roof_age":"20","value":"706728","sqft":"3507"},{"address":"11732 Dellcain Ct","city":"Raleigh","owner":"Patel, Hemakshi S","year_built":"2006","roof_age":"20","value":"703060","sqft":"3212"},{"address":"8900 Riverview Park Dr","city":"Raleigh","owner":"Hall, William D Hall, Marilyn M","year_built":"2004","roof_age":"22","value":"700882","sqft":"3760"},{"address":"9108 Riverview Park Dr","city":"Raleigh","owner":"Cao, Quynh Mai Le Doan, Huy Q","year_built":"2004","roof_age":"22","value":"700305","sqft":"3642"},{"address":"10832 Bedfordtown Dr","city":"Raleigh","owner":"Lomri, Zohra Lomri, Tahar","year_built":"2006","roof_age":"20","value":"691166","sqft":"5054"},{"address":"8144 Sommerwell St","city":"Raleigh","owner":"Blackburn, Laurie J","year_built":"2005","roof_age":"21","value":"687405","sqft":"3033"},{"address":"10650 Cardington Ln","city":"Raleigh","owner":"Scalercio, Trevor Scalercio, Rachel","year_built":"2004","roof_age":"22","value":"686531","sqft":"3532"},{"address":"12204 Ashton Woods Ln","city":"Raleigh","owner":"Powell, Clarence Powell, Mary","year_built":"2004","roof_age":"22","value":"686196","sqft":"3730"},{"address":"2221 Kira Ln","city":"Raleigh","owner":"Reed, James W Reed, Amber M","year_built":"2004","roof_age":"22","value":"685427","sqft":"3116"},{"address":"3004 Gentle Breezes Ln","city":"Raleigh","owner":"Vanevic, Cristo Daniel Vanevic, Laura J","year_built":"2006","roof_age":"20","value":"685268","sqft":"3949"},{"address":"8842 Mariner Dr","city":"Raleigh","owner":"Dower, John M Dower, Barbara C","year_built":"2005","roof_age":"21","value":"683712","sqft":"3073"},{"address":"3545 Mount Prospect Cir","city":"Raleigh","owner":"Galuten, Jeffrey Galuten, Patricia","year_built":"2005","roof_age":"21","value":"681530","sqft":"2730"},{"address":"5901 Forestville Rd","city":"Raleigh","owner":"Smith, Alma E","year_built":"2004","roof_age":"22","value":"675825","sqft":"3401"},{"address":"10824 Bedfordtown Dr","city":"Raleigh","owner":"Gross, Nathan Gross, Carey","year_built":"2005","roof_age":"21","value":"675691","sqft":"3864"},{"address":"5014 Isabella Cannon Dr","city":"Raleigh","owner":"Cook, Sam Cooke, Sherry L","year_built":"2006","roof_age":"20","value":"674844","sqft":"4160"},{"address":"8117 Sommerwell St","city":"Raleigh","owner":"Prasad, Ram Deo","year_built":"2005","roof_age":"21","value":"674051","sqft":"3187"},{"address":"10727 Friendly Neighbor Ln","city":"Raleigh","owner":"Sexton, Steven Jones Sexton, Julie B","year_built":"2005","roof_age":"21","value":"672738","sqft":"3520"},{"address":"2202 Hopeton Ave","city":"Raleigh","owner":"Simpson, Jordan S Simpson, Patton S","year_built":"2005","roof_age":"21","value":"668208","sqft":"2966"},{"address":"2218 Hopeton Ave","city":"Raleigh","owner":"Richardson, Brenda A","year_built":"2005","roof_age":"21","value":"660760","sqft":"3021"},{"address":"4631 Manassa Pope Ln","city":"Raleigh","owner":"Hays, Martha","year_built":"2006","roof_age":"20","value":"659523","sqft":"2623"},{"address":"3632 Kapalua Way","city":"Raleigh","owner":"Boggie, Douglas C Boggie, Glenna N","year_built":"2006","roof_age":"20","value":"658401","sqft":"3707"},{"address":"10115 Thoughtful Spot Way","city":"Raleigh","owner":"Nguyen, Huyen Vo, Cam Nhung","year_built":"2006","roof_age":"20","value":"654577","sqft":"3028"},{"address":"5045 Isabella Cannon Dr","city":"Raleigh","owner":"Horowitz, Stacey","year_built":"2006","roof_age":"20","value":"649085","sqft":"2623"},{"address":"3521 Mount Prospect Cir","city":"Raleigh","owner":"Harrison, Leslie Pat Harrison, Susan M","year_built":"2005","roof_age":"21","value":"645477","sqft":"2671"},{"address":"2417 Bright Future Way","city":"Raleigh","owner":"Isaacs, Christian A Isaacs, Ana","year_built":"2004","roof_age":"22","value":"643123","sqft":"2998"},{"address":"10116 Second Star Ct","city":"Raleigh","owner":"Green, Raymond Green, Megan","year_built":"2006","roof_age":"20","value":"639913","sqft":"2990"},{"address":"12316 Beestone Ln","city":"Raleigh","owner":"Peckous, Larry W Darwati, Aan","year_built":"2005","roof_age":"21","value":"619356","sqft":"3266"},{"address":"8425 Eden Park Dr","city":"Raleigh","owner":"Primanti, Marc D Primanti, Julie S","year_built":"2006","roof_age":"20","value":"612881","sqft":"2556"},{"address":"2717 Peachleaf St","city":"Raleigh","owner":"Cable, Robert L Iii Thompson, Mary A","year_built":"2005","roof_age":"21","value":"603549","sqft":"3717"},{"address":"4629 Manassa Pope Ln","city":"Raleigh","owner":"Lee, Thaddeus S Iii Lee, Dale Woodlief","year_built":"2006","roof_age":"20","value":"600595","sqft":"2361"},{"address":"2900 Finsbury Park Way","city":"Raleigh","owner":"Burke, Shane A Burke, Sutha","year_built":"2005","roof_age":"21","value":"561476","sqft":"3291"},{"address":"5328 Shaker Heights Ln","city":"Raleigh","owner":"Lafuria, Jeffrey Lafuria, Christina","year_built":"2004","roof_age":"22","value":"552451","sqft":"2576"},{"address":"5416 Shaker Heights Ln","city":"Raleigh","owner":"Dokulil, Paul Dokulil, Barbara","year_built":"2005","roof_age":"21","value":"550325","sqft":"2576"},{"address":"7372 Fontana Ridge Ln","city":"Raleigh","owner":"Ku, Tony W","year_built":"2004","roof_age":"22","value":"550058","sqft":"2236"},{"address":"1209 River Chase Dr","city":"Raleigh","owner":"Bryant, Lee Roy Bryant, Bettie D","year_built":"2005","roof_age":"21","value":"541272","sqft":"2731"},{"address":"2214 Kira Ln","city":"Raleigh","owner":"Hofmann, James W Jr Hofmann, Heather M","year_built":"2006","roof_age":"20","value":"541075","sqft":"2200"},{"address":"12116 Mcbride Dr","city":"Raleigh","owner":"Sherman, Bryan W Sherman, Jennifer V","year_built":"2005","roof_age":"21","value":"539575","sqft":"2799"},{"address":"1200 River Chase Dr","city":"Raleigh","owner":"Hocutt, Edith","year_built":"2005","roof_age":"21","value":"536420","sqft":"2564"},{"address":"6118 Leesburg Ln","city":"Raleigh","owner":"King, Holly Kay","year_built":"2005","roof_age":"21","value":"527031","sqft":"2304"},{"address":"10934 Peppermill Dr","city":"Raleigh","owner":"Walters, Michele C","year_built":"2006","roof_age":"20","value":"509637","sqft":"2358"},{"address":"7713 Jackson Dane Dr","city":"Raleigh","owner":"Wijesuriya, Nuwan M Wijesuriya, Yasasmi","year_built":"2005","roof_age":"21","value":"502056","sqft":"2648"}]
+};
+
+// ── App state ─────────────────────────────────────────────────────
+var currentRole   = null; // 'admin' | 'manager' | 'contractor'
+var currentSlug   = null;
+var currentPocket = null; // { market, name, slug }
+var LEADS         = [];
+var isManager     = false;
+var statuses      = {};
+var hidden        = {};
+var deleted       = {};
+var currentFilter = 'all';
+var pocketDoc     = null;
+var unsubscribe   = null;
+
+// ── Auth ──────────────────────────────────────────────────────────
+function tryLogin() {
+  var val = document.getElementById('code-input').value.trim().toUpperCase();
+  document.getElementById('login-err').style.display = 'none';
+  if (val === ADMIN_PW) {
+    currentRole = 'admin';
+    showPicker();
+  } else if (CODE_MAP[val]) {
+    var entry = CODE_MAP[val];
+    currentRole = entry.role;
+    openPocket(entry.slug);
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+function logout() {
+  currentRole = null; currentSlug = null;
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  document.getElementById('portal').style.display = 'none';
+  document.getElementById('picker').style.display = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('code-input').value = '';
+}
+
+// ── Pocket Picker ─────────────────────────────────────────────────
+function showPicker() {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('portal').style.display = 'none';
+  document.getElementById('picker').style.display = 'block';
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  renderPicker();
+}
+
+function renderPicker() {
+  var markets = [];
+  ALL_POCKETS.forEach(function(p) {
+    if (markets.indexOf(p.market) === -1) markets.push(p.market);
+  });
+  var html = '';
+  markets.forEach(function(m) {
+    var pockets = ALL_POCKETS.filter(function(p){ return p.market === m; });
+    html += '<div class="market-group"><div class="market-label">' + m + '</div><div class="pocket-grid">';
+    pockets.forEach(function(p) {
+      var hasLeads = !!POCKET_LEADS[p.slug];
+      html += '<div class="pocket-tile' + (hasLeads ? ' has-leads' : '') + '" onclick="openPocket(\'' + p.slug + '\')">'
+        + '<div class="pocket-tile-name">' + p.name + '</div>'
+        + '<div class="pocket-tile-meta">' + (hasLeads ? '✓ Leads loaded' : 'No leads yet') + '</div>'
+        + '</div>';
+    });
+    html += '</div></div>';
+  });
+  document.getElementById('picker-markets').innerHTML = html;
+}
+
+// ── Open a pocket ─────────────────────────────────────────────────
+function openPocket(slug) {
+  if (unsubscribe) { unsubscribe(); unsubscribe = null; }
+  currentSlug = slug;
+  currentPocket = ALL_POCKETS.filter(function(p){ return p.slug === slug; })[0] || { market: '', name: slug, slug: slug };
+  LEADS = POCKET_LEADS[slug] || [];
+  isManager = (currentRole === 'admin' || currentRole === 'manager');
+
+  pocketDoc = db.collection('pockets').doc(slug);
+  statuses = {}; hidden = {}; deleted = {};
+  currentFilter = 'all';
+
+  // Reset UI
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('picker').style.display = 'none';
+  document.getElementById('portal').style.display = 'block';
+  document.getElementById('search').value = '';
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('[data-f=all]').classList.add('active');
+
+  // Set pocket label
+  var label = currentPocket.market + ' · ' + currentPocket.name;
+  document.getElementById('nav-pocket-label').textContent = label;
+  document.getElementById('portal-title').textContent = label;
+
+  // Mode badge
+  var badge = document.getElementById('mode-badge');
+  if (currentRole === 'admin') { badge.textContent = 'ADMIN'; badge.className = 'nav-mode admin'; }
+  else if (currentRole === 'manager') { badge.textContent = 'MANAGER'; badge.className = 'nav-mode manager'; }
+  else { badge.textContent = 'CONTRACTOR'; badge.className = 'nav-mode contractor'; }
+
+  // Manager bar
+  if (isManager) {
+    document.getElementById('manager-bar').style.display = 'block';
+    document.getElementById('th-actions').style.display = '';
+    document.getElementById('hidden-filter-btn').style.display = '';
+  } else {
+    document.getElementById('manager-bar').style.display = 'none';
+    document.getElementById('th-actions').style.display = 'none';
+    document.getElementById('hidden-filter-btn').style.display = 'none';
+  }
+
+  startSync();
+}
+
+function switchPocket() {
+  if (currentRole === 'admin') { showPicker(); }
+  else { logout(); }
+}
+
+// ── Firebase sync ─────────────────────────────────────────────────
+function startSync() {
+  unsubscribe = pocketDoc.onSnapshot(function(doc) {
+    if (doc.exists) {
+      var d = doc.data();
+      statuses = d.statuses || {};
+      hidden   = d.hidden   || {};
+      deleted  = d.deleted  || {};
+    }
+    updateSubtitle();
+    renderTable();
+    updateStats();
+    updateMgrCount();
+  }, function(err){ console.warn('Sync error:', err); });
+}
+
+function saveField(field, value) {
+  var update = {};
+  update[field] = value;
+  pocketDoc.set(update, { merge: true }).catch(function(e){ console.warn(e); });
+}
+
+// ── Render ────────────────────────────────────────────────────────
+function updateSubtitle() {
+  var el = document.getElementById('portal-sub');
+  if (!LEADS.length) {
+    el.textContent = 'No leads loaded for this pocket yet.';
+    return;
+  }
+  if (isManager) {
+    el.textContent = LEADS.filter(function(_,i){ return !deleted[i]; }).length + ' total leads · ' + currentPocket.market + ', NC · Manager view';
+  } else {
+    el.textContent = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; }).length + ' prequalified leads · ' + currentPocket.market + ', NC · Exclusive to you';
+  }
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderTable();
+}
+
+function fmtValue(v) {
+  var n = parseInt(v);
+  if (isNaN(n)) return v;
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
+  return '$' + Math.round(n/1000) + 'K';
+}
+
+function renderTable() {
+  var tbody = document.getElementById('lead-tbody');
+  if (!LEADS.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-pocket"><div class="empty-pocket-icon">📦</div><div class="empty-pocket-title">No leads loaded for this pocket</div><div class="empty-pocket-sub">Lead data will be added when this pocket is activated.</div></div></td></tr>';
+    return;
+  }
+  var search = document.getElementById('search').value.toLowerCase();
+  var rows = [];
+  LEADS.forEach(function(l, i) {
+    if (deleted[i]) return;
+    var isHid = !!hidden[i];
+    var s = statuses[i] || 'new';
+    if (!isManager && isHid) return;
+    if (currentFilter === 'knocked' && s !== 'knocked') return;
+    if (currentFilter === 'interested' && s !== 'interested') return;
+    if (currentFilter === 'not_knocked' && (s === 'knocked' || s === 'closed')) return;
+    if (currentFilter === 'hidden' && !isHid) return;
+    if (search && !l.owner.toLowerCase().includes(search) && !l.address.toLowerCase().includes(search)) return;
+    rows.push({l:l, i:i, s:s, isHid:isHid});
+  });
+  document.getElementById('count-tag').textContent = rows.length + ' leads';
+  tbody.innerHTML = rows.map(function(r) {
+    var l=r.l, i=r.i, s=r.s;
+    var mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(l.address + ', ' + l.city + ', NC');
+    var owner = l.owner.split(',')[0].trim();
+    var hideLabel = r.isHid ? '\u{1F441} Show' : 'Hide';
+    var hideCls = 'hide-btn' + (r.isHid ? ' is-hidden' : '');
+    var rowCls = r.isHid ? ' class="is-hidden"' : '';
+    var statusCell = isManager
+      ? '<td><span style="color:#555;font-size:11px">—</span></td>'
+      : '<td><select class="status-select ' + s + '" onchange="setStatus(' + i + ',this)">'
+        + '<option value="new"'       + (s==='new'       ?' selected':'') + '>Not Knocked</option>'
+        + '<option value="knocked"'   + (s==='knocked'   ?' selected':'') + '>Knocked</option>'
+        + '<option value="interested"'+ (s==='interested'?' selected':'') + '>Interested</option>'
+        + '<option value="closed"'    + (s==='closed'    ?' selected':'') + '>Closed</option>'
+        + '<option value="skip"'      + (s==='skip'      ?' selected':'') + '>Skip</option>'
+        + '</select></td>';
+    var actionsCell = isManager
+      ? '<td><div class="action-btns">'
+        + '<button class="' + hideCls + '" onclick="toggleHide(' + i + ')">' + hideLabel + '</button>'
+        + '<button class="del-btn" onclick="deleteLead(' + i + ')">Delete</button>'
+        + '</div></td>'
+      : '';
+    return '<tr' + rowCls + '>'
+      + '<td style="color:#555;font-size:12px">' + (i+1) + '</td>'
+      + '<td><div class="owner-name">' + owner + '</div><div class="address">' + l.address + ', ' + l.city + '</div></td>'
+      + '<td><span class="value-num">' + fmtValue(l.value) + '</span></td>'
+      + '<td style="color:#888">' + parseInt(l.sqft).toLocaleString() + '</td>'
+      + '<td style="color:#888">' + l.year_built + '</td>'
+      + '<td><a class="view-btn" href="' + mapsUrl + '" target="_blank">🛰 View Roof</a></td>'
+      + statusCell + actionsCell + '</tr>';
+  }).join('');
+}
+
+function setStatus(idx, sel) {
+  statuses[idx] = sel.value;
+  sel.className = 'status-select ' + sel.value;
+  saveField('statuses', statuses);
+  updateStats();
+}
+
+function toggleHide(idx) {
+  if (hidden[idx]) delete hidden[idx]; else hidden[idx] = true;
+  saveField('hidden', hidden);
+}
+
+function deleteLead(idx) {
+  if (!confirm('Permanently delete this lead? This cannot be undone.')) return;
+  deleted[idx] = true;
+  if (hidden[idx]) delete hidden[idx];
+  saveField('deleted', deleted);
+  saveField('hidden', hidden);
+}
+
+function restoreAll() {
+  if (!confirm('Restore all hidden and deleted leads?')) return;
+  hidden = {}; deleted = {};
+  pocketDoc.set({ hidden:{}, deleted:{} }, { merge: true });
+}
+
+function updateStats() {
+  var vis = LEADS.filter(function(_,i){ return !deleted[i] && (isManager || !hidden[i]); });
+  document.getElementById('stat-total').textContent = vis.length;
+  var kn=0, int=0;
+  vis.forEach(function(l,j) {
+    var i = LEADS.indexOf(l);
+    var s = statuses[i] || 'new';
+    if (s==='knocked'||s==='closed') kn++;
+    if (s==='interested') int++;
+  });
+  document.getElementById('stat-knocked').textContent = kn;
+  document.getElementById('stat-interested').textContent = int;
+}
+
+function updateMgrCount() {
+  var el = document.getElementById('mgr-count');
+  if (!el || !isManager) return;
+  var h = Object.keys(hidden).length;
+  var d = Object.keys(deleted).length;
+  var parts = [];
+  if (h) parts.push(h + ' hidden');
+  if (d) parts.push(d + ' deleted');
+  el.textContent = parts.join(' · ');
+}
+</script>
+</body>
+</html>
