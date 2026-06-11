@@ -111,7 +111,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
 <div id="login">
   <div class="login-box">
     <div class="login-logo">Roo<span>Finder</span></div>
-    <div class="login-sub">Enter your admin password or contractor access code</div>
+    <div class="login-sub">Enter your password to access the Pocket Builder</div>
     <label class="login-label">Password / Access Code</label>
     <input type="password" class="login-input" id="code-input" placeholder="Enter code" onkeydown="if(event.key==='Enter')tryLogin()"/>
     <button class="login-btn" onclick="tryLogin()">Access Pocket Builder</button>
@@ -198,15 +198,6 @@ var db = firebase.firestore();
 // ── Auth config ───────────────────────────────────────────────────
 var ADMIN_PW = 'ROOFADMIN1';
 
-// Maps access code → { slug, role }
-// Add new contractor codes here as you sell pockets
-var CODE_MAP = {
-  'ROOFMGR3':  { slug: 'raleigh-pocket-3', role: 'manager' },
-  'RALEIGH3':  { slug: 'raleigh-pocket-3', role: 'contractor' },
-  // Future pockets: add more codes here
-  // 'CARYECLIPSE': { slug: 'cary-eclipse', role: 'contractor' },
-};
-
 // ── Pocket registry ───────────────────────────────────────────────
 // All pockets across all markets. Only slugs with entries in POCKET_LEADS have live data.
 var ALL_POCKETS = [
@@ -288,10 +279,6 @@ function tryLogin() {
   if (val === ADMIN_PW) {
     currentRole = 'admin';
     showPicker();
-  } else if (CODE_MAP[val]) {
-    var entry = CODE_MAP[val];
-    currentRole = entry.role;
-    openPocket(entry.slug);
   } else {
     document.getElementById('login-err').style.display = 'block';
   }
