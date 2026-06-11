@@ -293,7 +293,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
 </div>
 
 <script>
-// ── Firebase ──────────────────────────────────────────────────────
+// ── Firebase ─────────────────────────────────────────────────────
 var firebaseConfig = {
   apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
   authDomain: "roofinder-cc880.firebaseapp.com",
@@ -769,4 +769,72 @@ function renderTable() {
       ? '<td><span style="color:#555;font-size:11px">—</span></td>'
       : '<td><select class="status-select ' + s + '" onchange="setStatus(' + i + ',this)">'
         + '<option value="new"'       + (s==='new'       ?' selected':'') + '>Not Knocked</option>'
-        + '<option value="knocked"'   + (s==='knocked'   ?' selected':'') + 
+        + '<option value="knocked"'   + (s==='knocked'   ?' selected':'') + '>Knocked</option>'
+        + '<option value="interested"' + (s==='interested' ?' selected':'') + '>Interested</option>'
+        + '<option value="closed"'     + (s==='closed'     ?' selected':'') + '>Closed</option>'
+        + '</select></td>';
+    var actionCell = isManager
+      ? '<td><div class="action-btns">'
+        + '<button class="' + hideCls + '" onclick="hideLead(' + i + ')">' + hideLabel + '</button>'
+        + '<button class="del-btn" onclick="deleteLead(' + i + ')">Delete</button>'
+        + '</div></td>'
+      : '';
+    return '<tr' + rowCls + '>'
+      + '<td style="color:#555;font-size:11px">' + (i+1) + '</td>'
+      + '<td><div class="owner-name">' + owner + '</div><div class="addr-text">' + l.address + '</div></td>'
+      + '<td>' + fmtValue(l.value) + '</td>'
+      + '<td>' + roofAge + '</td>'
+      + '<td>' + yrBuilt + '</td>'
+      + '<td><a href="' + mapsUrl + '" target="_blank" class="map-link">View →</a></td>'
+      + statusCell
+      + actionCell
+      + '</tr>';
+  }).join('');
+}
+
+// ── Lead actions ──────────────────────────────────────────────────
+function setStatus(i, sel) {
+  statuses[i] = sel.value;
+  saveField('statuses', statuses);
+  updateStats();
+}
+
+function hideLead(i) {
+  hidden[i] = !hidden[i];
+  if (!hidden[i]) delete hidden[i];
+  saveField('hidden', hidden);
+}
+
+function deleteLead(i) {
+  if (!confirm('Remove this lead permanently from the pocket?')) return;
+  deleted[i] = true;
+  saveField('deleted', deleted);
+}
+
+function restoreAll() {
+  if (!confirm('Restore all hidden leads?')) return;
+  hidden = {};
+  saveField('hidden', hidden);
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+function updateStats() {
+  var visible = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; });
+  document.getElementById('stat-total').textContent = visible.length;
+  var knocked = visible.filter(function(_,i){
+    return statuses[i]==='knocked' || statuses[i]==='interested' || statuses[i]==='closed';
+  }).length;
+  document.getElementById('stat-knocked').textContent = knocked;
+  var interested = visible.filter(function(_,i){ return statuses[i]==='interested'; }).length;
+  document.getElementById('stat-interested').textContent = interested;
+}
+
+function updateMgrCount() {
+  if (!isManager) return;
+  var cnt = LEADS.filter(function(_,i){ return !deleted[i] && !!hidden[i]; }).length;
+  var el = document.getElementById('mgr-count');
+  if (el) el.textContent = cnt > 0 ? cnt + ' hidden' : '';
+}
+</script>
+</body>
+</html>
