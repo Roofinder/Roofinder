@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RooFinder Admin</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+/* LOGIN */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(76,175,80,0.1) 0%,transparent 60%),#0a0a0a}
+.login-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:48px 40px;max-width:400px;width:100%;text-align:center}
+.login-logo{font-size:22px;font-weight:800;margin-bottom:4px}.login-logo span{color:#4caf50}
+.login-role{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#ffa500;margin-bottom:28px}
+.login-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;display:block;margin-bottom:8px;text-align:left}
+.login-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px 16px;color:#fff;font-size:14px;font-family:inherit;margin-bottom:16px;outline:none;transition:border-color .2s}
+.login-input:focus{border-color:rgba(76,175,80,0.5)}
+.login-btn{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:14px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
+.login-btn:hover{background:#5cc760}
+.login-err{color:#ff5555;font-size:12px;margin-top:8px;display:none}
+
+/* SHELL */
+#app{display:none;min-height:100vh}
+nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08)}
+.nav-top{max-width:1300px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:20px}
+.nav-logo{font-size:16px;font-weight:800;margin-right:8px}.nav-logo span{color:#4caf50}
+.nav-badge{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(255,165,0,0.15);border:1px solid rgba(255,165,0,0.3);color:#ffa500;padding:3px 8px;border-radius:100px}
+.nav-tabs{display:flex;gap:4px;margin-left:auto}
+.nav-tab{font-size:12px;font-weight:600;color:#666;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit}
+.nav-tab:hover{color:#ccc;background:rgba(255,255,255,0.04)}
+.nav-tab.active{color:#fff;background:rgba(255,255,255,0.08)}
+.nav-stat-row{max-width:1300px;margin:0 auto;padding:12px 24px;display:flex;gap:32px;border-top:1px solid rgba(255,255,255,0.04)}
+.ns{display:flex;flex-direction:column}.ns-num{font-size:18px;font-weight:800;color:#4caf50}.ns-lbl{font-size:10px;color:#555;letter-spacing:.5px;text-transform:uppercase;margin-top:1px}
+
+main{max-width:1300px;margin:0 auto;padding:32px 24px}
+
+/* PANELS */
+.panel{display:none}.panel.active{display:block}
+
+/* SECTION HEADER */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sec-title{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.sec-sub{font-size:13px;color:#666;margin-top:2px}
+.btn-primary{background:#4caf50;color:#000;font-weight:800;font-size:12px;letter-spacing:.5px;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;transition:background .2s}
+.btn-primary:hover{background:#5cc760}
+.btn-ghost{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#ccc;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-ghost:hover{background:rgba(255,255,255,0.08)}
+.btn-danger{background:transparent;border:1px solid rgba(255,85,85,0.3);color:#ff5555;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-danger:hover{background:rgba(255,85,85,0.1)}
+
+/* TABLE */
+.table-wrap{border:1px solid rgba(255,255,255,0.08);border-radius:12px;overflow:hidden;margin-bottom:32px}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:10px 16px;color:#555;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.06)}
+.data-table td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,0.015)}
+.cell-name{font-weight:600;color:#fff}
+.cell-sub{font-size:11px;color:#666;margin-top:2px}
+.cell-green{color:#4caf50;font-weight:700}
+.cell-orange{color:#ffa500;font-weight:700}
+.cell-dim{color:#555}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 8px;border-radius:100px}
+.badge-sold{background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);color:#4caf50}
+.badge-pending{background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);color:#ffa500}
+.badge-active{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.2);color:#4caf50}
+.badge-inactive{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:#555}
+.progress-bar-wrap{width:100px;background:rgba(255,255,255,0.06);border-radius:100px;height:5px;overflow:hidden}
+.progress-bar-fill{height:100%;background:#4caf50;border-radius:100px;transition:width .3s}
+.portal-link{background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);color:#4caf50;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;text-decoration:none;display:inline-block;transition:all .2s}
+.portal-link:hover{background:rgba(76,175,80,0.18)}
+
+/* MODAL */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center}
+#modal-overlay.open{display:flex}
+.modal{background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;width:100%;max-width:520px}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:24px}
+.form-row{margin-bottom:16px}
+.form-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:6px}
+.form-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:rgba(76,175,80,0.4)}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:64px 24px;color:#444}
+.empty-state-icon{font-size:40px;margin-bottom:16px}
+.empty-state-text{font-size:14px}
+
+/* ACTIVITY */
+.activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.activity-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px}
+.ac-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ac-pocket{font-weight:700;font-size:14px}
+.ac-contractor{font-size:12px;color:#666;margin-top:2px}
+.ac-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.ac-stat-num{font-size:18px;font-weight:800}
+.ac-stat-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px}
+.ac-stat-num.green{color:#4caf50}
+.ac-stat-num.yellow{color:#ffc107}
+.ac-stat-num.blue{color:#64b5f6}
+.ac-bar{background:rgba(255,255,255,0.04);border-radius:100px;height:4px;overflow:hidden;margin-bottom:8px}
+.ac-bar-fill{height:100%;background:linear-gradient(90deg,#4caf50,#81c784);border-radius:100px}
+.ac-bar-label{display:flex;justify-content:space-between;font-size:11px;color:#555}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">Roof<span>Finder</span></div>
+    <div class="login-role">Admin Dashboard</div>
+    <label class="login-label">Admin Password</label>
+    <input type="password" class="login-input" id="pw-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <button class="login-btn" onclick="tryLogin()">Enter Dashboard</button>
+    <div class="login-err" id="login-err">Incorrect password.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav>
+    <div class="nav-top">
+      <div class="nav-logo">Roof<span>Finder</span></div>
+      <div class="nav-badge">ADMIN</div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="showPanel('contractors',this)">Contractors</button>
+        <button class="nav-tab" onclick="showPanel('pockets',this)">Pockets</button>
+        <button class="nav-tab" onclick="showPanel('activity',this)">Activity</button>
+      </div>
+    </div>
+    <div class="nav-stat-row">
+      <div class="ns"><div class="ns-num" id="s-contractors">0</div><div class="ns-lbl">Contractors</div></div>
+      <div class="ns"><div class="ns-num" id="s-pockets">0</div><div class="ns-lbl">Pockets Sold</div></div>
+      <div class="ns"><div class="ns-num" id="s-revenue">$0</div><div class="ns-lbl">Revenue</div></div>
+      <div class="ns"><div class="ns-num" id="s-active">0</div><div class="ns-lbl">Active This Week</div></div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- CONTRACTORS PANEL -->
+    <div class="panel active" id="panel-contractors">
+      <div class="sec-head">
+        <div><div class="sec-title">Contractors</div><div class="sec-sub">All clients who have purchased pockets</div></div>
+        <button class="btn-primary" onclick="openModal()">+ Add Contractor</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Name</th><th>Pocket</th><th>Phone</th><th>Payment</th><th>Status</th><th>Purchased</th><th>Portal</th><th></th>
+          </tr></thead>
+          <tbody id="contractors-tbody">
+            <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No contractors yet. Add your first one.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- POCKETS PANEL -->
+    <div class="panel" id="panel-pockets">
+      <div class="sec-head">
+        <div><div class="sec-title">Sold Pockets</div><div class="sec-sub">Pockets assigned to contractors</div></div>
+        <a href="/raleigh-pocket-3.html" target="_blank" class="btn-ghost">Open Pocket Builder ↗</a>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Pocket</th><th>Contractor</th><th>Leads</th><th>Progress</th><th>Knocked</th><th>Interested</th><th>Date Sold</th><th>Portal</th>
+          </tr></thead>
+          <tbody id="pockets-tbody">
+            <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">No sold pockets yet.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACTIVITY PANEL -->
+    <div class="panel" id="panel-activity">
+      <div class="sec-head">
+        <div><div class="sec-title">Live Activity</div><div class="sec-sub">Real-time contractor progress across all pockets</div></div>
+      </div>
+      <div class="activity-grid" id="activity-grid">
+        <div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">📡</div><div class="empty-state-text">No active pockets yet.</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ADD CONTRACTOR MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Add Contractor</div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">First Name</label><input class="form-input" id="f-fname" placeholder="John"/></div>
+      <div class="form-row"><label class="form-label">Last Name</label><input class="form-input" id="f-lname" placeholder="Smith"/></div>
+    </div>
+    <div class="form-row"><label class="form-label">Company</label><input class="form-input" id="f-company" placeholder="Smith Roofing LLC"/></div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Phone</label><input class="form-input" id="f-phone" placeholder="(919) 555-0100"/></div>
+      <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="f-email" placeholder="john@smithroofing.com"/></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Pocket Purchased</label><input class="form-input" id="f-pocket" placeholder="Raleigh Pocket 3"/></div>
+      <div class="form-row"><label class="form-label">Portal URL (slug)</label><input class="form-input" id="f-portal" placeholder="raleigh-pocket-3"/></div>
+    </div>
+    <div class="form-row-2">
+      <div class="form-row"><label class="form-label">Amount Paid</label><input class="form-input" id="f-amount" placeholder="999"/></div>
+      <div class="form-row"><label class="form-label">Payment Status</label>
+        <select class="form-input" id="f-payment">
+          <option value="paid">Paid</option>
+          <option value="pending">Pending</option>
+          <option value="partial">Partial</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label class="form-label">Notes</label><input class="form-input" id="f-notes" placeholder="Any notes..."/></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveContractor()">Save Contractor</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Firebase ─────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
+  authDomain: "roofinder-cc880.firebaseapp.com",
+  projectId: "roofinder-cc880",
+  storageBucket: "roofinder-cc880.firebasestorage.app",
+  messagingSenderId: "882068436752",
+  appId: "1:882068436752:web:2ccd00b3580a47ec749795"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// ── Auth ─────────────────────────────────────────────────────────
+var ADMIN_PW = 'ROOFADMIN1';
+function tryLogin() {
+  var v = document.getElementById('pw-input').value.trim();
+  if (v === ADMIN_PW) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initDashboard();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+// ── Nav ──────────────────────────────────────────────────────────
+function showPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'activity') loadActivity();
+}
+
+// ── Data ─────────────────────────────────────────────────────────
+var contractors = [];
+var editingId = null;
+
+function initDashboard() {
+  db.collection('contractors').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+    contractors = [];
+    snap.forEach(function(doc) {
+      contractors.push(Object.assign({ id: doc.id }, doc.data()));
+    });
+    renderContractors();
+    renderPockets();
+    updateStats();
+  });
+}
+
+function updateStats() {
+  var total = contractors.length;
+  var sold = contractors.filter(function(c){ return c.payment === 'paid'; }).length;
+  var rev = contractors.filter(function(c){ return c.payment === 'paid'; })
+    .reduce(function(sum, c){ return sum + (parseInt(c.amount) || 0); }, 0);
+  document.getElementById('s-contractors').textContent = total;
+  document.getElementById('s-pockets').textContent = sold;
+  document.getElementById('s-revenue').textContent = '$' + (rev >= 1000 ? (rev/1000).toFixed(1) + 'K' : rev);
+}
+
+function renderContractors() {
+  var tbody = document.getElementById('contractors-tbody');
+  if (!contractors.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No contractors yet. Add your first one.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = contractors.map(function(c) {
+    var payBadge = c.payment === 'paid' ? '<span class="badge badge-sold">PAID</span>'
+      : c.payment === 'pending' ? '<span class="badge badge-pending">PENDING</span>'
+      : '<span class="badge badge-pending">PARTIAL</span>';
+    var date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '—';
+    var portalSlug = c.portal || '';
+    var portalBtn = portalSlug
+      ? '<a class="portal-link" href="/' + portalSlug + '.html" target="_blank">Open Portal ↗</a>'
+      : '<span class="cell-dim">—</span>';
+    return '<tr>'
+      + '<td><div class="cell-name">' + (c.fname||'') + ' ' + (c.lname||'') + '</div><div class="cell-sub">' + (c.company||'') + '</div></td>'
+      + '<td><span class="cell-green">' + (c.pocket||'—') + '</span></td>'
+      + '<td>' + (c.phone||'—') + '</td>'
+      + '<td>' + payBadge + (c.amount ? ' <span class="cell-dim">$' + parseInt(c.amount).toLocaleString() + '</span>' : '') + '</td>'
+      + '<td><span class="badge badge-active">ACTIVE</span></td>'
+      + '<td class="cell-dim">' + date + '</td>'
+      + '<td>' + portalBtn + '</td>'
+      + '<td><button class="btn-danger" onclick="deleteContractor(\'' + c.id + '\')">Remove</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderPockets() {
+  var tbody = document.getElementById('pockets-tbody');
+  var sold = contractors.filter(function(c){ return c.pocket; });
+  if (!sold.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">No sold pockets yet.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = sold.map(function(c) {
+    var date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric'}) : '—';
+    var portalSlug = c.portal || '';
+    var portalBtn = portalSlug
+      ? '<a class="portal-link" href="/' + portalSlug + '.html" target="_blank">View Portal ↗</a>'
+      : '—';
+    return '<tr>'
+      + '<td><div class="cell-name">' + (c.pocket||'—') + '</div></td>'
+      + '<td>' + (c.fname||'') + ' ' + (c.lname||'') + '<div class="cell-sub">' + (c.company||'') + '</div></td>'
+      + '<td class="cell-dim" id="leads-' + c.id + '">—</td>'
+      + '<td><div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-' + c.id + '" style="width:0%"></div></div></td>'
+      + '<td class="cell-green" id="knocked-' + c.id + '">—</td>'
+      + '<td class="cell-orange" id="interested-' + c.id + '">—</td>'
+      + '<td class="cell-dim">' + date + '</td>'
+      + '<td>' + portalBtn + '</td>'
+      + '</tr>';
+  }).join('');
+  sold.forEach(function(c) {
+    if (c.portal) loadPocketProgress(c);
+  });
+}
+
+function loadPocketProgress(c) {
+  var docId = c.portal;
+  db.collection('pockets').doc(docId).onSnapshot(function(doc) {
+    if (!doc.exists) return;
+    var d = doc.data();
+    var statuses = d.statuses || {};
+    var deleted = d.deleted || {};
+    var hidden = d.hidden || {};
+    var total = 0, knocked = 0, interested = 0;
+    Object.keys(statuses).forEach(function(k) {
+      if (deleted[k]) return;
+      total++;
+      if (statuses[k] === 'knocked' || statuses[k] === 'closed') knocked++;
+      if (statuses[k] === 'interested') interested++;
+    });
+    var leadsEl = document.getElementById('leads-' + c.id);
+    var progEl = document.getElementById('prog-' + c.id);
+    var knockEl = document.getElementById('knocked-' + c.id);
+    var intEl = document.getElementById('interested-' + c.id);
+    if (leadsEl) leadsEl.textContent = Object.keys(statuses).filter(function(k){ return !deleted[k]; }).length || '—';
+    if (progEl) progEl.style.width = (knocked > 0 ? Math.min(100, Math.round(knocked/78*100)) : 0) + '%';
+    if (knockEl) knockEl.textContent = knocked || '0';
+    if (intEl) intEl.textContent = interested || '0';
+    document.getElementById('s-active').textContent = knocked;
+  });
+}
+
+function loadActivity() {
+  var grid = document.getElementById('activity-grid');
+  var sold = contractors.filter(function(c){ return c.portal; });
+  if (!sold.length) { return; }
+  grid.innerHTML = '';
+  sold.forEach(function(c) {
+    var card = document.createElement('div');
+    card.className = 'activity-card';
+    card.id = 'ac-' + c.id;
+    card.innerHTML = '<div class="ac-head"><div><div class="ac-pocket">' + (c.pocket||'Pocket') + '</div><div class="ac-contractor">' + (c.fname||'') + ' ' + (c.lname||'') + ' &middot; ' + (c.company||'') + '</div></div><a class="portal-link" href="/' + c.portal + '.html" target="_blank">Open ↗</a></div>'
+      + '<div class="ac-stats"><div><div class="ac-stat-num" id="acn-total-' + c.id + '">—</div><div class="ac-stat-lbl">Leads</div></div><div><div class="ac-stat-num green" id="acn-knocked-' + c.id + '">0</div><div class="ac-stat-lbl">Knocked</div></div><div><div class="ac-stat-num yellow" id="acn-int-' + c.id + '">0</div><div class="ac-stat-lbl">Interested</div></div><div><div class="ac-stat-num blue" id="acn-closed-' + c.id + '">0</div><div class="ac-stat-lbl">Closed</div></div></div>'
+      + '<div class="ac-bar"><div class="ac-bar-fill" id="acb-' + c.id + '" style="width:0%"></div></div>'
+      + '<div class="ac-bar-label"><span>Progress</span><span id="acpct-' + c.id + '">0%</span></div>';
+    grid.appendChild(card);
+    db.collection('pockets').doc(c.portal).onSnapshot(function(doc) {
+      if (!doc.exists) return;
+      var d = doc.data();
+      var st = d.statuses || {};
+      var del = d.deleted || {};
+      var totalLeads = 78;
+      var kn=0, int=0, cl=0;
+      Object.keys(st).forEach(function(k) {
+        if (del[k]) return;
+        if (st[k]==='knocked') kn++;
+        if (st[k]==='interested') int++;
+        if (st[k]==='closed') cl++;
+      });
+      var pct = Math.min(100, Math.round((kn+int+cl)/totalLeads*100));
+      var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+      set('acn-total-' + c.id, totalLeads);
+      set('acn-knocked-' + c.id, kn);
+      set('acn-int-' + c.id, int);
+      set('acn-closed-' + c.id, cl);
+      set('acpct-' + c.id, pct + '%');
+      var bar = document.getElementById('acb-' + c.id);
+      if (bar) bar.style.width = pct + '%';
+    });
+  });
+}
+
+// ── Modal ────────────────────────────────────────────────────────
+function openModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Contractor';
+  ['fname','lname','company','phone','email','pocket','portal','amount','notes'].forEach(function(f){ document.getElementById('f-'+f).value=''; });
+  document.getElementById('f-payment').value = 'paid';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function saveContractor() {
+  var data = {
+    fname: document.getElementById('f-fname').value.trim(),
+    lname: document.getElementById('f-lname').value.trim(),
+    company: document.getElementById('f-company').value.trim(),
+    phone: document.getElementById('f-phone').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    pocket: document.getElementById('f-pocket').value.trim(),
+    portal: document.getElementById('f-portal').value.trim(),
+    amount: document.getElementById('f-amount').value.trim(),
+    payment: document.getElementById('f-payment').value,
+    notes: document.getElementById('f-notes').value.trim(),
+    createdAt: editingId ? undefined : Date.now()
+  };
+  if (!data.fname && !data.company) { alert('Please enter at least a name or company.'); return; }
+  if (editingId) {
+    delete data.createdAt;
+    db.collection('contractors').doc(editingId).update(data).then(closeModal);
+  } else {
+    db.collection('contractors').add(data).then(closeModal);
+  }
+}
+
+function deleteContractor(id) {
+  if (!confirm('Remove this contractor?')) return;
+  db.collection('contractors').doc(id).delete();
+}
+
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
