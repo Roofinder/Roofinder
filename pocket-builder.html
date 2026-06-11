@@ -140,10 +140,15 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
 .value-num{color:#4caf50;font-weight:700}
 .view-btn{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;text-decoration:none;display:inline-block;transition:all .2s}
 .view-btn:hover{background:rgba(76,175,80,0.2)}
-.status-select{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:inherit;outline:none}
-.status-select.knocked{border-color:rgba(76,175,80,0.4);color:#4caf50;background:rgba(76,175,80,0.08)}
-.status-select.interested{border-color:rgba(255,193,7,0.4);color:#ffc107;background:rgba(255,193,7,0.08)}
-.status-select.closed{border-color:rgba(100,200,100,0.5);color:#7fff7f;background:rgba(100,200,100,0.15)}
+.keep-btn,.skip-btn{font-size:11px;font-weight:700;padding:5px 13px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s;border:1px solid}
+.keep-btn{background:transparent;border-color:rgba(76,175,80,0.25);color:#555}
+.keep-btn:hover{border-color:rgba(76,175,80,0.6);color:#4caf50;background:rgba(76,175,80,0.08)}
+.keep-btn.active{border-color:rgba(76,175,80,0.7);color:#4caf50;background:rgba(76,175,80,0.14)}
+.skip-btn{background:transparent;border-color:rgba(255,85,85,0.2);color:#555}
+.skip-btn:hover{border-color:rgba(255,85,85,0.5);color:#ff5555;background:rgba(255,85,85,0.08)}
+.skip-btn.active{border-color:rgba(255,85,85,0.5);color:#ff5555;background:rgba(255,85,85,0.1)}
+.map-popup-btn{background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);color:#4caf50;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s}
+.map-popup-btn:hover{background:rgba(76,175,80,0.18)}
 .action-btns{display:flex;gap:6px}
 .hide-btn{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#555;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s}
 .hide-btn:hover{border-color:rgba(255,165,0,0.5);color:#ffa500}
@@ -250,8 +255,8 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
       <div class="nav-mode" id="mode-badge"></div>
       <div class="nav-stats">
         <div class="nav-stat"><div class="nav-stat-num" id="stat-total">0</div><div class="nav-stat-lbl">Leads</div></div>
-        <div class="nav-stat"><div class="nav-stat-num" id="stat-knocked">0</div><div class="nav-stat-lbl">Knocked</div></div>
-        <div class="nav-stat"><div class="nav-stat-num" id="stat-interested">0</div><div class="nav-stat-lbl">Interested</div></div>
+        <div class="nav-stat"><div class="nav-stat-num" id="stat-kept">0</div><div class="nav-stat-lbl">Kept</div></div>
+        <div class="nav-stat"><div class="nav-stat-num" id="stat-skipped">0</div><div class="nav-stat-lbl">Skipped</div></div>
         <div style="font-size:11px;color:#555"><span class="sync-dot"></span>Live</div>
       </div>
     </div>
@@ -259,7 +264,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
 
   <div id="manager-bar">
     <div class="mgr-bar-inner">
-      <div class="mgr-tip">⚙️ Manager Mode — <strong>Hide</strong> removes from contractor view &nbsp;·&nbsp; <strong>Delete</strong> removes permanently</div>
+      <div class="mgr-tip">⚙️ Admin Mode — <strong>Keep / Skip</strong> to qualify leads &nbsp;·&nbsp; <strong>Hide</strong> removes from contractor view &nbsp;·&nbsp; <strong>Delete</strong> removes permanently</div>
       <div class="mgr-count" id="mgr-count"></div>
       <button class="mgr-btn" onclick="setFilter('hidden',document.querySelector('[data-f=hidden]'))">View Hidden</button>
       <button class="mgr-btn danger" onclick="restoreAll()">Restore All</button>
@@ -272,9 +277,9 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
     <div class="portal-sub" id="portal-sub"></div>
     <div class="filters">
       <button class="filter-btn active" data-f="all" onclick="setFilter('all',this)">All</button>
-      <button class="filter-btn" data-f="not_knocked" onclick="setFilter('not_knocked',this)">Not Knocked</button>
-      <button class="filter-btn" data-f="interested" onclick="setFilter('interested',this)">Interested</button>
-      <button class="filter-btn" data-f="knocked" onclick="setFilter('knocked',this)">Knocked</button>
+      <button class="filter-btn" data-f="not_reviewed" onclick="setFilter('not_reviewed',this)">Not Reviewed</button>
+      <button class="filter-btn" data-f="keep" onclick="setFilter('keep',this)">Kept</button>
+      <button class="filter-btn" data-f="skip" onclick="setFilter('skip',this)">Skipped</button>
       <button class="filter-btn" data-f="hidden" onclick="setFilter('hidden',this)" id="hidden-filter-btn" style="display:none">Hidden</button>
       <input class="search-box" id="search" placeholder="Search by name or address..." oninput="renderTable()"/>
       <span class="count-tag" id="count-tag"></span>
@@ -283,7 +288,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
       <table class="lead-table">
         <thead>
           <tr>
-            <th>#</th><th>Owner</th><th>Home Value</th><th>Roof Age</th><th>Yr Built</th><th>Roof View</th><th>Status</th><th id="th-actions" style="display:none">Actions</th>
+            <th>#</th><th>Owner / Address</th><th>Home Value</th><th>Roof Age</th><th>Map</th><th>Decision</th><th id="th-actions" style="display:none">Manage</th>
           </tr>
         </thead>
         <tbody id="lead-tbody"></tbody>
@@ -293,7 +298,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
 </div>
 
 <script>
-// ── Firebase ─────────────────────────────────────────────────────
+// ── Firebase ──────────────────────────────────────────────────────
 var firebaseConfig = {
   apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
   authDomain: "roofinder-cc880.firebaseapp.com",
@@ -735,10 +740,15 @@ function fmtValue(v) {
   return '$' + Math.round(n/1000) + 'K';
 }
 
+function openMap(addr, city) {
+  var url = 'https://maps.google.com/maps?q=' + encodeURIComponent(addr + ', ' + city + ', NC') + '&t=k';
+  window.open(url, 'roofmap', 'width=1100,height=750,left=' + Math.max(0, screen.width - 1120) + ',top=0');
+}
+
 function renderTable() {
   var tbody = document.getElementById('lead-tbody');
   if (!LEADS.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-pocket"><div class="empty-pocket-icon">📦</div><div class="empty-pocket-title">No leads loaded for this pocket</div><div class="empty-pocket-sub">Run pocket-seeder.html to populate all 87 pockets from Firebase.</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-pocket"><div class="empty-pocket-icon">📦</div><div class="empty-pocket-title">No leads loaded for this pocket</div><div class="empty-pocket-sub">Run pocket-seeder.html to populate all 87 pockets from Firebase.</div></div></td></tr>';
     return;
   }
   var search = document.getElementById('search').value.toLowerCase();
@@ -746,33 +756,31 @@ function renderTable() {
   LEADS.forEach(function(l, i) {
     if (deleted[i]) return;
     var isHid = !!hidden[i];
-    var s = statuses[i] || 'new';
+    var s = statuses[l.address] || '';
     if (!isManager && isHid) return;
-    if (currentFilter === 'knocked' && s !== 'knocked') return;
-    if (currentFilter === 'interested' && s !== 'interested') return;
-    if (currentFilter === 'not_knocked' && (s === 'knocked' || s === 'closed')) return;
-    if (currentFilter === 'hidden' && !isHid) return;
+    if (currentFilter === 'keep'        && s !== 'keep') return;
+    if (currentFilter === 'skip'        && s !== 'skip') return;
+    if (currentFilter === 'not_reviewed' && s !== '') return;
+    if (currentFilter === 'hidden'      && !isHid) return;
     if (search && !l.owner.toLowerCase().includes(search) && !l.address.toLowerCase().includes(search)) return;
     rows.push({l:l, i:i, s:s, isHid:isHid});
   });
   document.getElementById('count-tag').textContent = rows.length + ' leads';
+  var escapedAddr = function(a){ return a.replace(/'/g,"\\'"); };
   tbody.innerHTML = rows.map(function(r) {
     var l=r.l, i=r.i, s=r.s;
-    var mapsUrl = 'https://www.google.com/maps?q=' + encodeURIComponent(l.address + ', ' + l.city + ', NC');
     var owner = l.owner.split(',')[0].trim();
     var hideLabel = r.isHid ? '👁 Show' : 'Hide';
     var hideCls = 'hide-btn' + (r.isHid ? ' is-hidden' : '');
     var rowCls = r.isHid ? ' class="is-hidden"' : '';
     var roofAge = l.roof_age ? l.roof_age + ' yrs' : '—';
-    var yrBuilt = l.year_built && l.year_built !== '0' ? l.year_built : '—';
-    var statusCell = isManager
-      ? '<td><span style="color:#555;font-size:11px">—</span></td>'
-      : '<td><select class="status-select ' + s + '" onchange="setStatus(' + i + ',this)">'
-        + '<option value="new"'       + (s==='new'       ?' selected':'') + '>Not Knocked</option>'
-        + '<option value="knocked"'   + (s==='knocked'   ?' selected':'') + '>Knocked</option>'
-        + '<option value="interested"' + (s==='interested' ?' selected':'') + '>Interested</option>'
-        + '<option value="closed"'     + (s==='closed'     ?' selected':'') + '>Closed</option>'
-        + '</select></td>';
+    var ea = escapedAddr(l.address), ec = escapedAddr(l.city || 'Raleigh');
+    var keepCls = 'keep-btn' + (s==='keep' ? ' active' : '');
+    var skipCls = 'skip-btn' + (s==='skip' ? ' active' : '');
+    var decisionCell = '<td><div class="action-btns">'
+      + '<button class="' + keepCls + '" onclick="toggleStatus(\'' + ea + '\',\'keep\')">✓ Keep</button>'
+      + '<button class="' + skipCls + '" onclick="toggleStatus(\'' + ea + '\',\'skip\')">✗ Skip</button>'
+      + '</div></td>';
     var actionCell = isManager
       ? '<td><div class="action-btns">'
         + '<button class="' + hideCls + '" onclick="hideLead(' + i + ')">' + hideLabel + '</button>'
@@ -784,19 +792,23 @@ function renderTable() {
       + '<td><div class="owner-name">' + owner + '</div><div class="addr-text">' + l.address + '</div></td>'
       + '<td>' + fmtValue(l.value) + '</td>'
       + '<td>' + roofAge + '</td>'
-      + '<td>' + yrBuilt + '</td>'
-      + '<td><a href="' + mapsUrl + '" target="_blank" class="map-link">View →</a></td>'
-      + statusCell
+      + '<td><button class="map-popup-btn" onclick="openMap(\'' + ea + '\',\'' + ec + '\')">🗺 Map</button></td>'
+      + decisionCell
       + actionCell
       + '</tr>';
   }).join('');
 }
 
 // ── Lead actions ──────────────────────────────────────────────────
-function setStatus(i, sel) {
-  statuses[i] = sel.value;
+function toggleStatus(addr, val) {
+  if (statuses[addr] === val) {
+    delete statuses[addr];  // clicking active button clears it
+  } else {
+    statuses[addr] = val;
+  }
   saveField('statuses', statuses);
   updateStats();
+  renderTable();
 }
 
 function hideLead(i) {
@@ -821,20 +833,4 @@ function restoreAll() {
 function updateStats() {
   var visible = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; });
   document.getElementById('stat-total').textContent = visible.length;
-  var knocked = visible.filter(function(_,i){
-    return statuses[i]==='knocked' || statuses[i]==='interested' || statuses[i]==='closed';
-  }).length;
-  document.getElementById('stat-knocked').textContent = knocked;
-  var interested = visible.filter(function(_,i){ return statuses[i]==='interested'; }).length;
-  document.getElementById('stat-interested').textContent = interested;
-}
-
-function updateMgrCount() {
-  if (!isManager) return;
-  var cnt = LEADS.filter(function(_,i){ return !deleted[i] && !!hidden[i]; }).length;
-  var el = document.getElementById('mgr-count');
-  if (el) el.textContent = cnt > 0 ? cnt + ' hidden' : '';
-}
-</script>
-</body>
-</html>
+  var kept    = visible.filter(function(l){ r
