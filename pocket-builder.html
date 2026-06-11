@@ -197,6 +197,7 @@ var db = firebase.firestore();
 
 // ── Auth config ───────────────────────────────────────────────────
 var ADMIN_PW = 'ROOFADMIN1';
+var ADMIN_EMAIL = 'daltonnicely@gmail.com';
 
 // ── Pocket registry ───────────────────────────────────────────────
 // All pockets across all markets. Only slugs with entries in POCKET_LEADS have live data.
@@ -276,7 +277,7 @@ var unsubscribe   = null;
 function tryLogin() {
   var val = document.getElementById('code-input').value.trim().toUpperCase();
   document.getElementById('login-err').style.display = 'none';
-  if (val === ADMIN_PW) {
+  if (val === ADMIN_PW || val === ADMIN_EMAIL.toUpperCase()) {
     currentRole = 'admin';
     showPicker();
   } else {
