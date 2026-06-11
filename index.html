@@ -211,7 +211,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 .pc-cta:hover{background:rgba(76,175,80,.2);border-color:rgba(76,175,80,.6)}
 
 /* ── CITY CARD GRID ── */
-.city-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.city-card-grid{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:1100px;margin:0 auto}.city-card{width:calc(20% - 12px);min-width:180px}
 .city-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px 22px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:10px}
 .city-card:hover{border-color:rgba(76,175,80,.5);transform:translateY(-2px)}
 .city-card-name{font-size:20px;font-weight:800;color:#e0e4f0}
