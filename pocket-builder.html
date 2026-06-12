@@ -53,6 +53,10 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif}
 .pocket-tile-meta{font-size:10px;color:#555}
 .pocket-tile.has-leads .pocket-tile-meta{color:#4caf50}
 .pocket-tile.assigned .pocket-tile-meta{color:#ffa500}
+.pocket-tile-stats{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+.pts-keep{font-size:10px;font-weight:700;color:#4caf50;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.25);padding:2px 7px;border-radius:4px}
+.pts-skip{font-size:10px;font-weight:700;color:#ff6b6b;background:rgba(255,85,85,0.08);border:1px solid rgba(255,85,85,0.2);padding:2px 7px;border-radius:4px}
+.pts-pct{font-size:10px;color:#666;padding:2px 4px}
 .picker-back{background:transparent;border:none;color:#555;font-size:12px;cursor:pointer;font-family:inherit;margin-top:24px;padding:0}
 .picker-back:hover{color:#fff}
 
@@ -419,6 +423,7 @@ var pocketDoc     = null;
 var unsubscribe   = null;
 var leadsCache    = {};
 var assignedSlugs = {};  // slug -> code (for showing assigned badge)
+var pocketStats   = {};  // slug -> {kept, skipped, total}
 
 // ── Loading overlay ───────────────────────────────────────────────
 function showLoading(msg) {
@@ -442,7 +447,13 @@ async function tryLogin() {
     currentRole = 'admin';
     document.getElementById('login-btn').disabled = false;
     document.getElementById('login-btn').textContent = 'Access Pocket Builder';
-    showPicker();
+    // If a ?slug= param is in the URL, open that pocket directly
+    var urlSlug = new URLSearchParams(window.location.search).get('slug');
+    if (urlSlug) {
+      openPocket(urlSlug);
+    } else {
+      showPicker();
+    }
     return;
   }
 
@@ -493,6 +504,17 @@ async function loadAssignedSlugs() {
     assignedSlugs = {};
     snap.forEach(function(d) { assignedSlugs[d.data().slug] = d.id; });
   } catch(e) { assignedSlugs = {}; }
+  // Also load progress stats for all pockets
+  try {
+    var pSnap = await db.collection('pockets').get();
+    pocketStats = {};
+    pSnap.forEach(function(d) {
+      var s = d.data().statuses || {};
+      var kept = 0, skipped = 0;
+      Object.values(s).forEach(function(v){ if(v==='keep') kept++; else if(v==='skip') skipped++; });
+      if (kept + skipped > 0) pocketStats[d.id] = {kept:kept, skipped:skipped};
+    });
+  } catch(e) { pocketStats = {}; }
 }
 
 function switchPickerTab(tab) {
@@ -512,11 +534,21 @@ function renderPicker() {
     html += '<div class="market-group"><div class="market-label">' + m + ' (' + pockets.length + ')</div><div class="pocket-grid">';
     pockets.forEach(function(p) {
       var isAssigned = !!assignedSlugs[p.slug];
-      var tileClass = 'pocket-tile' + (isAssigned ? ' assigned has-leads' : ' has-leads');
-      var meta = isAssigned ? '🔑 Assigned: ' + assignedSlugs[p.slug] : '500 homes';
+      var stats = pocketStats[p.slug];
+      var hasStats = stats && (stats.kept + stats.skipped) > 0;
+      var tileClass = 'pocket-tile' + (isAssigned ? ' assigned has-leads' : (hasStats ? ' has-leads' : ''));
+      var meta = isAssigned ? '🔑 ' + assignedSlugs[p.slug] : 'Unassigned';
+      var statsHtml = hasStats
+        ? '<div class="pocket-tile-stats">'
+          + '<span class="pts-keep">✓ ' + stats.kept + '</span>'
+          + '<span class="pts-skip">✗ ' + stats.skipped + '</span>'
+          + '<span class="pts-pct">' + Math.round((stats.kept+stats.skipped)/5) + '% done</span>'
+          + '</div>'
+        : '';
       html += '<div class="' + tileClass + '" onclick="openPocket(\'' + p.slug + '\')">'
         + '<div class="pocket-tile-name">' + p.name + '</div>'
         + '<div class="pocket-tile-meta">' + meta + '</div>'
+        + statsHtml
         + '</div>';
     });
     html += '</div></div>';
