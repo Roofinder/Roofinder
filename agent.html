@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>RooFinder Agent</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
@@ -229,6 +231,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .script-obj-a { font-size: 13px; color: var(--text); line-height: 1.55; }
 .script-obj-a em { color: var(--prime); font-style: normal; font-weight: 600; }
 #script-close-btn { display: block; width: 100%; margin-top: 20px; background: transparent; color: var(--muted); font-size: 14px; padding: 14px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; font-family: inherit; }
+
+/* ── MAP PANEL ── */
+#map-panel { display: none; height: 240px; border-bottom: 1px solid var(--border); position: relative; }
+#map-panel.open { display: block; }
+#map-el { width: 100%; height: 100%; }
+#map-toggle { background: transparent; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 0 6px; line-height: 1; transition: color .2s; }
+#map-toggle.active { color: var(--prime); }
+.map-legend { position: absolute; bottom: 8px; left: 8px; z-index: 500; background: rgba(15,17,26,0.85); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; display: flex; gap: 10px; flex-wrap: wrap; pointer-events: none; }
+.leg-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
+.leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.leaflet-tile-pane { filter: brightness(0.85) saturate(0.6); }
+.leaflet-container { background: #1a1d2e; }
 </style>
 </head>
 <body>
@@ -254,7 +268,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
   <div id="topbar">
     <div class="topbar-row1">
       <span id="topbar-title">Loading...</span>
-      <span id="topbar-agent"><span id="sync-dot"></span><span id="agent-name-display"></span><button onclick="signOutAgent()" style="background:transparent;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 6px;margin-left:4px;border-radius:4px;font-family:inherit">Sign Out</button></span>
+      <span style="display:flex;align-items:center;gap:4px"><button id="map-toggle" onclick="toggleMap()" title="Toggle Map">🗺</button><span id="topbar-agent"><span id="sync-dot"></span><span id="agent-name-display"></span><button onclick="signOutAgent()" style="background:transparent;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 6px;margin-left:4px;border-radius:4px;font-family:inherit">Sign Out</button></span></span>
     </div>
     <div id="prog-row">
       <div id="prog-bg"><div id="prog-fill" style="width:0%"></div></div>
@@ -272,6 +286,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
     <div class="tab" onclick="setTab('no-answer',this)">No Answer</div>
     <div class="tab" onclick="setTab('not-interested',this)">Not Int.</div>
     <div class="tab" onclick="setTab('no-need',this)">No Need 🏚</div>
+  </div>
+
+  <!-- MAP PANEL -->
+  <div id="map-panel">
+    <div id="map-el"></div>
+    <div class="map-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#10b981"></div>Interested</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#a855f7"></div>Appt</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Callback</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>No Answer</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Not Int.</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#4b5563"></div>Pending</div>
+    </div>
   </div>
 
   <!-- DOOR LIST -->
@@ -461,6 +488,21 @@ var curIdx = -1;
 var curStatus = '';
 var curTab = 'all';
 var firestoreUnsubscribe = null;
+var mapOpen = false;
+var agentMap = null;
+var mapMarkers = {};
+var mapInitialized = false;
+var coordCache = {};
+
+var STATUS_COLORS = {
+  'pending':        '#4b5563',
+  'no-answer':      '#f59e0b',
+  'not-interested': '#ef4444',
+  'callback':       '#3b82f6',
+  'interested':     '#10b981',
+  'appointment':    '#a855f7',
+  'no-need':        '#64748b'
+};
 
 // ── Entry ─────────────────────────────────────────────────────────────────
 // URL params → saved session → show login
@@ -710,9 +752,11 @@ function saveAndClose() {
   db.collection('agentRoutes').doc(routeCode).update(update).catch(function(err) {
     console.log('Sync error:', err);
   });
+  var savedIdx = curIdx;
   closeModal();
   renderList();
   updateProgress();
+  updateMapDot(savedIdx);
 }
 
 // ── Script Modal ────────────────────────────────────────────────────────────
@@ -759,6 +803,120 @@ function setAhTier(tier, btn) {
   document.getElementById('ah-t-warm').className  = 'ah-tier-btn';
   var cls = tier === 'PRIME' ? 'sel-prime' : tier === 'HOT' ? 'sel-hot' : 'sel-warm';
   btn.className = 'ah-tier-btn ' + cls;
+}
+
+// ── Map Panel ────────────────────────────────────────────────────────────────
+function toggleMap() {
+  var panel = document.getElementById('map-panel');
+  var btn   = document.getElementById('map-toggle');
+  mapOpen = !mapOpen;
+  if (mapOpen) {
+    panel.classList.add('open');
+    btn.classList.add('active');
+    if (!mapInitialized) {
+      initAgentMap();
+    } else {
+      setTimeout(function(){ agentMap.invalidateSize(); }, 50);
+    }
+  } else {
+    panel.classList.remove('open');
+    btn.classList.remove('active');
+  }
+}
+
+function initAgentMap() {
+  mapInitialized = true;
+  var zip = '';
+  if (routeData && routeData.pocket) {
+    var m = routeData.pocket.match(/\d{5}/);
+    if (m) zip = m[0];
+  }
+
+  function startMap(lat, lng) {
+    agentMap = L.map('map-el', { zoomControl: false, scrollWheelZoom: false }).setView([lat, lng], 15);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap © CARTO', maxZoom: 18
+    }).addTo(agentMap);
+
+    // Load from Firestore cache or geocode fresh
+    if (routeData.coords && Object.keys(routeData.coords).length > 0) {
+      Object.keys(routeData.coords).forEach(function(k) {
+        coordCache[parseInt(k)] = routeData.coords[k];
+      });
+      plotAllDots();
+    } else {
+      geocodeLeads(zip);
+    }
+    setTimeout(function(){ agentMap.invalidateSize(); }, 100);
+  }
+
+  if (zip) {
+    fetch('https://api.zippopotam.us/us/' + zip)
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        startMap(parseFloat(data.places[0].latitude), parseFloat(data.places[0].longitude));
+      })
+      .catch(function(){ startMap(35.751, -78.822); });
+  } else {
+    startMap(35.751, -78.822);
+  }
+}
+
+function geocodeLeads(zip) {
+  if (!routeData || !routeData.leads) return;
+  var leads = routeData.leads;
+  var suffix = zip ? zip : 'NC';
+  var coordsToSave = {};
+
+  leads.forEach(function(lead, i) {
+    setTimeout(function() {
+      var q = encodeURIComponent(lead.addr + ', ' + suffix);
+      fetch('https://nominatim.openstreetmap.org/search?q=' + q + '&format=json&limit=1')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (data && data[0]) {
+            var lat = parseFloat(data[0].lat);
+            var lng = parseFloat(data[0].lon);
+            coordCache[i] = [lat, lng];
+            coordsToSave[i] = [lat, lng];
+            plotDot(i, lat, lng);
+            // Batch-save to Firestore every 5 resolved or on last
+            if (Object.keys(coordsToSave).length >= 5 || i === leads.length - 1) {
+              var update = {};
+              Object.keys(coordsToSave).forEach(function(k){
+                update['coords.' + k] = coordsToSave[k];
+              });
+              db.collection('agentRoutes').doc(routeCode).update(update).catch(function(){});
+              coordsToSave = {};
+            }
+          }
+        })
+        .catch(function(){});
+    }, i * 1200); // 1.2s between requests — respects Nominatim rate limit
+  });
+}
+
+function plotAllDots() {
+  Object.keys(coordCache).forEach(function(i) {
+    var idx = parseInt(i);
+    plotDot(idx, coordCache[idx][0], coordCache[idx][1]);
+  });
+}
+
+function plotDot(idx, lat, lng) {
+  if (!agentMap) return;
+  var s     = statuses[idx] || 'pending';
+  var color = STATUS_COLORS[s] || '#4b5563';
+  if (mapMarkers[idx]) { agentMap.removeLayer(mapMarkers[idx]); }
+  mapMarkers[idx] = L.circleMarker([lat, lng], {
+    radius: 9, fillColor: color, color: '#000', weight: 1.5,
+    opacity: 0.9, fillOpacity: 0.85
+  }).addTo(agentMap).on('click', function(){ openModal(idx); });
+}
+
+function updateMapDot(idx) {
+  if (!mapInitialized || coordCache[idx] === undefined) return;
+  plotDot(idx, coordCache[idx][0], coordCache[idx][1]);
 }
 
 function saveAddHome() {
