@@ -238,14 +238,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .vt-btn.active { background: var(--prime); color: #000; }
 
 /* ── MAP VIEW ── */
-#map-view { position: relative; height: calc(100svh - 114px); }
+#map-view { position: relative; height: 240px; flex-shrink: 0; }
 #map-el { width: 100%; height: 100%; }
-.map-legend { position: absolute; bottom: 80px; left: 8px; z-index: 500; background: rgba(15,17,26,0.9); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; display: flex; gap: 10px; flex-wrap: wrap; pointer-events: none; }
-.leg-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
-.leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.map-legend { position: absolute; bottom: 8px; left: 8px; z-index: 500; background: rgba(15,17,26,0.9); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
+.leg-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--muted); }
+.leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
 /* ── LIST VIEW ── */
-#list-view { display: none; padding-bottom: 100px; }
+#list-view { padding-bottom: 100px; }
 
 .leaflet-tile-pane { filter: brightness(0.85) saturate(0.6); }
 .leaflet-container { background: #1a1d2e; }
@@ -826,8 +826,9 @@ function setAhTier(tier, btn) {
 // ── View Toggle ──────────────────────────────────────────────────────────────
 function setView(v) {
   curView = v;
-  document.getElementById('map-view').style.display  = v === 'map'  ? 'block' : 'none';
-  document.getElementById('list-view').style.display = v === 'list' ? 'block' : 'none';
+  // Map mode: compact map + list below. List mode: no map, just list.
+  document.getElementById('map-view').style.display  = v === 'list' ? 'none' : 'block';
+  document.getElementById('list-view').style.display = 'block';
   document.querySelectorAll('.vt-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.view === v);
   });

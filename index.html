@@ -207,48 +207,6 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 .city-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:32px 0 24px}
 .city-tab{background:var(--card-bg);border:1px solid var(--border);color:#777;padding:8px 16px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px;transition:all .2s;letter-spacing:.3px}
 .city-tab:hover{border-color:rgba(76,175,80,.4);color:#bbb}
-.city-tab.active{background:rgba(76,175,80,.1);border-color:rgba(76,175,80,.5);color:#4caf50}
-.city-tab-count{background:rgba(76,175,80,.2);color:#4caf50;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:800}
-
-/* ── POCKET CARDS ── */
-.pocket-grid-new{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:4px}
-.pc{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:9px;transition:border-color .2s}
-.pc:hover{border-color:rgba(76,175,80,.35)}
-.pc-top{display:flex;justify-content:space-between;align-items:center}
-.pc-avail{font-size:11px;color:#4caf50;font-weight:700}
-.pc-sold-lbl{font-size:11px;color:#555;font-weight:600}
-.pc-name{font-size:14px;font-weight:800;color:#dde2f0;line-height:1.3}
-.pc-city{font-size:10px;color:#555;margin-top:-4px}
-.pc-stats{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.pc-stat{display:flex;flex-direction:column}
-.pc-stat-num{font-size:15px;font-weight:800;color:#4caf50}
-.pc-stat-lbl{font-size:9px;color:#555;letter-spacing:.5px;text-transform:uppercase}
-.pc-div{width:1px;height:28px;background:var(--border)}
-.pc-price{font-size:19px;font-weight:800;color:#e0e4f0}
-.pc-price-hold{font-size:11px;color:#555;font-weight:400}
-.pc-cta{display:block;text-align:center;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:#4caf50;padding:10px;border-radius:8px;font-size:12px;font-weight:800;text-decoration:none;letter-spacing:.3px;transition:all .2s}
-.pc-cta:hover{background:rgba(76,175,80,.2);border-color:rgba(76,175,80,.6)}
-
-/* ── CITY CARD GRID ── */
-.city-card-grid{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:1100px;margin:0 auto}.city-card{width:calc(20% - 12px);min-width:180px}
-.city-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:24px 22px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:10px}
-.city-card:hover{border-color:rgba(76,175,80,.5);transform:translateY(-2px)}
-.city-card-name{font-size:20px;font-weight:800;color:#e0e4f0}
-.city-card-stats{display:flex;gap:14px;font-size:12px;color:#666;font-weight:600}
-.city-card-stats span{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:4px;padding:3px 8px}
-.city-card-cta{font-size:12px;color:#4caf50;font-weight:700;letter-spacing:.3px;margin-top:4px}
-
-/* ── DRILL BACK ── */
-.drill-back{background:transparent;border:1px solid var(--border);color:#888;padding:8px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:24px;transition:all .2s}
-.drill-back:hover{border-color:rgba(76,175,80,.4);color:#4caf50}
-.drill-header{margin-bottom:28px}
-.drill-city{font-size:28px;font-weight:800;color:#e0e4f0;margin-bottom:4px}
-.drill-sub{font-size:13px;color:#666}
-
-.cc-avail{color:#4caf50;font-size:12px;font-weight:700}
-.cc-sold{color:#e06060;font-size:11px;font-weight:600}
-.city-card-avg{font-size:11px;color:#555;margin-top:-4px}
-
 /* ── TIER CARDS ── */
 .tier-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px}
 @media(max-width:768px){.tier-cards{grid-template-columns:1fr}}
@@ -430,11 +388,100 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 <!-- MARKETS & POCKETS -->
 <section id="markets">
   <div class="section-inner">
-    <div class="section-eyebrow">Available Nationwide · Any Zip Code</div>
-    <h2 class="section-title">Any Market. Any Zip.</h2>
-    <p class="section-sub">Enter your zip code and we'll build your neighborhood pocket within that area. One contractor at a time — work it, then request your next one.</p>
+    <div class="section-eyebrow">Example Pocket · Raleigh, NC</div>
+    <h2 class="section-title">Here's What You Get</h2>
+    <p class="section-sub">Every pocket is custom-built for your neighborhood — real addresses, real owners, pre-scored by roof age and home value. Here's a real example from a live Cary, NC pocket.</p>
+
+    <div style="margin-top:48px;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:860px">
+
+      <!-- Pocket header -->
+      <div style="padding:22px 28px;background:rgba(76,175,80,0.05);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:6px">● Active Pocket</div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:-.5px">Cary Pocket 82</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:3px">West Cary, NC · 27519 · 5-mile radius</div>
+        </div>
+        <div style="display:flex;gap:28px;flex-wrap:wrap">
+          <div style="text-align:center">
+            <div style="font-size:26px;font-weight:900;color:var(--green)">25</div>
+            <div style="font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Homes</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:26px;font-weight:900;color:var(--white)">$668K</div>
+            <div style="font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Avg Value</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:26px;font-weight:900;color:var(--white)">20 yr</div>
+            <div style="font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Avg Roof Age</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lead table -->
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr>
+              <th style="text-align:left;padding:10px 16px;color:var(--gray);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">#</th>
+              <th style="text-align:left;padding:10px 16px;color:var(--gray);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">Address</th>
+              <th style="text-align:left;padding:10px 16px;color:var(--gray);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">Owner</th>
+              <th style="text-align:left;padding:10px 16px;color:var(--gray);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">Roof Age</th>
+              <th style="text-align:left;padding:10px 16px;color:var(--gray);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">Value</th>
+              <th style="text-align:left;padding:10px 16px;color:var(--gray);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border)">Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray)">1</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--white);font-weight:600">510 Emerald Downs Rd</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">Chen, Zhongmin / Du, Xiaoli</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">20 yrs</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">$579,338</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="background:rgba(76,175,80,0.15);color:var(--green);border:1px solid rgba(76,175,80,0.3);font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px">PRIME</span></td>
+            </tr>
+            <tr>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray)">2</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--white);font-weight:600">514 Emerald Downs Rd</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">Patel, Chetan / Patel, Neema</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">20 yrs</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">$667,407</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="background:rgba(76,175,80,0.15);color:var(--green);border:1px solid rgba(76,175,80,0.3);font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px">PRIME</span></td>
+            </tr>
+            <tr>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray)">3</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--white);font-weight:600">304 Frontgate Dr</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">Fields, Timothy Jr</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">22 yrs</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">$625,422</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="background:rgba(255,122,0,0.12);color:#ff7a00;border:1px solid rgba(255,122,0,0.3);font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px">HOT</span></td>
+            </tr>
+            <tr style="filter:blur(4px);user-select:none;opacity:.35">
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray)">4</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--white);font-weight:600">518 Emerald Downs Rd</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">••••••••••</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">20 yrs</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--gray-light)">$••••••</td>
+              <td style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="background:rgba(76,175,80,0.15);color:var(--green);font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px">PRIME</span></td>
+            </tr>
+            <tr style="filter:blur(4px);user-select:none;opacity:.35">
+              <td style="padding:12px 16px;color:var(--gray)">5</td>
+              <td style="padding:12px 16px;color:var(--white);font-weight:600">710 Dennison Ln</td>
+              <td style="padding:12px 16px;color:var(--gray-light)">••••••••••</td>
+              <td style="padding:12px 16px;color:var(--gray-light)">21 yrs</td>
+              <td style="padding:12px 16px;color:var(--gray-light)">$••••••</td>
+              <td style="padding:12px 16px"><span style="background:rgba(255,122,0,0.12);color:#ff7a00;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px">HOT</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:rgba(255,255,255,0.02)">
+        <span style="font-size:12px;color:var(--gray)">+ 20 more homes in this pocket · full list delivered within 48 hrs of signup</span>
+        <a href="#hero" style="background:var(--green);color:#000;font-size:12px;font-weight:800;padding:10px 20px;border-radius:6px;text-decoration:none">Find Your Zip →</a>
+      </div>
     </div>
-    <div id="markets-body" style="margin-top:40px"></div>
+
   </div>
 </section>
 
@@ -570,18 +617,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
     <form id="contact-form" onsubmit="submitForm(event)" style="display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto">
       <input type="text" placeholder="Your name" id="f-name" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="email" placeholder="Your email" id="f-email" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <select id="f-market" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#aaa;font-size:14px;font-family:inherit;outline:none;cursor:pointer;appearance:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
-        <option value="" disabled selected>Select your market</option>
-        <option value="raleigh">Raleigh</option>
-        <option value="cary">Cary</option>
-        <option value="holly-springs">Holly Springs</option>
-        <option value="wake-forest">Wake Forest</option>
-        <option value="apex">Apex</option>
-        <option value="knightdale">Knightdale</option>
-        <option value="fuquay-varina">Fuquay-Varina</option>
-        <option value="garner">Garner</option>
-        <option value="morrisville">Morrisville</option>
-      </select>
+      <input type="text" placeholder="Your city or zip code" id="f-market" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:14px;border:none;cursor:pointer;width:100%">Show Me Available Pockets →</button>
     </form>
     <div id="form-success" style="display:none;padding:20px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:8px;margin-top:12px">
@@ -612,194 +648,32 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 </footer>
 
 <script>
-// ─────────────────────────────────────────────────────────────────────────────
-// TERRITORY STATUS DATA
-// To mark a territory as sold: change   sold: false   →   sold: true
-// Add new pockets by copying any line and updating market/name/sold.
-// ─────────────────────────────────────────────────────────────────────────────
-var POCKETS = [
-  { market: 'Raleigh', name: 'Phantom', code: 'Phantom', sold: false, leads: 85, avg: 641672, tier: 'gold' },
-  { market: 'Raleigh', name: 'Rogue One', code: 'Rogue One', sold: false, leads: 52, avg: 644079, tier: 'gold' },
-  { market: 'Raleigh', name: 'Imperial', code: 'Imperial', sold: true, leads: 46, avg: 385656, tier: 'silver' },
-  { market: 'Raleigh', name: 'Alliance', code: 'Alliance', sold: false, leads: 92, avg: 658086, tier: 'gold' },
-  { market: 'Raleigh', name: 'Falcon', code: 'Falcon', sold: false, leads: 62, avg: 523422, tier: 'gold' },
-  { market: 'Raleigh', name: 'Sentinel', code: 'Sentinel', sold: false, leads: 60, avg: 537977, tier: 'gold' },
-  { market: 'Raleigh', name: 'Nexus', code: 'Nexus', sold: false, leads: 59, avg: 849075, tier: 'platinum' },
-  { market: 'Raleigh', name: 'Vanguard', code: 'Vanguard', sold: true, leads: 53, avg: 391317, tier: 'silver' },
-  { market: 'Raleigh', name: 'Executor', code: 'Executor', sold: true, leads: 92, avg: 380757, tier: 'silver' },
-  { market: 'Raleigh', name: 'Interceptor', code: 'Interceptor', sold: true, leads: 51, avg: 659302, tier: 'gold' },
-  { market: 'Raleigh', name: 'Outpost', code: 'Outpost', sold: true, leads: 88, avg: 671725, tier: 'gold' },
-  { market: 'Raleigh', name: 'Legion', code: 'Legion', sold: true, leads: 92, avg: 386883, tier: 'silver' },
-  { market: 'Raleigh', name: 'Order', code: 'Order', sold: true, leads: 79, avg: 397534, tier: 'silver' },
-  { market: 'Cary', name: 'Eclipse', code: 'Eclipse', sold: true, leads: 50, avg: 717631, tier: 'platinum' },
-  { market: 'Cary', name: 'Titan', code: 'Titan', sold: true, leads: 82, avg: 783923, tier: 'platinum' },
-  { market: 'Cary', name: 'Vector', code: 'Vector', sold: true, leads: 72, avg: 754027, tier: 'platinum' },
-  { market: 'Cary', name: 'Razor', code: 'Razor', sold: true, leads: 47, avg: 821530, tier: 'platinum' },
-  { market: 'Cary', name: 'Venator', code: 'Venator', sold: false, leads: 46, avg: 708332, tier: 'platinum' },
-  { market: 'Cary', name: 'Harbinger', code: 'Harbinger', sold: true, leads: 50, avg: 791012, tier: 'platinum' },
-  { market: 'Cary', name: 'Sovereign', code: 'Sovereign', sold: false, leads: 58, avg: 855757, tier: 'platinum' },
-  { market: 'Cary', name: 'Defiant', code: 'Defiant', sold: true, leads: 59, avg: 853032, tier: 'platinum' },
-  { market: 'Holly Springs', name: 'Rogue', code: 'Rogue', sold: true, leads: 77, avg: 569912, tier: 'gold' },
-  { market: 'Holly Springs', name: 'Imperial', code: 'Imperial', sold: true, leads: 83, avg: 404198, tier: 'silver' },
-  { market: 'Holly Springs', name: 'Alliance', code: 'Alliance', sold: true, leads: 46, avg: 607038, tier: 'gold' },
-  { market: 'Holly Springs', name: 'Falcon', code: 'Falcon', sold: true, leads: 80, avg: 588727, tier: 'gold' },
-  { market: 'Holly Springs', name: 'Sentinel', code: 'Sentinel', sold: true, leads: 57, avg: 440522, tier: 'silver' },
-  { market: 'Holly Springs', name: 'Nexus', code: 'Nexus', sold: false, leads: 90, avg: 701408, tier: 'platinum' },
-  { market: 'Wake Forest', name: 'Order', code: 'Order', sold: false, leads: 86, avg: 545711, tier: 'gold' },
-  { market: 'Wake Forest', name: 'Pathfinder', code: 'Pathfinder', sold: false, leads: 89, avg: 532162, tier: 'gold' },
-  { market: 'Wake Forest', name: 'Striker', code: 'Striker', sold: true, leads: 79, avg: 576936, tier: 'gold' },
-  { market: 'Wake Forest', name: 'Warden', code: 'Warden', sold: false, leads: 71, avg: 551728, tier: 'gold' },
-  { market: 'Wake Forest', name: 'Nomad', code: 'Nomad', sold: false, leads: 59, avg: 525772, tier: 'gold' },
-  { market: 'Wake Forest', name: 'Renegade', code: 'Renegade', sold: true, leads: 73, avg: 542796, tier: 'gold' },
-  { market: 'Apex', name: 'Command', code: 'Command', sold: false, leads: 82, avg: 610413, tier: 'gold' },
-  { market: 'Apex', name: 'Enforcer', code: 'Enforcer', sold: false, leads: 62, avg: 611722, tier: 'gold' },
-  { market: 'Apex', name: 'Operative', code: 'Operative', sold: false, leads: 96, avg: 602073, tier: 'gold' },
-  { market: 'Apex', name: 'Squadron', code: 'Squadron', sold: true, leads: 100, avg: 696743, tier: 'gold' },
-  { market: 'Knightdale', name: 'Sector',  code: 'Sector',  sold: true, leads: 45, avg: 434770, tier: 'silver' },
-  { market: 'Knightdale', name: 'Bastion', code: 'Bastion', sold: true, leads: 93, avg: 497330, tier: 'silver' },
-  { market: 'Knightdale', name: 'Citadel', code: 'Citadel', sold: true, leads: 96, avg: 466210, tier: 'silver' },
-  { market: 'Fuquay-Varina', name: 'Tempest', code: 'Tempest', sold: true, leads: 55, avg: 412340, tier: 'silver' },
-  { market: 'Fuquay-Varina', name: 'Nova',    code: 'Nova',    sold: true, leads: 89, avg: 455620, tier: 'silver' },
-  { market: 'Fuquay-Varina', name: 'Shadow',  code: 'Shadow',  sold: true, leads: 72, avg: 388770, tier: 'silver' },
-  { market: 'Garner', name: 'Eclipse', code: 'Eclipse', sold: false, leads: 66, avg: 358440, tier: 'silver' },
-  { market: 'Garner', name: 'Titan',   code: 'Titan',   sold: false, leads: 62, avg: 391780, tier: 'silver' },
-  { market: 'Garner', name: 'Vector',  code: 'Vector',  sold: false, leads: 54, avg: 415220, tier: 'silver' },
-  { market: 'Morrisville', name: 'Razor',    code: 'Razor',    sold: false, leads: 58, avg: 578340, tier: 'gold' },
-  { market: 'Morrisville', name: 'Harbinger',code: 'Harbinger',sold: false, leads: 93, avg: 612550, tier: 'gold' },
-  { market: 'Morrisville', name: 'Sovereign',code: 'Sovereign',sold: false, leads: 66, avg: 594110, tier: 'gold' }
-];
-
-
-// ── MARKETS / POCKETS DISPLAY ──────────────────────────────────────────
-var CITY_ORDER = ['Raleigh','Cary','Holly Springs','Wake Forest','Apex','Knightdale','Fuquay-Varina','Garner','Morrisville'];
-var TIER_PRICE = { silver: '$999', gold: '$999', platinum: '$999' };
-
-function initMarkets() {
-  showCityGrid();
-}
-
-function showCityGrid() {
-  var wrap = document.getElementById('markets-body');
-  if (!wrap) return;
-  var html = '<div class="city-card-grid">';
-  CITY_ORDER.forEach(function(city) {
-    var cityPockets = POCKETS.filter(function(p){ return p.market === city; });
-    var avail = cityPockets.filter(function(p){ return !p.sold; }).length;
-    var avgSum = cityPockets.reduce(function(s,p){ return s+p.avg; }, 0);
-    var avgFmt = '$' + Math.round(avgSum / cityPockets.length / 1000) + 'K';
-    html += '<div class="city-card" data-city="' + city + '" onclick="drillCity(this.dataset.city)">'
-          + '<div class="city-card-name">' + city + '</div>'
-          + '<div class="city-card-stats">'
-          + (avail > 0 ? '<span class="cc-avail">' + avail + ' remaining</span>' : '<span class="cc-sold">Fully Claimed</span>')
-          + '</div>'
-          + '<div class="city-card-avg">avg home value ' + avgFmt + '</div>'
-          + '<div class="city-card-cta">See Pockets →</div>'
-          + '</div>';
-  });
-  html += '</div>';
-  wrap.innerHTML = html;
-}
-
-function drillCity(city) {
-  var wrap = document.getElementById('markets-body');
-  if (!wrap) return;
-  var pockets = POCKETS.filter(function(p){ return p.market === city; });
-  var avail = pockets.filter(function(p){ return !p.sold; }).length;
-  var html = '<button class="drill-back" onclick="showCityGrid()">&#8592; Back to Cities</button>'
-    + '<div class="drill-header">'
-    + '<div class="drill-city">' + city + '</div>'
-    + '<div class="drill-sub">' + avail + ' of ' + pockets.length + ' pockets available &mdash; one contractor per pocket</div>'
-    + '</div>'
-    + '<div class="pocket-grid-new">';
-  pockets.forEach(function(p) {
-    var avgFmt = p.avg >= 1000000
-      ? '$' + (p.avg / 1000000).toFixed(2) + 'M'
-      : '$' + Math.round(p.avg / 1000) + 'K';
-    if (p.sold) {
-      html += '<div class="pc pc-sold-card">'
-        + '<div class="pc-sold-overlay"><div class="pc-sold-stamp"><span class="pc-sold-stamp-text">SOLD</span></div></div>'
-        + '<div class="pc-name" style="margin-top:4px">' + p.name + '</div>'
-        + '<div class="pc-stats">'
-        + '<div class="pc-stat"><div class="pc-stat-num">' + p.leads.toLocaleString() + '</div><div class="pc-stat-lbl">Leads</div></div>'
-        + '<div class="pc-div"></div>'
-        + '<div class="pc-stat"><div class="pc-stat-num">' + avgFmt + '</div><div class="pc-stat-lbl">Avg Value</div></div>'
-        + '</div>'
-        + '<div class="pc-price">$999</div>'
-        + '</div>';
-    } else {
-      html += '<div class="pc">'
-        + '<div class="pc-top"><span class="pc-avail">● Available</span></div>'
-        + '<div class="pc-name">' + p.name + '</div>'
-        + '<div class="pc-stats">'
-        + '<div class="pc-stat"><div class="pc-stat-num">' + p.leads.toLocaleString() + '</div><div class="pc-stat-lbl">Leads</div></div>'
-        + '<div class="pc-div"></div>'
-        + '<div class="pc-stat"><div class="pc-stat-num">' + avgFmt + '</div><div class="pc-stat-lbl">Avg Value</div></div>'
-        + '</div>'
-        + '<div class="pc-price">$999 <span class="pc-price-hold">&middot; $99/mo &middot; Exclusive Rights</span></div>'
-        + '<a href="#cta" class="pc-cta">Claim This Pocket →</a>'
-        + '</div>';
-    }
-  });
-  html += '</div>';
-  wrap.innerHTML = html;
-  document.getElementById('markets').scrollIntoView({behavior:'smooth', block:'start'});
-}
-
-initMarkets();
-
-function toggleMobileNav(btn) {
-  var mn = document.getElementById('mobile-nav');
-  mn.style.display = mn.style.display === 'none' ? 'block' : 'none';
-}
+// Firebase contact form submission
+var DB_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/leads';
+var API_KEY = 'AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U';
 
 function submitForm(e) {
   e.preventDefault();
-  var name = document.getElementById('f-name').value;
-  var email = document.getElementById('f-email').value;
-  var market = document.getElementById('f-market').value;
-  fetch('https://formspree.io/f/xnjroolp', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      _subject: 'New Pocket Request — RooFinder',
-      name: name,
-      email: email,
-      market: market
-    })
-  }).catch(function(err){ console.log(err); });
+  var name  = document.getElementById('f-name').value.trim();
+  var email = document.getElementById('f-email').value.trim();
+  var mkt   = document.getElementById('f-market').value;
+
+  var body = JSON.stringify({
+    fields: {
+      name:      { stringValue: name  },
+      email:     { stringValue: email },
+      market:    { stringValue: mkt   },
+      source:    { stringValue: 'index-cta' },
+      createdAt: { stringValue: new Date().toISOString() }
+    }
+  });
+
+  fetch(DB_URL + '?key=' + API_KEY, { method: 'POST', headers: {'Content-Type':'application/json'}, body: body })
+    .catch(function(){});
+
   document.getElementById('contact-form').style.display = 'none';
   document.getElementById('form-success').style.display = 'block';
 }
-
-// Smooth scroll for nav links
-document.querySelectorAll('a[href^="#"]').forEach(function(a) {
-  a.addEventListener('click', function(e) {
-    var target = document.querySelector(this.getAttribute('href'));
-    if (target) { e.preventDefault(); target.scrollIntoView({behavior:'smooth'}); }
-  });
-});
-
-// ── Zip Territory Search ─────────────────────────────────────────────────
-function searchTerritory() {
-  var zip = document.getElementById('zip-input').value.trim();
-  var errEl = document.getElementById('zip-err');
-  if (!/^\d{5}$/.test(zip)) {
-    errEl.style.display = 'block';
-    document.getElementById('zip-input').focus();
-    return;
-  }
-  errEl.style.display = 'none';
-  window.location.href = 'search.html?zip=' + zip;
-}
-
-// Allow Enter key in zip input
-document.getElementById('zip-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') searchTerritory();
-  // Only allow digits
-  if (!/[\d\b]/.test(e.key) && !['ArrowLeft','ArrowRight','Delete','Tab'].includes(e.key)) {
-    e.preventDefault();
-  }
-});
 </script>
 </body>
-</html>                                                           
+</html>
