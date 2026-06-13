@@ -161,13 +161,13 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
       <div class="nav-logo">Roo<span>Finder</span></div>
       <div class="nav-badge">ADMIN</div>
       <div class="nav-tabs">
-        <button class="nav-tab active" onclick="showPanel('contractors',this)">Contractors</button>
+        <button class="nav-tab active" onclick="showPanel('contractors',this)">Owners</button>
         <button class="nav-tab" onclick="showPanel('pockets',this)">Pockets</button>
         <button class="nav-tab" onclick="showPanel('activity',this)">Activity</button>
       </div>
     </div>
     <div class="nav-stat-row">
-      <div class="ns"><div class="ns-num" id="s-contractors">0</div><div class="ns-lbl">Contractors</div></div>
+      <div class="ns"><div class="ns-num" id="s-contractors">0</div><div class="ns-lbl">Owners</div></div>
       <div class="ns"><div class="ns-num" id="s-pockets">0</div><div class="ns-lbl">Pockets Sold</div></div>
       <div class="ns"><div class="ns-num" id="s-revenue">$0</div><div class="ns-lbl">Revenue</div></div>
       <div class="ns"><div class="ns-num" id="s-active">0</div><div class="ns-lbl">Active This Week</div></div>
@@ -178,8 +178,8 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
     <!-- CONTRACTORS PANEL -->
     <div class="panel active" id="panel-contractors">
       <div class="sec-head">
-        <div><div class="sec-title">Contractors</div><div class="sec-sub">All clients who have purchased pockets</div></div>
-        <button class="btn-primary" onclick="openModal()">+ Add Contractor</button>
+        <div><div class="sec-title">Owners</div><div class="sec-sub">Roofing companies signed up on RooFinder</div></div>
+        <button class="btn-primary" onclick="openModal()">+ Add Owner</button>
       </div>
       <div class="table-wrap">
         <table class="data-table">
@@ -187,7 +187,7 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
             <th>Name</th><th>Pocket</th><th>Phone</th><th>Payment</th><th>Status</th><th>Purchased</th><th>Portal</th><th></th>
           </tr></thead>
           <tbody id="contractors-tbody">
-            <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No contractors yet. Add your first one.</div></div></td></tr>
+            <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No owners yet.</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -248,10 +248,10 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
   </div>
 </div>
 
-<!-- ADD CONTRACTOR MODAL -->
+<!-- ADD OWNER MODAL -->
 <div id="modal-overlay">
   <div class="modal">
-    <div class="modal-title" id="modal-title">Add Contractor</div>
+    <div class="modal-title" id="modal-title">Add Owner</div>
     <div class="form-row-2">
       <div class="form-row"><label class="form-label">First Name</label><input class="form-input" id="f-fname" placeholder="John"/></div>
       <div class="form-row"><label class="form-label">Last Name</label><input class="form-input" id="f-lname" placeholder="Smith"/></div>
