@@ -103,6 +103,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .s-not-interested { opacity: .5; }
 .s-appointment { border-color: #a855f7 !important; }
 .s-interested { border-color: #10b981 !important; }
+.s-no-need .status-dot { background: #64748b; border-color: #64748b; }
+.s-no-need { opacity: .45; }
 
 .card-body { flex: 1; min-width: 0; }
 .card-addr { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -164,6 +166,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .s-btn[data-s="interested"].sel { background: rgba(16,185,129,.25); }
 .s-btn[data-s="appointment"] { border-color: #a855f7; color: #a855f7; background: rgba(168,85,247,.08); }
 .s-btn[data-s="appointment"].sel { background: rgba(168,85,247,.25); }
+.s-btn[data-s="no-need"] { border-color: #64748b; color: #94a3b8; background: rgba(100,116,139,.08); }
+.s-btn[data-s="no-need"].sel { background: rgba(100,116,139,.2); }
 
 #m-note-label { font-size: 12px; color: var(--muted); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: .5px; }
 #m-note { width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; color: var(--text); font-size: 14px; font-family: inherit; resize: none; outline: none; height: 72px; }
@@ -229,6 +233,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
     <div class="tab" onclick="setTab('callback',this)">Callback 🔵</div>
     <div class="tab" onclick="setTab('no-answer',this)">No Answer</div>
     <div class="tab" onclick="setTab('not-interested',this)">Not Int.</div>
+    <div class="tab" onclick="setTab('no-need',this)">No Need 🏚</div>
   </div>
 
   <!-- DOOR LIST -->
@@ -255,6 +260,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
       <button class="s-btn" data-s="callback" onclick="selectStatus('callback')">📞 Callback</button>
       <button class="s-btn" data-s="interested" onclick="selectStatus('interested')">👍 Interested</button>
       <button class="s-btn" data-s="appointment" style="grid-column:1/-1" onclick="selectStatus('appointment')">⭐ Appointment Set!</button>
+      <button class="s-btn" data-s="no-need" style="grid-column:1/-1" onclick="selectStatus('no-need')">🏚 No Need — New Roof</button>
     </div>
     <div id="m-note-label">Notes</div>
     <textarea id="m-note" placeholder="Phone number, best time to call, what they said..."></textarea>
