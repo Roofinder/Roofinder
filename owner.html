@@ -204,13 +204,22 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
 
     <!-- FIRST TIME SETUP -->
     <div class="tab-panel" id="panel-setup">
+      <label class="form-label">Company Name</label>
+      <input class="form-input" id="su-company" placeholder="Smith Roofing LLC" autocomplete="organization"/>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">First Name</label>
+          <input class="form-input" id="su-fname" placeholder="John" autocomplete="given-name"/>
+        </div>
+        <div>
+          <label class="form-label">Last Name</label>
+          <input class="form-input" id="su-lname" placeholder="Smith" autocomplete="family-name"/>
+        </div>
+      </div>
       <label class="form-label">Email</label>
-      <input class="form-input" id="su-email" type="email" placeholder="you@company.com"/>
-      <label class="form-label">Access Code</label>
-      <input class="form-input" id="su-code" placeholder="Code from RooFinder" style="text-transform:lowercase"/>
-      <div class="form-hint">Your access code is the portal slug RooFinder sent you.</div>
+      <input class="form-input" id="su-email" type="email" placeholder="you@company.com" autocomplete="email"/>
       <label class="form-label">Create Password</label>
-      <input class="form-input" id="su-pw" type="password" placeholder="Min 8 characters"/>
+      <input class="form-input" id="su-pw" type="password" placeholder="Min 8 characters" autocomplete="new-password"/>
       <button class="login-btn" id="su-btn" onclick="setupAccount()">Create My Account →</button>
       <div class="login-err" id="su-err"></div>
       <div class="login-success" id="su-ok">✓ Account created! Signing you in...</div>
@@ -485,52 +494,49 @@ function signIn() {
 }
 
 function setupAccount() {
+  var company = document.getElementById('su-company').value.trim();
+  var fname = document.getElementById('su-fname').value.trim();
+  var lname = document.getElementById('su-lname').value.trim();
   var email = document.getElementById('su-email').value.trim().toLowerCase();
-  var code = document.getElementById('su-code').value.trim().toLowerCase();
   var pw = document.getElementById('su-pw').value;
   var err = document.getElementById('su-err');
   var ok = document.getElementById('su-ok');
   var btn = document.getElementById('su-btn');
   err.style.display = 'none';
   ok.style.display = 'none';
-  if (!email || !code || !pw) { err.textContent = 'Please fill in all fields.'; err.style.display = 'block'; return; }
+  if (!company || !email || !pw) { err.textContent = 'Please fill in company name, email, and password.'; err.style.display = 'block'; return; }
   if (pw.length < 8) { err.textContent = 'Password must be at least 8 characters.'; err.style.display = 'block'; return; }
 
   btn.disabled = true;
-  btn.textContent = 'Checking access code...';
+  btn.textContent = 'Creating account...';
 
-  // Verify contractor with this email + code exists
-  db.collection('contractors').where('portal', '==', code).get().then(function(snap) {
-    if (snap.empty) {
-      err.textContent = 'Access code not recognized. Double-check the code RooFinder sent you.';
-      err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Create My Account →';
-      return;
-    }
-    var contractorDoc = snap.docs[0];
-    var cData = contractorDoc.data();
+  // Generate a unique ownerCode from company name + random 4-digit suffix
+  function makeOwnerCode(name) {
+    var slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    var rand = Math.floor(1000 + Math.random() * 9000);
+    return slug + '-' + rand;
+  }
 
-    // Check email matches (optional but more secure)
-    if (cData.email && cData.email.toLowerCase() !== email) {
-      err.textContent = 'Email doesn\'t match our records for that access code.';
-      err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Create My Account →';
-      return;
-    }
+  var ownerCode = makeOwnerCode(company);
 
-    btn.textContent = 'Creating account...';
-    auth.createUserWithEmailAndPassword(email, pw).then(function(cred) {
-      return contractorDoc.ref.update({ ownerUid: cred.user.uid, ownerEmail: email });
-    }).then(function() {
-      ok.style.display = 'block';
-      // onAuthStateChanged will fire and load the app
-    }).catch(function(e) {
-      err.textContent = friendlyAuthError(e.code);
-      err.style.display = 'block';
-      btn.disabled = false; btn.textContent = 'Create My Account →';
+  auth.createUserWithEmailAndPassword(email, pw).then(function(cred) {
+    return db.collection('contractors').add({
+      fname: fname,
+      lname: lname,
+      company: company,
+      email: email,
+      ownerUid: cred.user.uid,
+      ownerEmail: email,
+      portal: ownerCode,
+      payment: 'pending',
+      active: true,
+      createdAt: Date.now()
     });
+  }).then(function() {
+    ok.style.display = 'block';
+    // onAuthStateChanged fires and loads the app
   }).catch(function(e) {
-    err.textContent = 'Error: ' + e.message;
+    err.textContent = friendlyAuthError(e.code);
     err.style.display = 'block';
     btn.disabled = false; btn.textContent = 'Create My Account →';
   });
