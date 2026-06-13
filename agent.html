@@ -116,7 +116,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .card-note { font-size: 11px; color: #6080b0; margin-top: 4px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .route-num { font-size: 13px; font-weight: 700; color: #4b5563; flex-shrink: 0; width: 24px; text-align: center; }
 
-/* ── SCRIPT BUTTON ── */
+/* ── FAB BUTTONS ── */
 #script-fab {
   position: fixed;
   bottom: 24px;
@@ -132,6 +132,44 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
   box-shadow: 0 4px 20px rgba(76,175,80,0.4);
   z-index: 60;
 }
+#add-home-fab {
+  position: fixed;
+  bottom: 24px;
+  left: 16px;
+  background: #ff7a00;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 10px 16px;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255,122,0,0.4);
+  z-index: 60;
+}
+
+/* ── ADD HOME MODAL ── */
+#add-home-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: flex-end; }
+#add-home-modal.open { display: flex; }
+#ahbox {
+  background: #1a1d2e;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  padding: 20px 16px 36px;
+}
+.ah-handle { width: 36px; height: 4px; background: #333; border-radius: 2px; margin: 0 auto 16px; }
+.ah-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; color: #ff7a00; }
+.ah-sub { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+.ah-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+.ah-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 15px; font-family: inherit; margin-bottom: 12px; outline: none; }
+.ah-input:focus { border-color: rgba(255,122,0,0.5); }
+.ah-tier-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.ah-tier-btn { flex: 1; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .15s; }
+.ah-tier-btn.sel-prime { background: #1a3a1a; border-color: var(--prime); color: var(--prime); }
+.ah-tier-btn.sel-hot { background: #2d1500; border-color: var(--hot); color: var(--hot); }
+.ah-tier-btn.sel-warm { background: #2d1f00; border-color: var(--warm); color: var(--warm); }
+#ah-save { width: 100%; background: #ff7a00; color: #fff; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 10px; border: none; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+#ah-cancel { width: 100%; background: transparent; color: var(--muted); font-size: 13px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; font-family: inherit; }
 
 /* ── DETAIL MODAL ── */
 #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; align-items: flex-end; }
@@ -239,8 +277,30 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
   <!-- DOOR LIST -->
   <div id="list"></div>
 
-  <!-- SCRIPT FAB -->
+  <!-- FABs -->
+  <button id="add-home-fab" onclick="openAddHome()">＋ Add Home</button>
   <button id="script-fab" onclick="openScript()">📋 Script</button>
+</div>
+
+<!-- ADD HOME MODAL -->
+<div id="add-home-modal">
+  <div id="ahbox">
+    <div class="ah-handle"></div>
+    <div class="ah-title">🏠 Add Home to Route</div>
+    <div class="ah-sub">Spotted a roof that needs attention? Add it now.</div>
+    <label class="ah-label">Address</label>
+    <input class="ah-input" id="ah-addr" placeholder="e.g. 512 Oak Tree Ln" autocomplete="street-address"/>
+    <label class="ah-label">Roof Condition</label>
+    <div class="ah-tier-row">
+      <button class="ah-tier-btn sel-prime" id="ah-t-prime" onclick="setAhTier('PRIME',this)">🟢 PRIME</button>
+      <button class="ah-tier-btn" id="ah-t-hot" onclick="setAhTier('HOT',this)">🔥 HOT</button>
+      <button class="ah-tier-btn" id="ah-t-warm" onclick="setAhTier('WARM',this)">🌤 WARM</button>
+    </div>
+    <label class="ah-label">Quick Note (optional)</label>
+    <input class="ah-input" id="ah-note" placeholder="e.g. visibly damaged shingles, gutters falling off…"/>
+    <button id="ah-save" onclick="saveAddHome()">Add to Route ↑</button>
+    <button id="ah-cancel" onclick="closeAddHome()">Cancel</button>
+  </div>
 </div>
 
 <!-- DETAIL MODAL (bottom sheet) -->
@@ -670,6 +730,82 @@ document.getElementById('modal').addEventListener('click', function(e) {
 document.getElementById('script-modal').addEventListener('click', function(e) {
   if (e.target === this) closeScript();
 });
+document.getElementById('add-home-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddHome();
+});
+
+// ── Add Home ────────────────────────────────────────────────────────────────
+var ahTier = 'PRIME';
+
+function openAddHome() {
+  document.getElementById('ah-addr').value = '';
+  document.getElementById('ah-note').value = '';
+  ahTier = 'PRIME';
+  document.getElementById('ah-t-prime').className = 'ah-tier-btn sel-prime';
+  document.getElementById('ah-t-hot').className = 'ah-tier-btn';
+  document.getElementById('ah-t-warm').className = 'ah-tier-btn';
+  document.getElementById('add-home-modal').classList.add('open');
+  setTimeout(function(){ document.getElementById('ah-addr').focus(); }, 100);
+}
+
+function closeAddHome() {
+  document.getElementById('add-home-modal').classList.remove('open');
+}
+
+function setAhTier(tier, btn) {
+  ahTier = tier;
+  document.getElementById('ah-t-prime').className = 'ah-tier-btn';
+  document.getElementById('ah-t-hot').className   = 'ah-tier-btn';
+  document.getElementById('ah-t-warm').className  = 'ah-tier-btn';
+  var cls = tier === 'PRIME' ? 'sel-prime' : tier === 'HOT' ? 'sel-hot' : 'sel-warm';
+  btn.className = 'ah-tier-btn ' + cls;
+}
+
+function saveAddHome() {
+  var addr = document.getElementById('ah-addr').value.trim();
+  if (!addr) {
+    document.getElementById('ah-addr').focus();
+    return;
+  }
+  var note = document.getElementById('ah-note').value.trim();
+  var newLead = {
+    addr: addr,
+    owner: 'Field Add',
+    tier: ahTier,
+    age: 0,
+    val: '—',
+    street: '',
+    addedByAgent: agentName,
+    addedAt: Date.now()
+  };
+
+  // Append to Firestore leads array
+  var btn = document.getElementById('ah-save');
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+
+  // Use manual array append (Firebase compat SDK arrayUnion)
+  var updatedLeads = (routeData.leads || []).concat([newLead]);
+  db.collection('agentRoutes').doc(routeCode).update({
+    leads: updatedLeads,
+    lastUpdate: Date.now()
+  }).then(function() {
+    // Pre-set note if they typed one
+    if (note) {
+      var newIdx = updatedLeads.length - 1;
+      var noteUpdate = {};
+      noteUpdate['notes.' + newIdx] = note;
+      db.collection('agentRoutes').doc(routeCode).update(noteUpdate).catch(function(){});
+    }
+    btn.textContent = 'Add to Route ↑';
+    btn.disabled = false;
+    closeAddHome();
+  }).catch(function(err) {
+    alert('Could not save. Check your connection.');
+    btn.textContent = 'Add to Route ↑';
+    btn.disabled = false;
+  });
+}
 </script>
 </body>
 </html>
