@@ -877,6 +877,17 @@ function updateMgrCount() {
   var el = document.getElementById('mgr-count');
   if (el) el.textContent = cnt > 0 ? cnt + ' hidden' : '';
 }
+
+// ── Auto-bypass from Owner Portal ─────────────────────────────────
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var autoSlug = params.get('slug');
+  var autoFlag = params.get('auto');
+  if (autoSlug && autoFlag === '1') {
+    currentRole = 'admin';
+    openPocket(autoSlug);
+  }
+})();
 </script>
 </body>
 </html>

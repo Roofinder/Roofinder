@@ -66,6 +66,11 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
 /* ── POCKET INFO CARD ── */
 #pocket-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.2);border-radius:14px;padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 
+/* ── TABLE ACTION BUTTONS ── */
+.tbl-btn{background:transparent;border:1px solid rgba(255,255,255,.1);color:#888;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
+.tbl-btn:hover{border-color:#4caf50;color:#4caf50}
+.tbl-btn.danger:hover{border-color:#ff5555;color:#ff5555}
+
 /* ── MY POCKETS LIST ── */
 .pocket-item{background:#111;border:1px solid #222;border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;transition:border-color .2s}
 .pocket-item:hover{border-color:#333}
@@ -292,10 +297,10 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
-            <th>Agent</th><th>Routes</th><th>Doors</th><th>Interested</th><th>Appointments</th><th>Conv. Rate</th><th>Last Active</th>
+            <th>Agent</th><th>Routes</th><th>Doors</th><th>Interested</th><th>Appts</th><th>Conv. Rate</th><th>Last Active</th><th></th>
           </tr></thead>
           <tbody id="agents-tbody">
-            <tr><td colspan="7"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>
+            <tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -589,7 +594,7 @@ function loadPockets() {
             '</div>' +
             '<div style="display:flex;align-items:center;gap:12px">' +
               '<span class="pocket-badge">● Active</span>' +
-              (code ? '<a class="btn-link" href="https://roofinder.online/pocket-builder.html?portal=' + encodeURIComponent(code) + '" target="_blank">View Pocket →</a>' : '') +
+              (code ? '<a class="btn-link" href="https://roofinder.online/pocket-builder.html?slug=' + encodeURIComponent(code) + '&auto=1" target="_blank">View Pocket →</a>' : '') +
             '</div>' +
           '</div>';
       });
@@ -723,13 +728,14 @@ function renderAgents() {
   var tbody = document.getElementById('agents-tbody');
   var agents = Object.keys(agentMap);
   if (!agents.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>';
     return;
   }
   tbody.innerHTML = agents.map(function(name) {
     var a = agentMap[name];
     var rate = a.knocked > 0 ? Math.round(a.interested / a.knocked * 100) : 0;
     var lastDate = a.lastActive ? new Date(a.lastActive).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    var safeName = name.replace(/'/g, "\\'");
     return '<tr>'
       + '<td><div class="cell-name">' + name + '</div></td>'
       + '<td>' + a.routes + '</td>'
@@ -738,8 +744,37 @@ function renderAgents() {
       + '<td class="purple">' + a.appt + '</td>'
       + '<td>' + rate + '%</td>'
       + '<td class="dim">' + lastDate + '</td>'
+      + '<td style="white-space:nowrap">'
+        + '<button class="tbl-btn" onclick="editAgent(\'' + safeName + '\')">✏️ Edit</button> '
+        + '<button class="tbl-btn danger" onclick="removeAgent(\'' + safeName + '\')">🗑 Remove</button>'
+      + '</td>'
       + '</tr>';
   }).join('');
+}
+
+// ── Edit Agent ────────────────────────────────────────────────────────────
+function editAgent(oldName) {
+  var newName = prompt('Rename agent "' + oldName + '" to:', oldName);
+  if (!newName || newName.trim() === oldName) return;
+  newName = newName.trim();
+  var batch = db.batch();
+  allRoutes.forEach(function(r) {
+    if (r.agentName === oldName) {
+      batch.update(db.collection('agentRoutes').doc(r.routeCode), { agentName: newName });
+    }
+  });
+  batch.commit().catch(function(e) { alert('Error renaming agent: ' + e.message); });
+}
+
+// ── Remove Agent ──────────────────────────────────────────────────────────
+function removeAgent(name) {
+  var routes = allRoutes.filter(function(r){ return r.agentName === name; });
+  if (!confirm('Remove agent "' + name + '"?\n\nThis will archive all ' + routes.length + ' of their routes. Stats will be preserved in history.')) return;
+  var batch = db.batch();
+  routes.forEach(function(r) {
+    batch.update(db.collection('agentRoutes').doc(r.routeCode), { status: 'archived', agentRemoved: true });
+  });
+  batch.commit().catch(function(e) { alert('Error removing agent: ' + e.message); });
 }
 
 // ── Create Route ──────────────────────────────────────────────────────────
