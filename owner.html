@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RooFinder — Owner Live View</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#e0e4f0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* ── NAV ── */
+nav{background:rgba(10,10,10,.97);border-bottom:1px solid rgba(255,255,255,.08);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.nav-logo{font-size:16px;font-weight:800}.nav-logo span{color:#4caf50}
+.nav-badge{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);color:#4caf50;padding:3px 10px;border-radius:100px}
+#nav-route{font-size:12px;color:#666;margin-left:4px}
+#live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-left:auto;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+#live-label{font-size:11px;color:#4caf50;font-weight:700;margin-left:6px}
+
+/* ── MAIN ── */
+main{max-width:1100px;margin:0 auto;padding:32px 24px}
+
+/* ── LOADING / ERROR ── */
+#status-screen{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px}
+.status-icon{font-size:48px}
+.status-title{font-size:20px;font-weight:700}
+.status-sub{font-size:14px;color:#666;max-width:340px;line-height:1.6}
+.status-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;width:220px;margin-top:8px;text-align:center;text-transform:uppercase;letter-spacing:1px}
+.status-btn{background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:12px 24px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;margin-top:4px}
+
+/* ── HERO STATS ── */
+#hero-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
+@media(max-width:700px){#hero-stats{grid-template-columns:repeat(2,1fr)}}
+.hstat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px 20px}
+.hstat-num{font-size:28px;font-weight:900;line-height:1}
+.hstat-lbl{font-size:10px;color:#555;letter-spacing:.5px;text-transform:uppercase;margin-top:4px}
+.green{color:#4caf50}.yellow{color:#ffc107}.blue{color:#60a0ff}.purple{color:#a855f7}.red{color:#ef4444}
+
+/* ── AGENT INFO CARD ── */
+#agent-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.2);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.agent-avatar{width:44px;height:44px;border-radius:50%;background:rgba(76,175,80,.2);border:2px solid rgba(76,175,80,.4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.agent-name{font-size:18px;font-weight:800}
+.agent-meta{font-size:12px;color:#666;margin-top:3px}
+.agent-route{margin-left:auto;text-align:right}
+.agent-route-name{font-size:15px;font-weight:700;color:#4caf50}
+.agent-route-sub{font-size:11px;color:#555;margin-top:2px}
+
+/* ── PROGRESS BAR ── */
+#progress-section{margin-bottom:28px}
+.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.prog-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px}
+.prog-pct{font-size:20px;font-weight:900;color:#4caf50}
+.prog-bg{background:rgba(255,255,255,.06);border-radius:100px;height:10px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#2d6b30,#4caf50,#7cfc00);border-radius:100px;transition:width .6s cubic-bezier(.22,.68,0,1)}
+.prog-subs{display:flex;gap:20px;margin-top:10px;flex-wrap:wrap}
+.prog-sub{font-size:12px;color:#555}
+.prog-sub span{font-weight:700}
+
+/* ── DOOR GRID ── */
+#door-section{margin-bottom:32px}
+.section-title{font-size:14px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+#door-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.dc{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px;transition:border-color .2s}
+.dc.s-pending{border-color:rgba(255,255,255,.05)}
+.dc.s-no-answer{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.04)}
+.dc.s-not-interested{border-color:rgba(239,68,68,.15);background:rgba(239,68,68,.03);opacity:.6}
+.dc.s-callback{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.05)}
+.dc.s-interested{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.06)}
+.dc.s-appointment{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.08)}
+.dc-num{font-size:10px;color:#444;font-weight:700;margin-bottom:4px}
+.dc-addr{font-size:12px;font-weight:700;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-owner{font-size:10px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.dc-status{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;margin-top:6px;padding:2px 7px;border-radius:4px}
+.st-pending{color:#444;background:transparent}
+.st-no-answer{color:#f59e0b;background:rgba(245,158,11,.1)}
+.st-not-interested{color:#ef4444;background:rgba(239,68,68,.1)}
+.st-callback{color:#3b82f6;background:rgba(59,130,246,.1)}
+.st-interested{color:#10b981;background:rgba(16,185,129,.1)}
+.st-appointment{color:#a855f7;background:rgba(168,85,247,.15)}
+.dc-note{font-size:10px;color:#4b6a9b;margin-top:4px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── ACTIVITY FEED ── */
+#feed-section{margin-bottom:32px}
+#feed-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.feed-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:8px;font-size:12px}
+.feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.feed-addr{font-weight:700;color:#ccc}
+.feed-status{color:#888}
+.feed-time{margin-left:auto;color:#444;white-space:nowrap}
+.feed-empty{color:#444;font-size:13px;padding:20px;text-align:center}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px}
+.lg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:#555}
+.lg-dot{width:8px;height:8px;border-radius:50%}
+
+/* ── NO ROUTE ENTRY ── */
+#no-route-form{display:flex;flex-direction:column;align-items:center;gap:10px}
+
+/* ── COPY LINK BTN ── */
+.copy-link-btn{background:transparent;border:1px solid rgba(76,175,80,.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;margin-left:auto;transition:all .2s}
+.copy-link-btn:hover{background:rgba(76,175,80,.1)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Roo<span>Finder</span></div>
+  <div class="nav-badge">OWNER VIEW</div>
+  <span id="nav-route"></span>
+  <span id="live-dot" style="display:none"></span>
+  <span id="live-label" style="display:none">LIVE</span>
+</nav>
+
+<main>
+
+  <!-- STATUS / LOADING SCREEN -->
+  <div id="status-screen">
+    <div class="status-icon">📡</div>
+    <div class="status-title">Enter Route Code</div>
+    <div class="status-sub">Get your route code from Dalton to view live agent progress.</div>
+    <div id="no-route-form">
+      <input class="status-input" id="code-input" placeholder="e.g. CARY82" autocomplete="off"/>
+      <button class="status-btn" onclick="loadRoute()">View Live Progress →</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD (hidden until route loaded) -->
+  <div id="dashboard" style="display:none">
+
+    <!-- Agent Card -->
+    <div id="agent-card">
+      <div class="agent-avatar">👤</div>
+      <div>
+        <div class="agent-name" id="d-agent-name">Loading...</div>
+        <div class="agent-meta" id="d-agent-meta">Not started yet</div>
+      </div>
+      <div class="agent-route">
+        <div class="agent-route-name" id="d-route-name"></div>
+        <div class="agent-route-sub" id="d-pocket"></div>
+      </div>
+      <button class="copy-link-btn" onclick="copyOwnerLink()">🔗 Copy Link</button>
+    </div>
+
+    <!-- Summary Stats -->
+    <div id="hero-stats">
+      <div class="hstat">
+        <div class="hstat-num" id="s-total">—</div>
+        <div class="hstat-lbl">Total Doors</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num green" id="s-knocked">0</div>
+        <div class="hstat-lbl">Knocked</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num green" id="s-interested">0</div>
+        <div class="hstat-lbl">Interested 👍</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num purple" id="s-appt">0</div>
+        <div class="hstat-lbl">Appointments ⭐</div>
+      </div>
+      <div class="hstat">
+        <div class="hstat-num blue" id="s-callback">0</div>
+        <div class="hstat-lbl">Callbacks</div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="progress-section">
+      <div class="prog-header">
+        <span class="prog-title">Route Progress</span>
+        <span class="prog-pct" id="prog-pct">0%</span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-subs">
+        <div class="prog-sub">Pending: <span id="p-pending">—</span></div>
+        <div class="prog-sub" style="color:#f59e0b">No Answer: <span id="p-na">0</span></div>
+        <div class="prog-sub" style="color:#ef4444">Not Interested: <span id="p-ni">0</span></div>
+        <div class="prog-sub" style="color:#3b82f6">Callback: <span id="p-cb">0</span></div>
+        <div class="prog-sub" style="color:#10b981">Interested: <span id="p-int">0</span></div>
+        <div class="prog-sub" style="color:#a855f7">Appointments: <span id="p-ap">0</span></div>
+      </div>
+    </div>
+
+    <!-- Door Grid -->
+    <div id="door-section">
+      <div class="section-title">All Doors</div>
+      <div id="door-grid"></div>
+      <div class="legend">
+        <div class="lg-item"><div class="lg-dot" style="background:#555"></div>Pending</div>
+        <div class="lg-item"><div class="lg-dot" style="background:#f59e0b"></div>No Answer</div>
+        <div class="lg-item"><div class="lg-dot" style="background:#ef4444"></div>Not Interested</div>
+        <div class="lg-item"><div class="lg-dot" style="background:#3b82f6"></div>Callback</div>
+        <div class="lg-item"><div class="lg-dot" style="background:#10b981"></div>Interested</div>
+        <div class="lg-item"><div class="lg-dot" style="background:#a855f7"></div>Appointment ⭐</div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div id="feed-section">
+      <div class="section-title">Recent Activity</div>
+      <div id="feed-list"><div class="feed-empty">Waiting for agent activity...</div></div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ── Firebase ─────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
+  authDomain: "roofinder-cc880.firebaseapp.com",
+  projectId: "roofinder-cc880",
+  storageBucket: "roofinder-cc880.firebasestorage.app",
+  messagingSenderId: "882068436752",
+  appId: "1:882068436752:web:2ccd00b3580a47ec749795"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// ── State ─────────────────────────────────────────────────────────────────
+var routeCode = '';
+var routeData = null;
+var prevStatuses = {};
+var activityLog = []; // [{addr, status, time}]
+
+// ── Check URL params ────────────────────────────────────────────────────────
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  var r = params.get('route');
+  if (r) {
+    document.getElementById('code-input').value = r.toUpperCase();
+    routeCode = r.toUpperCase();
+    loadRoute();
+  }
+})();
+
+function loadRoute() {
+  var code = document.getElementById('code-input').value.trim().toUpperCase();
+  if (!code) { alert('Please enter a route code.'); return; }
+  routeCode = code;
+
+  // Update URL
+  var url = new URL(window.location.href);
+  url.searchParams.set('route', code);
+  window.history.replaceState({}, '', url);
+
+  // Show loading state
+  document.getElementById('status-screen').querySelector('.status-title').textContent = 'Connecting...';
+  document.getElementById('status-screen').querySelector('.status-sub').textContent = 'Listening for live agent data...';
+  document.getElementById('no-route-form').style.display = 'none';
+
+  // Real-time listener
+  db.collection('agentRoutes').doc(routeCode).onSnapshot(function(doc) {
+    if (!doc.exists) {
+      document.getElementById('status-screen').querySelector('.status-title').textContent = 'Route Not Found';
+      document.getElementById('status-screen').querySelector('.status-sub').textContent = 'Check your route code and try again.';
+      document.getElementById('no-route-form').style.display = 'flex';
+      return;
+    }
+    routeData = doc.data();
+
+    // First time seeing data — show dashboard
+    if (document.getElementById('dashboard').style.display === 'none') {
+      document.getElementById('status-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('live-dot').style.display = 'inline-block';
+      document.getElementById('live-label').style.display = 'inline';
+      document.getElementById('nav-route').textContent = routeCode;
+    }
+
+    updateDashboard(routeData);
+  }, function(err) {
+    document.getElementById('status-screen').querySelector('.status-title').textContent = 'Connection Error';
+    document.getElementById('status-screen').querySelector('.status-sub').textContent = err.message;
+    document.getElementById('no-route-form').style.display = 'flex';
+  });
+}
+
+function updateDashboard(data) {
+  var leads = data.leads || [];
+  var statuses = data.statuses || {};
+  var notes = data.notes || {};
+
+  // Agent info
+  var agentName = data.agentName || 'Unassigned';
+  document.getElementById('d-agent-name').textContent = agentName;
+  var startedAt = data.startedAt ? new Date(data.startedAt) : null;
+  var lastUpdate = data.lastUpdate ? new Date(data.lastUpdate) : null;
+  var metaParts = [];
+  if (startedAt) metaParts.push('Started ' + fmtTime(startedAt));
+  if (lastUpdate) metaParts.push('Last update ' + fmtTimeAgo(lastUpdate));
+  document.getElementById('d-agent-meta').textContent = metaParts.join(' · ') || 'Not started';
+  document.getElementById('d-route-name').textContent = data.routeName || routeCode;
+  document.getElementById('d-pocket').textContent = data.pocket || '';
+
+  // Count statuses
+  var total = leads.length;
+  var counts = { pending: 0, 'no-answer': 0, 'not-interested': 0, callback: 0, interested: 0, appointment: 0 };
+  leads.forEach(function(_, i) {
+    var s = statuses[i] || 'pending';
+    counts[s] = (counts[s] || 0) + 1;
+  });
+  var knocked = total - counts.pending;
+  var pct = total > 0 ? Math.round(knocked / total * 100) : 0;
+
+  // Stats
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-knocked').textContent = knocked;
+  document.getElementById('s-interested').textContent = counts.interested;
+  document.getElementById('s-appt').textContent = counts.appointment;
+  document.getElementById('s-callback').textContent = counts.callback;
+
+  // Progress
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('p-pending').textContent = counts.pending;
+  document.getElementById('p-na').textContent = counts['no-answer'];
+  document.getElementById('p-ni').textContent = counts['not-interested'];
+  document.getElementById('p-cb').textContent = counts.callback;
+  document.getElementById('p-int').textContent = counts.interested;
+  document.getElementById('p-ap').textContent = counts.appointment;
+
+  // Detect changes for activity feed
+  leads.forEach(function(lead, i) {
+    var newS = statuses[i] || 'pending';
+    var oldS = prevStatuses[i] || 'pending';
+    if (newS !== oldS && newS !== 'pending') {
+      activityLog.unshift({ addr: lead.addr, status: newS, note: notes[i] || '', time: new Date() });
+      if (activityLog.length > 50) activityLog.pop();
+    }
+  });
+  prevStatuses = Object.assign({}, statuses);
+
+  // Door grid
+  var gridHtml = '';
+  leads.forEach(function(lead, i) {
+    var s = statuses[i] || 'pending';
+    var n = notes[i] || '';
+    var statusLabel = {
+      pending: '⬜ Pending',
+      'no-answer': '🔔 No Answer',
+      'not-interested': '✗ Not Interested',
+      callback: '📞 Callback',
+      interested: '👍 Interested',
+      appointment: '⭐ Appointment'
+    }[s] || s;
+    gridHtml += '<div class="dc s-' + s + '">'
+      + '<div class="dc-num">#' + (i+1) + '</div>'
+      + '<div class="dc-addr">' + lead.addr + '</div>'
+      + '<div class="dc-owner">' + lead.owner + '</div>'
+      + '<div class="dc-status st-' + s + '">' + statusLabel + '</div>'
+      + (n ? '<div class="dc-note">' + n + '</div>' : '')
+      + '</div>';
+  });
+  document.getElementById('door-grid').innerHTML = gridHtml;
+
+  // Activity feed
+  if (activityLog.length === 0) {
+    document.getElementById('feed-list').innerHTML = '<div class="feed-empty">Waiting for agent activity...</div>';
+  } else {
+    var dotColors = {
+      'no-answer': '#f59e0b', 'not-interested': '#ef4444', callback: '#3b82f6',
+      interested: '#10b981', appointment: '#a855f7', pending: '#555'
+    };
+    var feedHtml = activityLog.map(function(item) {
+      return '<div class="feed-item">'
+        + '<div class="feed-dot" style="background:' + (dotColors[item.status]||'#555') + '"></div>'
+        + '<span class="feed-addr">' + item.addr + '</span>'
+        + '<span class="feed-status">→ ' + item.status.replace('-', ' ') + (item.note ? ' · ' + item.note : '') + '</span>'
+        + '<span class="feed-time">' + fmtTimeAgo(item.time) + '</span>'
+        + '</div>';
+    }).join('');
+    document.getElementById('feed-list').innerHTML = feedHtml;
+  }
+}
+
+function copyOwnerLink() {
+  var url = window.location.origin + window.location.pathname + '?route=' + routeCode;
+  navigator.clipboard.writeText(url).then(function() {
+    alert('Link copied! Share this with the owner:\n' + url);
+  });
+}
+
+function fmtTime(date) {
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function fmtTimeAgo(date) {
+  var diff = Math.floor((Date.now() - date) / 1000);
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  return Math.floor(diff / 3600) + 'h ago';
+}
+</script>
+</body>
+</html>
