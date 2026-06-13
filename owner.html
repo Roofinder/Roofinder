@@ -193,8 +193,8 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
       <label class="form-label">Email</label>
       <input class="form-input" id="su-email" type="email" placeholder="you@company.com"/>
       <label class="form-label">Access Code</label>
-      <input class="form-input" id="su-code" placeholder="Code from Dalton" style="text-transform:lowercase"/>
-      <div class="form-hint">Your access code is the portal slug Dalton texted you.</div>
+      <input class="form-input" id="su-code" placeholder="Code from RooFinder" style="text-transform:lowercase"/>
+      <div class="form-hint">Your access code is the portal slug RooFinder sent you.</div>
       <label class="form-label">Create Password</label>
       <input class="form-input" id="su-pw" type="password" placeholder="Min 8 characters"/>
       <button class="login-btn" id="su-btn" onclick="setupAccount()">Create My Account →</button>
@@ -357,12 +357,12 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
 <script>
 // ── Firebase ──────────────────────────────────────────────────────────────
 var firebaseConfig = {
-  apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
-  authDomain: "roofinder-cc880.firebaseapp.com",
-  projectId: "roofinder-cc880",
-  storageBucket: "roofinder-cc880.firebasestorage.app",
-  messagingSenderId: "882068436752",
-  appId: "1:882068436752:web:2ccd00b3580a47ec749795"
+  apiKey: "AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzLqAD6M1U",
+  authDomain: "roofinder-1c01f.firebaseapp.com",
+  projectId: "roofinder-1c01f",
+  storageBucket: "roofinder-1c01f.firebasestorage.app",
+  messagingSenderId: "620983726110",
+  appId: "1:620983726110:web:6088bd5c53a9a8e0b27e0f"
 };
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
@@ -456,7 +456,7 @@ function setupAccount() {
   // Verify contractor with this email + code exists
   db.collection('contractors').where('portal', '==', code).get().then(function(snap) {
     if (snap.empty) {
-      err.textContent = 'Access code not recognized. Double-check the code Dalton sent you.';
+      err.textContent = 'Access code not recognized. Double-check the code RooFinder sent you.';
       err.style.display = 'block';
       btn.disabled = false; btn.textContent = 'Create My Account →';
       return;
