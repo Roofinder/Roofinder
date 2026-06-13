@@ -13,18 +13,18 @@ body{background:#0a0a0a;color:#e0e4f0;font-family:'Inter',-apple-system,BlinkMac
 a{color:inherit;text-decoration:none}
 
 /* ── LOGIN ── */
-#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 24px;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(76,175,80,.1) 0%,transparent 60%),#0a0a0a}
-.login-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:40px 36px;width:100%;max-width:420px}
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px 16px;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(76,175,80,.1) 0%,transparent 60%),#0a0a0a;overflow-y:auto}
+.login-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:28px 20px;width:100%;max-width:420px}
 .login-logo{font-size:20px;font-weight:800;margin-bottom:4px;text-align:center}.login-logo span{color:#4caf50}
-.login-role{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4caf50;text-align:center;margin-bottom:28px}
-.login-tabs{display:flex;gap:0;margin-bottom:28px;background:rgba(255,255,255,.04);border-radius:8px;padding:4px}
+.login-role{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4caf50;text-align:center;margin-bottom:22px}
+.login-tabs{display:flex;gap:0;margin-bottom:22px;background:rgba(255,255,255,.04);border-radius:8px;padding:4px}
 .login-tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:700;color:#666;cursor:pointer;border-radius:6px;transition:all .2s}
 .login-tab.active{background:rgba(76,175,80,.15);color:#4caf50;border:1px solid rgba(76,175,80,.3)}
 .form-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:7px}
-.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:12px 15px;color:#e0e4f0;font-size:14px;font-family:inherit;margin-bottom:14px;outline:none;transition:border-color .2s}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:12px 15px;color:#e0e4f0;font-size:16px;font-family:inherit;margin-bottom:14px;outline:none;transition:border-color .2s}
 .form-input:focus{border-color:rgba(76,175,80,.5)}
 .form-hint{font-size:11px;color:#555;margin-top:-10px;margin-bottom:14px;line-height:1.5}
-.login-btn{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:14px;border-radius:9px;border:none;cursor:pointer;font-family:inherit;transition:background .2s}
+.login-btn{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:15px;padding:15px;border-radius:9px;border:none;cursor:pointer;font-family:inherit;transition:background .2s}
 .login-btn:hover{background:#5cc760}
 .login-btn:disabled{background:#2a4a2a;color:#444;cursor:not-allowed}
 .login-err{color:#ff5555;font-size:12px;margin-top:10px;text-align:center;display:none;line-height:1.5}
@@ -33,19 +33,21 @@ a{color:inherit;text-decoration:none}
 
 /* ── NAV ── */
 #app{display:none;min-height:100vh}
-nav{background:rgba(10,10,10,.97);border-bottom:1px solid rgba(255,255,255,.07);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+nav{background:rgba(10,10,10,.97);border-bottom:1px solid rgba(255,255,255,.07);padding:0 16px;height:auto;min-height:56px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);padding-top:8px;padding-bottom:8px}
 .nav-logo{font-size:15px;font-weight:800;flex-shrink:0}.nav-logo span{color:#4caf50}
 .nav-badge{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:#4caf50;padding:3px 10px;border-radius:100px;flex-shrink:0}
-.nav-tabs{display:flex;gap:4px;margin:0 auto}
-.nav-tab{font-size:12px;font-weight:600;color:#555;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit}
+.nav-tabs{display:flex;gap:4px;order:2;width:100%}
+.nav-tab{font-size:13px;font-weight:600;color:#555;padding:8px 16px;border-radius:6px;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit;flex:1;text-align:center}
 .nav-tab:hover{color:#ccc;background:rgba(255,255,255,.04)}
 .nav-tab.active{color:#fff;background:rgba(255,255,255,.08)}
-.nav-company{font-size:12px;color:#444;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-company{font-size:12px;color:#444;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-left:auto}
 .nav-signout{font-size:11px;font-weight:700;color:#444;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit;flex-shrink:0}
 .nav-signout:hover{color:#ff5555;background:rgba(255,85,85,.07)}
+@media(min-width:640px){nav{flex-wrap:nowrap;padding-top:0;padding-bottom:0}.nav-tabs{order:0;width:auto}}
 
 /* ── MAIN ── */
-main{max-width:1100px;margin:0 auto;padding:32px 24px}
+main{max-width:1100px;margin:0 auto;padding:20px 14px}
+@media(min-width:640px){main{padding:32px 24px}}
 .panel{display:none}.panel.active{display:block}
 
 /* ── SECTION HEADER ── */
