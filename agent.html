@@ -202,10 +202,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
   <div class="login-box">
     <label class="login-label">Your Name</label>
     <input class="login-input" id="inp-name" placeholder="e.g. Jake" autocomplete="off"/>
-    <label class="login-label">Route Code</label>
-    <input class="login-input" id="inp-code" placeholder="e.g. CARY82" autocomplete="off" style="text-transform:uppercase"/>
-    <button class="login-btn" onclick="startRoute()">Start My Route →</button>
-    <div class="login-err" id="login-err">Route not found. Check your code.</div>
+    <label class="login-label">PIN</label>
+    <input class="login-input" id="inp-pin" placeholder="Enter your PIN" type="password" autocomplete="off" inputmode="numeric"/>
+    <button class="login-btn" id="login-btn" onclick="startRoute()">Start My Route →</button>
+    <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
@@ -216,7 +216,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
   <div id="topbar">
     <div class="topbar-row1">
       <span id="topbar-title">Loading...</span>
-      <span id="topbar-agent"><span id="sync-dot"></span><span id="agent-name-display"></span></span>
+      <span id="topbar-agent"><span id="sync-dot"></span><span id="agent-name-display"></span><button onclick="signOutAgent()" style="background:transparent;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 6px;margin-left:4px;border-radius:4px;font-family:inherit">Sign Out</button></span>
     </div>
     <div id="prog-row">
       <div id="prog-bg"><div id="prog-fill" style="width:0%"></div></div>
@@ -403,53 +403,119 @@ var curTab = 'all';
 var firestoreUnsubscribe = null;
 
 // ── Entry ─────────────────────────────────────────────────────────────────
-// Check URL params first
+// URL params → saved session → show login
 (function() {
   var params = new URLSearchParams(window.location.search);
   var r = params.get('route');
   var n = params.get('agent');
-  if (r) document.getElementById('inp-code').value = r.toUpperCase();
-  if (n) document.getElementById('inp-name').value = n;
+
+  if (r) {
+    // Backward compat: direct route code in URL — skip PIN login
+    agentName = n || 'Agent';
+    routeCode = r.toUpperCase();
+    if (n) document.getElementById('inp-name').value = n;
+    db.collection('agentRoutes').doc(routeCode).get().then(function(doc) {
+      if (doc.exists) {
+        routeData = doc.data();
+        agentName = routeData.agentName || agentName;
+        launchApp();
+      } else {
+        var err = document.getElementById('login-err');
+        err.textContent = 'Route not found.';
+        err.style.display = 'block';
+      }
+    }).catch(function() {
+      var err = document.getElementById('login-err');
+      err.textContent = 'Could not load route. Try again.';
+      err.style.display = 'block';
+    });
+    return;
+  }
+
+  // Check saved session
+  try {
+    var saved = JSON.parse(localStorage.getItem('rf_agent') || 'null');
+    if (saved && saved.routeCode && saved.agentName) {
+      agentName = saved.agentName;
+      routeCode = saved.routeCode;
+      db.collection('agentRoutes').doc(routeCode).get().then(function(doc) {
+        if (doc.exists) {
+          routeData = doc.data();
+          launchApp();
+        } else {
+          localStorage.removeItem('rf_agent');
+        }
+      }).catch(function() { localStorage.removeItem('rf_agent'); });
+    }
+  } catch(e) { localStorage.removeItem('rf_agent'); }
 })();
 
 function startRoute() {
   var name = document.getElementById('inp-name').value.trim();
-  var code = document.getElementById('inp-code').value.trim().toUpperCase();
-  if (!name) { alert('Please enter your name.'); return; }
-  if (!code) { alert('Please enter your route code.'); return; }
-  agentName = name;
-  routeCode = code;
-  document.getElementById('login-err').style.display = 'none';
+  var pin = document.getElementById('inp-pin').value.trim();
+  var errEl = document.getElementById('login-err');
+  var btnEl = document.getElementById('login-btn');
+  errEl.style.display = 'none';
 
-  // Try Firestore first, then fall back to built-in
-  var routeRef = db.collection('agentRoutes').doc(code);
-  routeRef.get().then(function(doc) {
-    if (doc.exists) {
-      routeData = doc.data();
+  if (!name || !pin) {
+    errEl.textContent = 'Please enter your name and PIN.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btnEl.textContent = 'Signing in…';
+  btnEl.disabled = true;
+
+  function resetBtn() {
+    btnEl.textContent = 'Start My Route →';
+    btnEl.disabled = false;
+  }
+
+  // Step 1: Look up agent by name + PIN
+  db.collection('agents')
+    .where('name', '==', name)
+    .where('pin', '==', pin)
+    .get()
+    .then(function(snap) {
+      if (snap.empty) {
+        errEl.textContent = 'Name or PIN not recognized. Check with your manager.';
+        errEl.style.display = 'block';
+        resetBtn();
+        return null;
+      }
+      var agentDoc = snap.docs[0].data();
+      agentName = name;
+
+      // Step 2: Find their active route
+      return db.collection('agentRoutes')
+        .where('ownerCode', '==', agentDoc.ownerCode)
+        .where('agentName', '==', name)
+        .where('status', '==', 'active')
+        .get();
+    })
+    .then(function(routeSnap) {
+      if (!routeSnap) return; // error already shown
+      if (routeSnap.empty) {
+        errEl.textContent = 'No active route found. Ask your manager to assign one.';
+        errEl.style.display = 'block';
+        resetBtn();
+        return;
+      }
+      var routes = [];
+      routeSnap.forEach(function(doc) { routes.push(Object.assign({ _id: doc.id }, doc.data())); });
+      routes.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+      routeCode = routes[0]._id;
+      routeData = routes[0];
+      // Save session so next visit skips login
+      localStorage.setItem('rf_agent', JSON.stringify({ agentName: agentName, routeCode: routeCode }));
       launchApp();
-    } else if (BUILT_IN_ROUTES[code]) {
-      // Seed to Firestore
-      var seed = Object.assign({}, BUILT_IN_ROUTES[code], {
-        createdAt: Date.now(),
-        statuses: {},
-        notes: {}
-      });
-      routeRef.set(seed).then(function() {
-        routeData = seed;
-        launchApp();
-      });
-    } else {
-      document.getElementById('login-err').style.display = 'block';
-    }
-  }).catch(function(err) {
-    // Offline fallback — use built-in data
-    if (BUILT_IN_ROUTES[code]) {
-      routeData = Object.assign({}, BUILT_IN_ROUTES[code], { statuses: {}, notes: {} });
-      launchApp();
-    } else {
-      document.getElementById('login-err').style.display = 'block';
-    }
-  });
+    })
+    .catch(function(err) {
+      console.error('Login error:', err);
+      errEl.textContent = 'Login error. Check your connection and try again.';
+      errEl.style.display = 'block';
+      resetBtn();
+    });
 }
 
 function launchApp() {
@@ -475,6 +541,18 @@ function launchApp() {
     renderList();
     updateProgress();
   });
+}
+
+function signOutAgent() {
+  if (!confirm('Sign out?')) return;
+  if (firestoreUnsubscribe) firestoreUnsubscribe();
+  localStorage.removeItem('rf_agent');
+  agentName = ''; routeCode = ''; routeData = null; statuses = {}; notes = {};
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('inp-name').value = '';
+  document.getElementById('inp-pin').value = '';
+  document.getElementById('login-err').style.display = 'none';
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────

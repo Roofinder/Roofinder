@@ -344,6 +344,8 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
     <input class="form-input" id="ag-name" placeholder="e.g. Jake"/>
     <label class="form-label">Phone (optional)</label>
     <input class="form-input" id="ag-phone" placeholder="e.g. (919) 555-1234" type="tel"/>
+    <label class="form-label">Agent PIN <span style="font-weight:400;font-size:10px;color:#888">— they'll use this to sign in</span></label>
+    <input class="form-input" id="ag-pin" placeholder="e.g. 1234" type="text" inputmode="numeric" maxlength="8"/>
     <div id="ag-err" style="color:#ff5555;font-size:12px;margin-top:-8px;display:none">Name is required.</div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeAgentModal()">Cancel</button>
@@ -608,10 +610,12 @@ function openAgentModal(agentId) {
     document.getElementById('agent-modal-title').textContent = 'Edit Agent';
     document.getElementById('ag-name').value = agent ? agent.name : '';
     document.getElementById('ag-phone').value = agent ? (agent.phone || '') : '';
+    document.getElementById('ag-pin').value = agent ? (agent.pin || '') : '';
   } else {
     document.getElementById('agent-modal-title').textContent = 'Add Agent';
     document.getElementById('ag-name').value = '';
     document.getElementById('ag-phone').value = '';
+    document.getElementById('ag-pin').value = '';
   }
   modal.style.display = 'flex';
   setTimeout(function(){ document.getElementById('ag-name').focus(); }, 50);
@@ -625,6 +629,7 @@ function closeAgentModal() {
 function saveAgent() {
   var name = document.getElementById('ag-name').value.trim();
   var phone = document.getElementById('ag-phone').value.trim();
+  var pin = document.getElementById('ag-pin').value.trim();
   if (!name) { document.getElementById('ag-err').style.display = 'block'; return; }
   document.getElementById('ag-err').style.display = 'none';
 
@@ -632,7 +637,7 @@ function saveAgent() {
     // Update existing agent doc
     var oldAgent = agentsList.find(function(a){ return a.id === editingAgentId; });
     var oldName = oldAgent ? oldAgent.name : null;
-    db.collection('agents').doc(editingAgentId).update({ name: name, phone: phone }).then(function() {
+    db.collection('agents').doc(editingAgentId).update({ name: name, phone: phone, pin: pin }).then(function() {
       // Rename across routes if name changed
       if (oldName && oldName !== name) {
         var batch = db.batch();
@@ -649,6 +654,7 @@ function saveAgent() {
     db.collection('agents').add({
       name: name,
       phone: phone,
+      pin: pin,
       ownerUid: currentUser.uid,
       ownerCode: contractorData.portal || '',
       active: true,
@@ -824,7 +830,7 @@ function renderAgents() {
   agentsList.filter(function(a){ return a.active !== false; }).forEach(function(agent) {
     seen[agent.name] = true;
     var s = statMap[agent.name] || { routes: 0, knocked: 0, interested: 0, appt: 0, lastActive: 0 };
-    rows.push({ id: agent.id, name: agent.name, phone: agent.phone || '', stats: s });
+    rows.push({ id: agent.id, name: agent.name, phone: agent.phone || '', pin: agent.pin || '', stats: s });
   });
 
   // Route-only agents (not yet in Firestore)
@@ -849,6 +855,7 @@ function renderAgents() {
     return '<tr>'
       + '<td><div class="cell-name">' + row.name + '</div>'
         + (row.phone ? '<div style="font-size:11px;color:#555">' + row.phone + '</div>' : '')
+        + (row.pin ? '<div style="font-size:10px;color:#888;margin-top:2px">PIN: ' + row.pin + '</div>' : '<div style="font-size:10px;color:#ff7a00;margin-top:2px">No PIN set</div>')
       + '</td>'
       + '<td>' + s.routes + '</td>'
       + '<td class="green">' + s.knocked + '</td>'
