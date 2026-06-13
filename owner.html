@@ -699,10 +699,10 @@ function loadRoutes() {
   if (!contractorData.portal) return;
   db.collection('agentRoutes')
     .where('ownerCode', '==', contractorData.portal)
-    .orderBy('createdAt', 'desc')
     .onSnapshot(function(snap) {
       allRoutes = [];
       snap.forEach(function(doc) { allRoutes.push(Object.assign({ routeCode: doc.id }, doc.data())); });
+      allRoutes.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
       renderDashboard();
       renderAllRoutes();
       renderAgents();
