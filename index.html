@@ -38,6 +38,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(
 .nav-cta{background:var(--green);color:#000;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;border-radius:6px;transition:background .2s;white-space:nowrap}
 .nav-cta:hover{background:#5cc760}
 .nav-mobile-toggle{display:none;background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px}
+.nav-mobile-login{display:none;font-size:12px;font-weight:700;color:var(--green);border:1px solid rgba(76,175,80,0.35);padding:7px 13px;border-radius:6px;white-space:nowrap}
 
 /* ── HERO ── */
 #hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px 24px 80px;position:relative;overflow:hidden}
@@ -159,6 +160,8 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 @media(max-width:768px){
   .nav-links{display:none}
   .nav-mobile-toggle{display:block}
+  .nav-mobile-login{display:inline-block}
+  a[href^="tel"].nav-cta{display:none}
   .steps{grid-template-columns:1fr}
   .step:first-child,.step:last-child,.step{border-radius:0}
   .steps .step:first-child{border-radius:12px 12px 0 0}
@@ -299,6 +302,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
       <a href="owner.html" style="color:var(--green)">Owner Login</a>
     </div>
     <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Get Access →</a>
+    <a href="owner.html" class="nav-mobile-login">Owner Login</a>
     <button class="nav-mobile-toggle" onclick="toggleMobileNav(this)">☰</button>
   </div>
   <div id="mobile-nav" style="display:none;padding:16px 24px 20px;border-top:1px solid rgba(255,255,255,0.06)">
