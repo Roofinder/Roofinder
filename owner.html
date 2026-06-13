@@ -3,215 +3,360 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RooFinder — Owner Live View</title>
+<title>RooFinder — Owner Portal</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#e0e4f0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
 a{color:inherit;text-decoration:none}
 
+/* ── LOGIN ── */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 24px;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(76,175,80,.1) 0%,transparent 60%),#0a0a0a}
+.login-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:40px 36px;width:100%;max-width:420px}
+.login-logo{font-size:20px;font-weight:800;margin-bottom:4px;text-align:center}.login-logo span{color:#4caf50}
+.login-role{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4caf50;text-align:center;margin-bottom:28px}
+.login-tabs{display:flex;gap:0;margin-bottom:28px;background:rgba(255,255,255,.04);border-radius:8px;padding:4px}
+.login-tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:700;color:#666;cursor:pointer;border-radius:6px;transition:all .2s}
+.login-tab.active{background:rgba(76,175,80,.15);color:#4caf50;border:1px solid rgba(76,175,80,.3)}
+.form-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:7px}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:12px 15px;color:#e0e4f0;font-size:14px;font-family:inherit;margin-bottom:14px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:rgba(76,175,80,.5)}
+.form-hint{font-size:11px;color:#555;margin-top:-10px;margin-bottom:14px;line-height:1.5}
+.login-btn{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:14px;border-radius:9px;border:none;cursor:pointer;font-family:inherit;transition:background .2s}
+.login-btn:hover{background:#5cc760}
+.login-btn:disabled{background:#2a4a2a;color:#444;cursor:not-allowed}
+.login-err{color:#ff5555;font-size:12px;margin-top:10px;text-align:center;display:none;line-height:1.5}
+.login-success{color:#4caf50;font-size:12px;margin-top:10px;text-align:center;display:none;line-height:1.5}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
 /* ── NAV ── */
-nav{background:rgba(10,10,10,.97);border-bottom:1px solid rgba(255,255,255,.08);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
-.nav-logo{font-size:16px;font-weight:800}.nav-logo span{color:#4caf50}
-.nav-badge{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);color:#4caf50;padding:3px 10px;border-radius:100px}
-#nav-route{font-size:12px;color:#666;margin-left:4px}
-#live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4caf50;margin-left:auto;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-#live-label{font-size:11px;color:#4caf50;font-weight:700;margin-left:6px}
+#app{display:none;min-height:100vh}
+nav{background:rgba(10,10,10,.97);border-bottom:1px solid rgba(255,255,255,.07);padding:0 24px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px)}
+.nav-logo{font-size:15px;font-weight:800;flex-shrink:0}.nav-logo span{color:#4caf50}
+.nav-badge{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.3);color:#4caf50;padding:3px 10px;border-radius:100px;flex-shrink:0}
+.nav-tabs{display:flex;gap:4px;margin:0 auto}
+.nav-tab{font-size:12px;font-weight:600;color:#555;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit}
+.nav-tab:hover{color:#ccc;background:rgba(255,255,255,.04)}
+.nav-tab.active{color:#fff;background:rgba(255,255,255,.08)}
+.nav-company{font-size:12px;color:#444;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-signout{font-size:11px;font-weight:700;color:#444;padding:6px 12px;border-radius:6px;cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:inherit;flex-shrink:0}
+.nav-signout:hover{color:#ff5555;background:rgba(255,85,85,.07)}
 
 /* ── MAIN ── */
 main{max-width:1100px;margin:0 auto;padding:32px 24px}
+.panel{display:none}.panel.active{display:block}
 
-/* ── LOADING / ERROR ── */
-#status-screen{min-height:80vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px}
-.status-icon{font-size:48px}
-.status-title{font-size:20px;font-weight:700}
-.status-sub{font-size:14px;color:#666;max-width:340px;line-height:1.6}
-.status-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;width:220px;margin-top:8px;text-align:center;text-transform:uppercase;letter-spacing:1px}
-.status-btn{background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:12px 24px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;margin-top:4px}
+/* ── SECTION HEADER ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.sec-title{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.sec-sub{font-size:13px;color:#555;margin-top:3px}
 
-/* ── HERO STATS ── */
-#hero-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
-@media(max-width:700px){#hero-stats{grid-template-columns:repeat(2,1fr)}}
-.hstat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px 20px}
-.hstat-num{font-size:28px;font-weight:900;line-height:1}
-.hstat-lbl{font-size:10px;color:#555;letter-spacing:.5px;text-transform:uppercase;margin-top:4px}
-.green{color:#4caf50}.yellow{color:#ffc107}.blue{color:#60a0ff}.purple{color:#a855f7}.red{color:#ef4444}
+/* ── BUTTONS ── */
+.btn-primary{background:#4caf50;color:#000;font-weight:800;font-size:12px;letter-spacing:.3px;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;transition:background .2s;display:inline-flex;align-items:center;gap:7px}
+.btn-primary:hover{background:#5cc760}
+.btn-ghost{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:#ccc;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.btn-danger{background:transparent;border:1px solid rgba(255,85,85,.25);color:#ff5555;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-danger:hover{background:rgba(255,85,85,.1)}
+.btn-link{background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.25);color:#4caf50;font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s}
+.btn-link:hover{background:rgba(76,175,80,.18)}
 
-/* ── AGENT INFO CARD ── */
-#agent-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.2);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.agent-avatar{width:44px;height:44px;border-radius:50%;background:rgba(76,175,80,.2);border:2px solid rgba(76,175,80,.4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.agent-name{font-size:18px;font-weight:800}
-.agent-meta{font-size:12px;color:#666;margin-top:3px}
-.agent-route{margin-left:auto;text-align:right}
-.agent-route-name{font-size:15px;font-weight:700;color:#4caf50}
-.agent-route-sub{font-size:11px;color:#555;margin-top:2px}
+/* ── POCKET INFO CARD ── */
+#pocket-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.2);border-radius:14px;padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.pocket-left{}
+.pocket-company{font-size:20px;font-weight:800;margin-bottom:4px}
+.pocket-name{font-size:13px;color:#4caf50;font-weight:700}
+.pocket-meta{font-size:12px;color:#555;margin-top:4px}
+.pocket-right{text-align:right}
+.pocket-stat-big{font-size:32px;font-weight:900;color:#4caf50;line-height:1}
+.pocket-stat-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
 
-/* ── PROGRESS BAR ── */
-#progress-section{margin-bottom:28px}
-.prog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.prog-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px}
-.prog-pct{font-size:20px;font-weight:900;color:#4caf50}
-.prog-bg{background:rgba(255,255,255,.06);border-radius:100px;height:10px;overflow:hidden}
-.prog-fill{height:100%;background:linear-gradient(90deg,#2d6b30,#4caf50,#7cfc00);border-radius:100px;transition:width .6s cubic-bezier(.22,.68,0,1)}
-.prog-subs{display:flex;gap:20px;margin-top:10px;flex-wrap:wrap}
-.prog-sub{font-size:12px;color:#555}
-.prog-sub span{font-weight:700}
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+@media(max-width:600px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:18px 20px}
+.stat-num{font-size:26px;font-weight:900;line-height:1}
+.stat-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
 
-/* ── DOOR GRID ── */
-#door-section{margin-bottom:32px}
-.section-title{font-size:14px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
-#door-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.dc{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px;transition:border-color .2s}
-.dc.s-pending{border-color:rgba(255,255,255,.05)}
-.dc.s-no-answer{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.04)}
-.dc.s-not-interested{border-color:rgba(239,68,68,.15);background:rgba(239,68,68,.03);opacity:.6}
+/* ── ROUTES GRID ── */
+.routes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.route-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px 22px;transition:border-color .2s}
+.route-card:hover{border-color:rgba(255,255,255,.14)}
+.route-card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px}
+.route-name{font-size:15px;font-weight:800;color:#e0e4f0;margin-bottom:3px}
+.route-meta{font-size:11px;color:#555}
+.route-agent-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.25);color:#4caf50;padding:3px 9px;border-radius:100px;white-space:nowrap}
+.route-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.rs{text-align:center}.rs-num{font-size:18px;font-weight:800}.rs-lbl{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px}
+.rs-num.green{color:#4caf50}.rs-num.yellow{color:#ffc107}.rs-num.blue{color:#60a0ff}.rs-num.purple{color:#a855f7}
+.route-bar-bg{background:rgba(255,255,255,.05);border-radius:100px;height:5px;overflow:hidden;margin-bottom:14px}
+.route-bar-fill{height:100%;background:linear-gradient(90deg,#2d6b30,#4caf50);border-radius:100px;transition:width .5s}
+.route-actions{display:flex;gap:8px;flex-wrap:wrap}
+.route-status-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.5px;padding:3px 9px;border-radius:4px}
+.status-active{background:rgba(76,175,80,.1);color:#4caf50;border:1px solid rgba(76,175,80,.25)}
+.status-completed{background:rgba(255,255,255,.04);color:#555;border:1px solid rgba(255,255,255,.08)}
+
+/* ── AGENTS TABLE ── */
+.table-wrap{border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden}
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:10px 16px;color:#555;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.06)}
+.data-table td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,.015)}
+.cell-name{font-weight:700;color:#e0e4f0}
+.cell-sub{font-size:11px;color:#555;margin-top:2px}
+.green{color:#4caf50;font-weight:700}.yellow{color:#ffc107;font-weight:700}.purple{color:#a855f7;font-weight:700}.blue{color:#60a0ff;font-weight:700}.dim{color:#555}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 24px;color:#333}
+.empty-icon{font-size:36px;margin-bottom:14px}
+.empty-title{font-size:15px;font-weight:700;color:#444;margin-bottom:6px}
+.empty-sub{font-size:13px;color:#333}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.open{display:flex}
+.modal{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:32px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:24px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+
+/* ── ROUTE DETAIL (live view) ── */
+#detail-modal .modal{max-width:700px}
+.detail-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+.detail-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.detail-meta{font-size:12px;color:#555}
+.detail-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.ds{text-align:center;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 8px}
+.ds-num{font-size:20px;font-weight:900;line-height:1}
+.ds-lbl{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.detail-prog-bg{background:rgba(255,255,255,.05);border-radius:100px;height:8px;overflow:hidden;margin-bottom:20px}
+.detail-prog-fill{height:100%;background:linear-gradient(90deg,#2d6b30,#4caf50,#7cfc00);border-radius:100px;transition:width .5s}
+.agent-link-box{background:rgba(76,175,80,.05);border:1px solid rgba(76,175,80,.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.agent-link-label{font-size:11px;font-weight:700;color:#4caf50;letter-spacing:.5px;margin-bottom:4px}
+.agent-link-url{font-size:12px;color:#888;word-break:break-all}
+#door-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;max-height:360px;overflow-y:auto;padding-right:4px}
+.dc{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:10px 12px}
+.dc.s-pending{opacity:.5}
+.dc.s-no-answer{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04)}
+.dc.s-not-interested{border-color:rgba(239,68,68,.15);opacity:.45}
 .dc.s-callback{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.05)}
-.dc.s-interested{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.06)}
+.dc.s-interested{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.06)}
 .dc.s-appointment{border-color:rgba(168,85,247,.5);background:rgba(168,85,247,.08)}
-.dc-num{font-size:10px;color:#444;font-weight:700;margin-bottom:4px}
-.dc-addr{font-size:12px;font-weight:700;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dc-owner{font-size:10px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.dc-status{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;margin-top:6px;padding:2px 7px;border-radius:4px}
+.dc-num{font-size:9px;color:#444;font-weight:700;margin-bottom:3px}
+.dc-addr{font-size:11px;font-weight:700;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-owner{font-size:10px;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px}
+.dc-status-lbl{font-size:10px;font-weight:700;margin-top:6px;padding:2px 6px;border-radius:4px;display:inline-block}
 .st-pending{color:#444;background:transparent}
 .st-no-answer{color:#f59e0b;background:rgba(245,158,11,.1)}
 .st-not-interested{color:#ef4444;background:rgba(239,68,68,.1)}
 .st-callback{color:#3b82f6;background:rgba(59,130,246,.1)}
 .st-interested{color:#10b981;background:rgba(16,185,129,.1)}
 .st-appointment{color:#a855f7;background:rgba(168,85,247,.15)}
-.dc-note{font-size:10px;color:#4b6a9b;margin-top:4px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-note{font-size:10px;color:#4b6a9b;margin-top:3px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── ACTIVITY FEED ── */
-#feed-section{margin-bottom:32px}
-#feed-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
-.feed-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:8px;font-size:12px}
-.feed-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.feed-addr{font-weight:700;color:#ccc}
-.feed-status{color:#888}
-.feed-time{margin-left:auto;color:#444;white-space:nowrap}
-.feed-empty{color:#444;font-size:13px;padding:20px;text-align:center}
+/* ── COPY TOAST ── */
+#copy-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#4caf50;color:#000;font-size:13px;font-weight:800;padding:12px 24px;border-radius:100px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none}
+#copy-toast.show{opacity:1}
 
-/* ── LEGEND ── */
-.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:20px}
-.lg-item{display:flex;align-items:center;gap:7px;font-size:11px;color:#555}
-.lg-dot{width:8px;height:8px;border-radius:50%}
-
-/* ── NO ROUTE ENTRY ── */
-#no-route-form{display:flex;flex-direction:column;align-items:center;gap:10px}
-
-/* ── COPY LINK BTN ── */
-.copy-link-btn{background:transparent;border:1px solid rgba(76,175,80,.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;margin-left:auto;transition:all .2s}
-.copy-link-btn:hover{background:rgba(76,175,80,.1)}
+/* ── LIVE DOT ── */
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4caf50;margin-right:5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="nav-logo">Roo<span>Finder</span></div>
-  <div class="nav-badge">OWNER VIEW</div>
-  <span id="nav-route"></span>
-  <span id="live-dot" style="display:none"></span>
-  <span id="live-label" style="display:none">LIVE</span>
-</nav>
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Roo<span>Finder</span></div>
+    <div class="login-role">Owner Portal</div>
 
-<main>
+    <div class="login-tabs">
+      <div class="login-tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</div>
+      <div class="login-tab" id="tab-setup" onclick="switchTab('setup')">First Time Setup</div>
+    </div>
 
-  <!-- STATUS / LOADING SCREEN -->
-  <div id="status-screen">
-    <div class="status-icon">📡</div>
-    <div class="status-title">Enter Route Code</div>
-    <div class="status-sub">Get your route code from Dalton to view live agent progress.</div>
-    <div id="no-route-form">
-      <input class="status-input" id="code-input" placeholder="e.g. CARY82" autocomplete="off"/>
-      <button class="status-btn" onclick="loadRoute()">View Live Progress →</button>
+    <!-- SIGN IN -->
+    <div class="tab-panel active" id="panel-signin">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="si-email" type="email" placeholder="you@company.com" autocomplete="email"/>
+      <label class="form-label">Password</label>
+      <input class="form-input" id="si-pw" type="password" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')signIn()"/>
+      <button class="login-btn" onclick="signIn()">Sign In →</button>
+      <div class="login-err" id="si-err"></div>
+    </div>
+
+    <!-- FIRST TIME SETUP -->
+    <div class="tab-panel" id="panel-setup">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="su-email" type="email" placeholder="you@company.com"/>
+      <label class="form-label">Access Code</label>
+      <input class="form-input" id="su-code" placeholder="Code from Dalton" style="text-transform:lowercase"/>
+      <div class="form-hint">Your access code is the portal slug Dalton texted you.</div>
+      <label class="form-label">Create Password</label>
+      <input class="form-input" id="su-pw" type="password" placeholder="Min 8 characters"/>
+      <button class="login-btn" id="su-btn" onclick="setupAccount()">Create My Account →</button>
+      <div class="login-err" id="su-err"></div>
+      <div class="login-success" id="su-ok">✓ Account created! Signing you in...</div>
     </div>
   </div>
+</div>
 
-  <!-- DASHBOARD (hidden until route loaded) -->
-  <div id="dashboard" style="display:none">
+<!-- ── APP ── -->
+<div id="app">
+  <nav>
+    <div class="nav-logo">Roo<span>Finder</span></div>
+    <div class="nav-badge">OWNER</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showPanel('dashboard',this)">Dashboard</button>
+      <button class="nav-tab" onclick="showPanel('routes',this)">Routes</button>
+      <button class="nav-tab" onclick="showPanel('agents',this)">Agents</button>
+    </div>
+    <span class="nav-company" id="nav-company"></span>
+    <button class="nav-signout" onclick="signOut()">Sign Out</button>
+  </nav>
 
-    <!-- Agent Card -->
-    <div id="agent-card">
-      <div class="agent-avatar">👤</div>
+  <main>
+    <!-- ── DASHBOARD ── -->
+    <div class="panel active" id="panel-dashboard">
+      <div id="pocket-card">
+        <div class="pocket-left">
+          <div class="pocket-company" id="d-company">Loading...</div>
+          <div class="pocket-name" id="d-pocket"></div>
+          <div class="pocket-meta" id="d-meta"></div>
+        </div>
+        <div class="pocket-right">
+          <div class="pocket-stat-big" id="d-active-routes">—</div>
+          <div class="pocket-stat-lbl">Active Routes Today</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num green" id="d-total-knocked">0</div><div class="stat-lbl">Doors Knocked</div></div>
+        <div class="stat-card"><div class="stat-num green" id="d-total-interested">0</div><div class="stat-lbl">Interested</div></div>
+        <div class="stat-card"><div class="stat-num purple" id="d-total-appt">0</div><div class="stat-lbl">Appointments</div></div>
+        <div class="stat-card"><div class="stat-num blue" id="d-total-agents">0</div><div class="stat-lbl">Agents Today</div></div>
+      </div>
+
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">Active Routes</div>
+          <div class="sec-sub">Real-time progress across all agents today</div>
+        </div>
+        <button class="btn-primary" onclick="openCreateModal()">+ New Route</button>
+      </div>
+      <div class="routes-grid" id="dashboard-routes">
+        <div class="empty"><div class="empty-icon">📡</div><div class="empty-title">No active routes yet</div><div class="empty-sub">Create a route and send the link to your agent.</div></div>
+      </div>
+    </div>
+
+    <!-- ── ROUTES ── -->
+    <div class="panel" id="panel-routes">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">All Routes</div>
+          <div class="sec-sub">Create routes for agents, track results, copy links</div>
+        </div>
+        <button class="btn-primary" onclick="openCreateModal()">+ New Route</button>
+      </div>
+      <div class="routes-grid" id="all-routes">
+        <div class="empty"><div class="empty-icon">🗺️</div><div class="empty-title">No routes yet</div><div class="empty-sub">Create your first route to get started.</div></div>
+      </div>
+    </div>
+
+    <!-- ── AGENTS ── -->
+    <div class="panel" id="panel-agents">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">Agent History</div>
+          <div class="sec-sub">Lifetime stats per agent across all routes</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr>
+            <th>Agent</th><th>Routes</th><th>Doors</th><th>Interested</th><th>Appointments</th><th>Conv. Rate</th><th>Last Active</th>
+          </tr></thead>
+          <tbody id="agents-tbody">
+            <tr><td colspan="7"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ── CREATE ROUTE MODAL ── -->
+<div class="modal-overlay" id="create-modal">
+  <div class="modal">
+    <div class="modal-title">Create New Route</div>
+    <label class="form-label">Route Name</label>
+    <input class="form-input" id="cr-name" placeholder="e.g. Morning Run – June 13"/>
+    <label class="form-label">Agent Name</label>
+    <input class="form-input" id="cr-agent" placeholder="e.g. Jake"/>
+    <label class="form-label">Notes (optional)</label>
+    <input class="form-input" id="cr-notes" placeholder="Any instructions for the agent..."/>
+    <div id="cr-link-section" style="display:none;margin-top:4px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.5px;color:#4caf50;margin-bottom:8px">✓ Route Created — Share This Link</div>
+      <div style="background:rgba(76,175,80,.06);border:1px solid rgba(76,175,80,.2);border-radius:10px;padding:14px 16px">
+        <div id="cr-link-url" style="font-size:12px;color:#888;word-break:break-all;margin-bottom:10px"></div>
+        <button class="btn-primary" style="width:100%;justify-content:center" onclick="copyCreatedLink()">📋 Copy Agent Link</button>
+      </div>
+    </div>
+    <div class="modal-actions" id="cr-actions">
+      <button class="btn-ghost" onclick="closeCreateModal()">Cancel</button>
+      <button class="btn-primary" onclick="createRoute()">Create Route →</button>
+    </div>
+    <div style="margin-top:12px;text-align:right;display:none" id="cr-done-actions">
+      <button class="btn-ghost" onclick="closeCreateModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ROUTE DETAIL MODAL ── -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="detail-head">
       <div>
-        <div class="agent-name" id="d-agent-name">Loading...</div>
-        <div class="agent-meta" id="d-agent-meta">Not started yet</div>
+        <div class="detail-title" id="det-title"></div>
+        <div class="detail-meta" id="det-meta"></div>
       </div>
-      <div class="agent-route">
-        <div class="agent-route-name" id="d-route-name"></div>
-        <div class="agent-route-sub" id="d-pocket"></div>
-      </div>
-      <button class="copy-link-btn" onclick="copyOwnerLink()">🔗 Copy Link</button>
-    </div>
-
-    <!-- Summary Stats -->
-    <div id="hero-stats">
-      <div class="hstat">
-        <div class="hstat-num" id="s-total">—</div>
-        <div class="hstat-lbl">Total Doors</div>
-      </div>
-      <div class="hstat">
-        <div class="hstat-num green" id="s-knocked">0</div>
-        <div class="hstat-lbl">Knocked</div>
-      </div>
-      <div class="hstat">
-        <div class="hstat-num green" id="s-interested">0</div>
-        <div class="hstat-lbl">Interested 👍</div>
-      </div>
-      <div class="hstat">
-        <div class="hstat-num purple" id="s-appt">0</div>
-        <div class="hstat-lbl">Appointments ⭐</div>
-      </div>
-      <div class="hstat">
-        <div class="hstat-num blue" id="s-callback">0</div>
-        <div class="hstat-lbl">Callbacks</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="live-dot"></span><span style="font-size:11px;font-weight:700;color:#4caf50">LIVE</span>
+        <button class="btn-danger" onclick="closeDetailModal()">✕ Close</button>
       </div>
     </div>
 
-    <!-- Progress Bar -->
-    <div id="progress-section">
-      <div class="prog-header">
-        <span class="prog-title">Route Progress</span>
-        <span class="prog-pct" id="prog-pct">0%</span>
+    <div class="agent-link-box">
+      <div>
+        <div class="agent-link-label">Agent Link</div>
+        <div class="agent-link-url" id="det-agent-link"></div>
       </div>
-      <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-      <div class="prog-subs">
-        <div class="prog-sub">Pending: <span id="p-pending">—</span></div>
-        <div class="prog-sub" style="color:#f59e0b">No Answer: <span id="p-na">0</span></div>
-        <div class="prog-sub" style="color:#ef4444">Not Interested: <span id="p-ni">0</span></div>
-        <div class="prog-sub" style="color:#3b82f6">Callback: <span id="p-cb">0</span></div>
-        <div class="prog-sub" style="color:#10b981">Interested: <span id="p-int">0</span></div>
-        <div class="prog-sub" style="color:#a855f7">Appointments: <span id="p-ap">0</span></div>
-      </div>
+      <button class="btn-link" onclick="copyDetailLink()">📋 Copy</button>
     </div>
 
-    <!-- Door Grid -->
-    <div id="door-section">
-      <div class="section-title">All Doors</div>
-      <div id="door-grid"></div>
-      <div class="legend">
-        <div class="lg-item"><div class="lg-dot" style="background:#555"></div>Pending</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#f59e0b"></div>No Answer</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#ef4444"></div>Not Interested</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#3b82f6"></div>Callback</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#10b981"></div>Interested</div>
-        <div class="lg-item"><div class="lg-dot" style="background:#a855f7"></div>Appointment ⭐</div>
-      </div>
+    <div class="detail-stats">
+      <div class="ds"><div class="ds-num" id="det-s-total">—</div><div class="ds-lbl">Total</div></div>
+      <div class="ds"><div class="ds-num green" id="det-s-knocked">0</div><div class="ds-lbl">Knocked</div></div>
+      <div class="ds"><div class="ds-num green" id="det-s-int">0</div><div class="ds-lbl">Interested</div></div>
+      <div class="ds"><div class="ds-num purple" id="det-s-appt">0</div><div class="ds-lbl">Appts</div></div>
+      <div class="ds"><div class="ds-num blue" id="det-s-cb">0</div><div class="ds-lbl">Callbacks</div></div>
     </div>
+    <div class="detail-prog-bg"><div class="detail-prog-fill" id="det-prog" style="width:0%"></div></div>
 
-    <!-- Activity Feed -->
-    <div id="feed-section">
-      <div class="section-title">Recent Activity</div>
-      <div id="feed-list"><div class="feed-empty">Waiting for agent activity...</div></div>
-    </div>
-
+    <div style="font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Door Status</div>
+    <div id="door-grid"></div>
   </div>
-</main>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="copy-toast">✓ Link copied to clipboard!</div>
 
 <script>
-// ── Firebase ─────────────────────────────────────────────────────────────────
-const firebaseConfig = {
+// ── Firebase ──────────────────────────────────────────────────────────────
+var firebaseConfig = {
   apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
   authDomain: "roofinder-cc880.firebaseapp.com",
   projectId: "roofinder-cc880",
@@ -221,181 +366,500 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
+var auth = firebase.auth();
 
-// ── State ─────────────────────────────────────────────────────────────────
-var routeCode = '';
-var routeData = null;
-var prevStatuses = {};
-var activityLog = []; // [{addr, status, time}]
+// ── Built-in lead sets per pocket code ───────────────────────────────────
+var POCKET_LEADS = {
+  'cary-pocket-82': [
+    {addr:'510 Emerald Downs Rd',owner:'Chen, Zhongmin / Du, Xiaoli',tier:'PRIME',age:20,val:'$579,338',street:'Emerald Downs Rd'},
+    {addr:'514 Emerald Downs Rd',owner:'Patel, Chetan / Patel, Neema',tier:'PRIME',age:20,val:'$667,407',street:'Emerald Downs Rd'},
+    {addr:'517 Emerald Downs Rd',owner:'Aiman, Ramish / Aiman, Susan',tier:'PRIME',age:20,val:'$585,788',street:'Emerald Downs Rd'},
+    {addr:'518 Emerald Downs Rd',owner:'Galvin, Michael',tier:'PRIME',age:20,val:'$590,898',street:'Emerald Downs Rd'},
+    {addr:'519 Emerald Downs Rd',owner:'Yang, Davie / Wang, Zusan',tier:'PRIME',age:20,val:'$594,447',street:'Emerald Downs Rd'},
+    {addr:'520 Emerald Downs Rd',owner:'Wu, Hao / Chen, Xinyuan',tier:'PRIME',age:20,val:'$578,858',street:'Emerald Downs Rd'},
+    {addr:'523 Emerald Downs Rd',owner:'Mahapatra, Sujit Kumar',tier:'PRIME',age:20,val:'$585,788',street:'Emerald Downs Rd'},
+    {addr:'525 Emerald Downs Rd',owner:'Kuan, Wai Keat',tier:'PRIME',age:20,val:'$674,082',street:'Emerald Downs Rd'},
+    {addr:'527 Emerald Downs Rd',owner:'Anglin, Jody / Edwards, Thomas',tier:'PRIME',age:20,val:'$662,448',street:'Emerald Downs Rd'},
+    {addr:'528 Emerald Downs Rd',owner:'Prajapati, Asheesh / Nitika',tier:'PRIME',age:20,val:'$676,246',street:'Emerald Downs Rd'},
+    {addr:'530 Emerald Downs Rd',owner:'Gundupalli, Lokesh / Ramireddy, Pallavi',tier:'PRIME',age:19,val:'$688,470',street:'Emerald Downs Rd'},
+    {addr:'405 Golden Harvest Loop',owner:'Wong, Dennis S / Judyl S',tier:'PRIME',age:19,val:'$672,163',street:'Golden Harvest Loop'},
+    {addr:'406 Golden Harvest Loop',owner:'Wang, Xuezhong / Li, Yingjie',tier:'PRIME',age:19,val:'$648,587',street:'Golden Harvest Loop'},
+    {addr:'418 Golden Harvest Loop',owner:'Tian, Julia / Tian, Wei',tier:'PRIME',age:19,val:'$687,795',street:'Golden Harvest Loop'},
+    {addr:'419 Golden Harvest Loop',owner:'Xie, Tao',tier:'PRIME',age:19,val:'$687,959',street:'Golden Harvest Loop'},
+    {addr:'433 Golden Harvest Loop',owner:'Richardson, David J / Angela S',tier:'PRIME',age:19,val:'$687,618',street:'Golden Harvest Loop'},
+    {addr:'434 Golden Harvest Loop',owner:'Govier, Sarah / James Ray',tier:'PRIME',age:19,val:'$658,485',street:'Golden Harvest Loop'},
+    {addr:'435 Golden Harvest Loop',owner:'Myoung, Suk Keun / Kim, Yoonjoo',tier:'PRIME',age:19,val:'$632,631',street:'Golden Harvest Loop'},
+    {addr:'304 Frontgate Dr',owner:'Fields, Timothy Jr / Cubillos, Lifaver',tier:'HOT',age:22,val:'$625,422',street:'Frontgate Dr'},
+    {addr:'402 Frontgate Dr',owner:'Donovan, Christine M',tier:'WARM',age:24,val:'$872,661',street:'Frontgate Dr'},
+    {addr:'508 Frontgate Dr',owner:'Skelding, Timothy T / Wendy C',tier:'HOT',age:22,val:'$892,932',street:'Frontgate Dr'},
+    {addr:'109 Dumbledore Ct',owner:'Ge, Dongliang / Liu, Li',tier:'PRIME',age:17,val:'$668,068',street:'Dumbledore Ct'},
+    {addr:'105 Dursley Way',owner:'Zhao, Jingyi',tier:'PRIME',age:15,val:'$655,867',street:'Dursley Way'},
+    {addr:'512 Elan Hall Rd',owner:'Carino, Joseph J II / Lucy J',tier:'PRIME',age:18,val:'$1,080,202',street:'Elan Hall Rd'},
+    {addr:'710 Dennison Ln',owner:'Snyder, Devon D / Cheryl',tier:'HOT',age:21,val:'$1,164,002',street:'Dennison Ln'}
+  ]
+};
 
-// ── Check URL params ────────────────────────────────────────────────────────
-(function() {
-  var params = new URLSearchParams(window.location.search);
-  var r = params.get('route');
-  if (r) {
-    document.getElementById('code-input').value = r.toUpperCase();
-    routeCode = r.toUpperCase();
-    loadRoute();
+// ── State ──────────────────────────────────────────────────────────────────
+var currentUser = null;
+var contractorData = null;
+var allRoutes = [];
+var detailUnsub = null;
+var detailRouteCode = null;
+var createdRouteCode = null;
+var detailAgentLink = '';
+
+// ── Auth State ─────────────────────────────────────────────────────────────
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    currentUser = user;
+    loadContractorData();
+  } else {
+    showLoginScreen();
   }
-})();
+});
 
-function loadRoute() {
-  var code = document.getElementById('code-input').value.trim().toUpperCase();
-  if (!code) { alert('Please enter a route code.'); return; }
-  routeCode = code;
+// ── Login Flow ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.login-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('panel-' + tab).classList.add('active');
+}
 
-  // Update URL
-  var url = new URL(window.location.href);
-  url.searchParams.set('route', code);
-  window.history.replaceState({}, '', url);
-
-  // Show loading state
-  document.getElementById('status-screen').querySelector('.status-title').textContent = 'Connecting...';
-  document.getElementById('status-screen').querySelector('.status-sub').textContent = 'Listening for live agent data...';
-  document.getElementById('no-route-form').style.display = 'none';
-
-  // Real-time listener
-  db.collection('agentRoutes').doc(routeCode).onSnapshot(function(doc) {
-    if (!doc.exists) {
-      document.getElementById('status-screen').querySelector('.status-title').textContent = 'Route Not Found';
-      document.getElementById('status-screen').querySelector('.status-sub').textContent = 'Check your route code and try again.';
-      document.getElementById('no-route-form').style.display = 'flex';
-      return;
-    }
-    routeData = doc.data();
-
-    // First time seeing data — show dashboard
-    if (document.getElementById('dashboard').style.display === 'none') {
-      document.getElementById('status-screen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('live-dot').style.display = 'inline-block';
-      document.getElementById('live-label').style.display = 'inline';
-      document.getElementById('nav-route').textContent = routeCode;
-    }
-
-    updateDashboard(routeData);
-  }, function(err) {
-    document.getElementById('status-screen').querySelector('.status-title').textContent = 'Connection Error';
-    document.getElementById('status-screen').querySelector('.status-sub').textContent = err.message;
-    document.getElementById('no-route-form').style.display = 'flex';
+function signIn() {
+  var email = document.getElementById('si-email').value.trim();
+  var pw = document.getElementById('si-pw').value;
+  var err = document.getElementById('si-err');
+  err.style.display = 'none';
+  if (!email || !pw) { err.textContent = 'Please enter email and password.'; err.style.display = 'block'; return; }
+  auth.signInWithEmailAndPassword(email, pw).catch(function(e) {
+    err.textContent = friendlyAuthError(e.code);
+    err.style.display = 'block';
   });
 }
 
-function updateDashboard(data) {
-  var leads = data.leads || [];
-  var statuses = data.statuses || {};
-  var notes = data.notes || {};
+function setupAccount() {
+  var email = document.getElementById('su-email').value.trim().toLowerCase();
+  var code = document.getElementById('su-code').value.trim().toLowerCase();
+  var pw = document.getElementById('su-pw').value;
+  var err = document.getElementById('su-err');
+  var ok = document.getElementById('su-ok');
+  var btn = document.getElementById('su-btn');
+  err.style.display = 'none';
+  ok.style.display = 'none';
+  if (!email || !code || !pw) { err.textContent = 'Please fill in all fields.'; err.style.display = 'block'; return; }
+  if (pw.length < 8) { err.textContent = 'Password must be at least 8 characters.'; err.style.display = 'block'; return; }
 
-  // Agent info
-  var agentName = data.agentName || 'Unassigned';
-  document.getElementById('d-agent-name').textContent = agentName;
-  var startedAt = data.startedAt ? new Date(data.startedAt) : null;
-  var lastUpdate = data.lastUpdate ? new Date(data.lastUpdate) : null;
-  var metaParts = [];
-  if (startedAt) metaParts.push('Started ' + fmtTime(startedAt));
-  if (lastUpdate) metaParts.push('Last update ' + fmtTimeAgo(lastUpdate));
-  document.getElementById('d-agent-meta').textContent = metaParts.join(' · ') || 'Not started';
-  document.getElementById('d-route-name').textContent = data.routeName || routeCode;
-  document.getElementById('d-pocket').textContent = data.pocket || '';
+  btn.disabled = true;
+  btn.textContent = 'Checking access code...';
 
-  // Count statuses
-  var total = leads.length;
-  var counts = { pending: 0, 'no-answer': 0, 'not-interested': 0, callback: 0, interested: 0, appointment: 0 };
-  leads.forEach(function(_, i) {
-    var s = statuses[i] || 'pending';
-    counts[s] = (counts[s] || 0) + 1;
+  // Verify contractor with this email + code exists
+  db.collection('contractors').where('portal', '==', code).get().then(function(snap) {
+    if (snap.empty) {
+      err.textContent = 'Access code not recognized. Double-check the code Dalton sent you.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Create My Account →';
+      return;
+    }
+    var contractorDoc = snap.docs[0];
+    var cData = contractorDoc.data();
+
+    // Check email matches (optional but more secure)
+    if (cData.email && cData.email.toLowerCase() !== email) {
+      err.textContent = 'Email doesn\'t match our records for that access code.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Create My Account →';
+      return;
+    }
+
+    btn.textContent = 'Creating account...';
+    auth.createUserWithEmailAndPassword(email, pw).then(function(cred) {
+      return contractorDoc.ref.update({ ownerUid: cred.user.uid, ownerEmail: email });
+    }).then(function() {
+      ok.style.display = 'block';
+      // onAuthStateChanged will fire and load the app
+    }).catch(function(e) {
+      err.textContent = friendlyAuthError(e.code);
+      err.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Create My Account →';
+    });
+  }).catch(function(e) {
+    err.textContent = 'Error: ' + e.message;
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Create My Account →';
   });
-  var knocked = total - counts.pending;
+}
+
+function friendlyAuthError(code) {
+  var msgs = {
+    'auth/user-not-found': 'No account found with that email.',
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/email-already-in-use': 'An account already exists with that email. Sign in instead.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/weak-password': 'Password is too weak. Use at least 8 characters.',
+    'auth/too-many-requests': 'Too many attempts. Please try again in a few minutes.',
+    'auth/invalid-credential': 'Incorrect email or password.'
+  };
+  return msgs[code] || 'Something went wrong. Please try again.';
+}
+
+function showLoginScreen() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function signOut() {
+  auth.signOut();
+}
+
+// ── Load Contractor Data ──────────────────────────────────────────────────
+function loadContractorData() {
+  db.collection('contractors').where('ownerUid', '==', currentUser.uid).get().then(function(snap) {
+    if (snap.empty) {
+      // Fallback: find by email
+      return db.collection('contractors').where('ownerEmail', '==', currentUser.email).get().then(function(snap2) {
+        if (!snap2.empty) {
+          contractorData = Object.assign({ id: snap2.docs[0].id }, snap2.docs[0].data());
+          snap2.docs[0].ref.update({ ownerUid: currentUser.uid });
+        } else {
+          contractorData = { company: 'Your Company', pocket: 'Your Pocket', portal: '' };
+        }
+        launchApp();
+      });
+    }
+    contractorData = Object.assign({ id: snap.docs[0].id }, snap.docs[0].data());
+    launchApp();
+  });
+}
+
+// ── Launch App ────────────────────────────────────────────────────────────
+function launchApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+
+  var company = (contractorData.fname || '') + ' ' + (contractorData.lname || '');
+  if (contractorData.company) company = contractorData.company;
+  document.getElementById('nav-company').textContent = company;
+  document.getElementById('d-company').textContent = company;
+  document.getElementById('d-pocket').textContent = contractorData.pocket || '';
+  document.getElementById('d-meta').textContent = (contractorData.phone || '') + (contractorData.email ? ' · ' + contractorData.email : '');
+
+  loadRoutes();
+}
+
+// ── Routes ────────────────────────────────────────────────────────────────
+function loadRoutes() {
+  if (!contractorData.portal) return;
+  db.collection('agentRoutes')
+    .where('ownerCode', '==', contractorData.portal)
+    .orderBy('createdAt', 'desc')
+    .onSnapshot(function(snap) {
+      allRoutes = [];
+      snap.forEach(function(doc) { allRoutes.push(Object.assign({ routeCode: doc.id }, doc.data())); });
+      renderDashboard();
+      renderAllRoutes();
+      renderAgents();
+    });
+}
+
+// ── Render Dashboard ──────────────────────────────────────────────────────
+function renderDashboard() {
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  var todayTs = today.getTime();
+
+  var activeRoutes = allRoutes.filter(function(r) {
+    return r.status !== 'archived' && r.createdAt > todayTs;
+  });
+  var allActive = allRoutes.filter(function(r){ return r.status !== 'archived'; });
+
+  // Aggregate stats
+  var totalKnocked = 0, totalInterested = 0, totalAppt = 0, agentNames = new Set();
+  allActive.forEach(function(r) {
+    var st = r.statuses || {};
+    Object.values(st).forEach(function(s) {
+      if (s !== 'pending') totalKnocked++;
+      if (s === 'interested') totalInterested++;
+      if (s === 'appointment') totalAppt++;
+    });
+    if (r.agentName) agentNames.add(r.agentName);
+  });
+
+  document.getElementById('d-active-routes').textContent = activeRoutes.length;
+  document.getElementById('d-total-knocked').textContent = totalKnocked;
+  document.getElementById('d-total-interested').textContent = totalInterested;
+  document.getElementById('d-total-appt').textContent = totalAppt;
+  document.getElementById('d-total-agents').textContent = agentNames.size;
+
+  var container = document.getElementById('dashboard-routes');
+  if (!activeRoutes.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><div class="empty-title">No routes today yet</div><div class="empty-sub">Create a route and send the link to your agent.</div></div>';
+    return;
+  }
+  container.innerHTML = activeRoutes.map(function(r) { return routeCardHtml(r); }).join('');
+}
+
+// ── Render All Routes ─────────────────────────────────────────────────────
+function renderAllRoutes() {
+  var container = document.getElementById('all-routes');
+  if (!allRoutes.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🗺️</div><div class="empty-title">No routes yet</div><div class="empty-sub">Create your first route to get started.</div></div>';
+    return;
+  }
+  container.innerHTML = allRoutes.map(function(r) { return routeCardHtml(r, true); }).join('');
+}
+
+function routeCardHtml(r, showArchive) {
+  var st = r.statuses || {};
+  var total = (r.leads || []).length;
+  var knocked = 0, interested = 0, appt = 0, callback = 0;
+  Object.values(st).forEach(function(s) {
+    if (s !== 'pending') knocked++;
+    if (s === 'interested') interested++;
+    if (s === 'appointment') appt++;
+    if (s === 'callback') callback++;
+  });
+  var pct = total > 0 ? Math.round(knocked / total * 100) : 0;
+  var date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+  var isActive = r.status !== 'archived';
+  var agentLink = 'https://roofinder.online/agent.html?route=' + r.routeCode + (r.agentName ? '&agent=' + encodeURIComponent(r.agentName) : '');
+
+  return '<div class="route-card">'
+    + '<div class="route-card-head">'
+    + '<div>'
+    + '<div class="route-name">' + (r.routeName || r.routeCode) + '</div>'
+    + '<div class="route-meta">' + date + (r.agentName ? ' · ' : '') + '</div>'
+    + '</div>'
+    + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">'
+    + (r.agentName ? '<div class="route-agent-badge">👤 ' + r.agentName + '</div>' : '')
+    + '<span class="route-status-chip ' + (isActive ? 'status-active' : 'status-completed') + '">' + (isActive ? '● Active' : '✓ Archived') + '</span>'
+    + '</div>'
+    + '</div>'
+    + '<div class="route-stats">'
+    + '<div class="rs"><div class="rs-num">' + total + '</div><div class="rs-lbl">Doors</div></div>'
+    + '<div class="rs"><div class="rs-num green">' + knocked + '</div><div class="rs-lbl">Knocked</div></div>'
+    + '<div class="rs"><div class="rs-num yellow">' + interested + '</div><div class="rs-lbl">Interest</div></div>'
+    + '<div class="rs"><div class="rs-num purple">' + appt + '</div><div class="rs-lbl">Appts</div></div>'
+    + '</div>'
+    + '<div class="route-bar-bg"><div class="route-bar-fill" style="width:' + pct + '%"></div></div>'
+    + '<div class="route-actions">'
+    + '<button class="btn-ghost" onclick="openDetailModal(\'' + r.routeCode + '\')">📡 Live View</button>'
+    + '<button class="btn-link" onclick="copyLink(\'' + agentLink + '\')">📋 Agent Link</button>'
+    + (showArchive && isActive ? '<button class="btn-danger" onclick="archiveRoute(\'' + r.routeCode + '\')">Archive</button>' : '')
+    + (showArchive && !isActive ? '<button class="btn-danger" onclick="deleteRoute(\'' + r.routeCode + '\')">Delete</button>' : '')
+    + '</div>'
+    + '</div>';
+}
+
+// ── Render Agents ─────────────────────────────────────────────────────────
+function renderAgents() {
+  var agentMap = {};
+  allRoutes.forEach(function(r) {
+    var name = r.agentName || 'Unknown';
+    if (!agentMap[name]) agentMap[name] = { routes: 0, knocked: 0, interested: 0, appt: 0, lastActive: 0 };
+    var a = agentMap[name];
+    a.routes++;
+    var st = r.statuses || {};
+    Object.values(st).forEach(function(s) {
+      if (s !== 'pending') a.knocked++;
+      if (s === 'interested') a.interested++;
+      if (s === 'appointment') a.appt++;
+    });
+    if (r.lastUpdate > a.lastActive) a.lastActive = r.lastUpdate;
+  });
+
+  var tbody = document.getElementById('agents-tbody');
+  var agents = Object.keys(agentMap);
+  if (!agents.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = agents.map(function(name) {
+    var a = agentMap[name];
+    var rate = a.knocked > 0 ? Math.round(a.interested / a.knocked * 100) : 0;
+    var lastDate = a.lastActive ? new Date(a.lastActive).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    return '<tr>'
+      + '<td><div class="cell-name">' + name + '</div></td>'
+      + '<td>' + a.routes + '</td>'
+      + '<td class="green">' + a.knocked + '</td>'
+      + '<td class="yellow">' + a.interested + '</td>'
+      + '<td class="purple">' + a.appt + '</td>'
+      + '<td>' + rate + '%</td>'
+      + '<td class="dim">' + lastDate + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+// ── Create Route ──────────────────────────────────────────────────────────
+function openCreateModal() {
+  document.getElementById('cr-name').value = '';
+  document.getElementById('cr-agent').value = '';
+  document.getElementById('cr-notes').value = '';
+  document.getElementById('cr-link-section').style.display = 'none';
+  document.getElementById('cr-actions').style.display = 'flex';
+  document.getElementById('cr-done-actions').style.display = 'none';
+  createdRouteCode = null;
+  document.getElementById('create-modal').classList.add('open');
+}
+
+function closeCreateModal() {
+  document.getElementById('create-modal').classList.remove('open');
+}
+
+function createRoute() {
+  var name = document.getElementById('cr-name').value.trim();
+  var agentName = document.getElementById('cr-agent').value.trim();
+  var notes = document.getElementById('cr-notes').value.trim();
+  if (!name) { alert('Please enter a route name.'); return; }
+
+  var pocketCode = (contractorData.portal || 'ROUTE').toUpperCase().replace(/-/g,'').slice(0,8);
+  var datePart = new Date().toISOString().slice(2,10).replace(/-/g,'');
+  var rand = Math.random().toString(36).slice(2,5).toUpperCase();
+  var routeCode = pocketCode + '-' + datePart + '-' + rand;
+
+  var leads = POCKET_LEADS[contractorData.portal] || [];
+  var routeData = {
+    routeName: name,
+    pocket: contractorData.pocket || '',
+    ownerUid: currentUser.uid,
+    ownerCode: contractorData.portal,
+    agentName: agentName,
+    agentNotes: notes,
+    createdAt: Date.now(),
+    startedAt: null,
+    lastUpdate: null,
+    status: 'active',
+    leads: leads,
+    statuses: {},
+    notes: {}
+  };
+
+  db.collection('agentRoutes').doc(routeCode).set(routeData).then(function() {
+    createdRouteCode = routeCode;
+    var link = 'https://roofinder.online/agent.html?route=' + routeCode + (agentName ? '&agent=' + encodeURIComponent(agentName) : '');
+    document.getElementById('cr-link-url').textContent = link;
+    document.getElementById('cr-link-section').style.display = 'block';
+    document.getElementById('cr-actions').style.display = 'none';
+    document.getElementById('cr-done-actions').style.display = 'block';
+  }).catch(function(e) { alert('Error creating route: ' + e.message); });
+}
+
+function copyCreatedLink() {
+  if (!createdRouteCode) return;
+  var link = 'https://roofinder.online/agent.html?route=' + createdRouteCode;
+  copyLink(link);
+}
+
+function archiveRoute(code) {
+  if (!confirm('Archive this route?')) return;
+  db.collection('agentRoutes').doc(code).update({ status: 'archived' });
+}
+
+function deleteRoute(code) {
+  if (!confirm('Permanently delete this route and all its data?')) return;
+  db.collection('agentRoutes').doc(code).delete();
+}
+
+// ── Route Detail (Live View) ───────────────────────────────────────────────
+function openDetailModal(routeCode) {
+  detailRouteCode = routeCode;
+  if (detailUnsub) detailUnsub();
+  document.getElementById('detail-modal').classList.add('open');
+
+  detailUnsub = db.collection('agentRoutes').doc(routeCode).onSnapshot(function(doc) {
+    if (!doc.exists) return;
+    renderDetail(Object.assign({ routeCode: doc.id }, doc.data()));
+  });
+}
+
+function closeDetailModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+  if (detailUnsub) { detailUnsub(); detailUnsub = null; }
+  detailRouteCode = null;
+}
+
+function renderDetail(r) {
+  var leads = r.leads || [];
+  var st = r.statuses || {};
+  var notes = r.notes || {};
+  var total = leads.length;
+  var knocked = 0, interested = 0, appt = 0, cb = 0;
+  Object.values(st).forEach(function(s) {
+    if (s !== 'pending') knocked++;
+    if (s === 'interested') interested++;
+    if (s === 'appointment') appt++;
+    if (s === 'callback') cb++;
+  });
   var pct = total > 0 ? Math.round(knocked / total * 100) : 0;
 
-  // Stats
-  document.getElementById('s-total').textContent = total;
-  document.getElementById('s-knocked').textContent = knocked;
-  document.getElementById('s-interested').textContent = counts.interested;
-  document.getElementById('s-appt').textContent = counts.appointment;
-  document.getElementById('s-callback').textContent = counts.callback;
+  document.getElementById('det-title').textContent = r.routeName || r.routeCode;
+  var metaParts = [];
+  if (r.agentName) metaParts.push('Agent: ' + r.agentName);
+  if (r.startedAt) metaParts.push('Started ' + fmtTime(new Date(r.startedAt)));
+  if (r.lastUpdate) metaParts.push('Last update ' + fmtTimeAgo(new Date(r.lastUpdate)));
+  document.getElementById('det-meta').textContent = metaParts.join(' · ');
 
-  // Progress
-  document.getElementById('prog-pct').textContent = pct + '%';
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('p-pending').textContent = counts.pending;
-  document.getElementById('p-na').textContent = counts['no-answer'];
-  document.getElementById('p-ni').textContent = counts['not-interested'];
-  document.getElementById('p-cb').textContent = counts.callback;
-  document.getElementById('p-int').textContent = counts.interested;
-  document.getElementById('p-ap').textContent = counts.appointment;
+  detailAgentLink = 'https://roofinder.online/agent.html?route=' + r.routeCode + (r.agentName ? '&agent=' + encodeURIComponent(r.agentName) : '');
+  document.getElementById('det-agent-link').textContent = detailAgentLink;
 
-  // Detect changes for activity feed
-  leads.forEach(function(lead, i) {
-    var newS = statuses[i] || 'pending';
-    var oldS = prevStatuses[i] || 'pending';
-    if (newS !== oldS && newS !== 'pending') {
-      activityLog.unshift({ addr: lead.addr, status: newS, note: notes[i] || '', time: new Date() });
-      if (activityLog.length > 50) activityLog.pop();
-    }
-  });
-  prevStatuses = Object.assign({}, statuses);
+  document.getElementById('det-s-total').textContent = total;
+  document.getElementById('det-s-knocked').textContent = knocked;
+  document.getElementById('det-s-int').textContent = interested;
+  document.getElementById('det-s-appt').textContent = appt;
+  document.getElementById('det-s-cb').textContent = cb;
+  document.getElementById('det-prog').style.width = pct + '%';
 
-  // Door grid
-  var gridHtml = '';
-  leads.forEach(function(lead, i) {
-    var s = statuses[i] || 'pending';
+  var statusLabels = {
+    pending:'⬜ Pending','no-answer':'🔔 No Answer','not-interested':'✗ Not Int.',
+    callback:'📞 Callback',interested:'👍 Interested',appointment:'⭐ Appt'
+  };
+  var gridHtml = leads.map(function(lead, i) {
+    var s = st[i] || 'pending';
     var n = notes[i] || '';
-    var statusLabel = {
-      pending: '⬜ Pending',
-      'no-answer': '🔔 No Answer',
-      'not-interested': '✗ Not Interested',
-      callback: '📞 Callback',
-      interested: '👍 Interested',
-      appointment: '⭐ Appointment'
-    }[s] || s;
-    gridHtml += '<div class="dc s-' + s + '">'
+    return '<div class="dc s-' + s + '">'
       + '<div class="dc-num">#' + (i+1) + '</div>'
       + '<div class="dc-addr">' + lead.addr + '</div>'
       + '<div class="dc-owner">' + lead.owner + '</div>'
-      + '<div class="dc-status st-' + s + '">' + statusLabel + '</div>'
+      + '<div class="dc-status-lbl st-' + s + '">' + (statusLabels[s] || s) + '</div>'
       + (n ? '<div class="dc-note">' + n + '</div>' : '')
       + '</div>';
-  });
+  }).join('');
   document.getElementById('door-grid').innerHTML = gridHtml;
-
-  // Activity feed
-  if (activityLog.length === 0) {
-    document.getElementById('feed-list').innerHTML = '<div class="feed-empty">Waiting for agent activity...</div>';
-  } else {
-    var dotColors = {
-      'no-answer': '#f59e0b', 'not-interested': '#ef4444', callback: '#3b82f6',
-      interested: '#10b981', appointment: '#a855f7', pending: '#555'
-    };
-    var feedHtml = activityLog.map(function(item) {
-      return '<div class="feed-item">'
-        + '<div class="feed-dot" style="background:' + (dotColors[item.status]||'#555') + '"></div>'
-        + '<span class="feed-addr">' + item.addr + '</span>'
-        + '<span class="feed-status">→ ' + item.status.replace('-', ' ') + (item.note ? ' · ' + item.note : '') + '</span>'
-        + '<span class="feed-time">' + fmtTimeAgo(item.time) + '</span>'
-        + '</div>';
-    }).join('');
-    document.getElementById('feed-list').innerHTML = feedHtml;
-  }
 }
 
-function copyOwnerLink() {
-  var url = window.location.origin + window.location.pathname + '?route=' + routeCode;
+function copyDetailLink() { copyLink(detailAgentLink); }
+
+// ── Nav ───────────────────────────────────────────────────────────────────
+function showPanel(name, btn) {
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+function copyLink(url) {
   navigator.clipboard.writeText(url).then(function() {
-    alert('Link copied! Share this with the owner:\n' + url);
-  });
+    var t = document.getElementById('copy-toast');
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2000);
+  }).catch(function() { prompt('Copy this link:', url); });
 }
 
 function fmtTime(date) {
-  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return date.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 }
 
 function fmtTimeAgo(date) {
-  var diff = Math.floor((Date.now() - date) / 1000);
+  var diff = Math.floor((Date.now() - date.getTime()) / 1000);
   if (diff < 60) return 'just now';
-  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-  return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  return Math.floor(diff/3600) + 'h ago';
 }
+
+// Close modals on backdrop click
+document.getElementById('create-modal').addEventListener('click', function(e){ if(e.target===this) closeCreateModal(); });
+document.getElementById('detail-modal').addEventListener('click', function(e){ if(e.target===this) closeDetailModal(); });
 </script>
 </body>
 </html>
