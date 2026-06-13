@@ -346,39 +346,34 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           <svg id="zip-pin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
           <input id="zip-input" type="text" inputmode="numeric" maxlength="5" placeholder="Enter your zip code" autocomplete="postal-code"/>
         </div>
-        <select id="radius-select">
-          <option value="10">10 miles</option>
-          <option value="25" selected>25 miles</option>
-          <option value="50">50 miles</option>
-        </select>
-        <button id="zip-search-btn" onclick="searchTerritory()">Find My Territory →</button>
+        <button id="zip-search-btn" onclick="searchTerritory()">Find My Pocket →</button>
       </div>
       <div id="zip-err" style="display:none;color:#ff5555;font-size:12px;margin-top:10px">Please enter a valid 5-digit zip code.</div>
     </div>
 
     <div class="hero-proof">
       <div class="hero-proof-dot"></div>
-      One contractor per zone &mdash; yours until you cancel
+      One pocket at a time &mdash; work it, then get another
     </div>
     <div class="hero-stats">
       <div>
-        <div class="hero-stat-num">25,000+</div>
-        <div class="hero-stat-lbl">US Zip Codes</div>
+        <div class="hero-stat-num">5 mi</div>
+        <div class="hero-stat-lbl">Radius Per Pocket</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
-        <div class="hero-stat-num">50+</div>
-        <div class="hero-stat-lbl">Doors Per Pocket</div>
+        <div class="hero-stat-num">50–150</div>
+        <div class="hero-stat-lbl">Prequalified Homes</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
-        <div class="hero-stat-num">100%</div>
-        <div class="hero-stat-lbl">Exclusive Territory</div>
+        <div class="hero-stat-num">Any Zip</div>
+        <div class="hero-stat-lbl">In the US</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
-        <div class="hero-stat-num">1</div>
-        <div class="hero-stat-lbl">Contractor Per Zone</div>
+        <div class="hero-stat-num">48 hr</div>
+        <div class="hero-stat-lbl">Pocket Built For You</div>
       </div>
     </div>
   </div>
@@ -786,7 +781,6 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
 // ── Zip Territory Search ─────────────────────────────────────────────────
 function searchTerritory() {
   var zip = document.getElementById('zip-input').value.trim();
-  var radius = document.getElementById('radius-select').value;
   var errEl = document.getElementById('zip-err');
   if (!/^\d{5}$/.test(zip)) {
     errEl.style.display = 'block';
@@ -794,7 +788,7 @@ function searchTerritory() {
     return;
   }
   errEl.style.display = 'none';
-  window.location.href = 'search.html?zip=' + zip + '&radius=' + radius;
+  window.location.href = 'search.html?zip=' + zip;
 }
 
 // Allow Enter key in zip input
