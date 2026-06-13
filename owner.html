@@ -65,6 +65,13 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
 
 /* ── POCKET INFO CARD ── */
 #pocket-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.2);border-radius:14px;padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+/* ── MY POCKETS LIST ── */
+.pocket-item{background:#111;border:1px solid #222;border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;transition:border-color .2s}
+.pocket-item:hover{border-color:#333}
+.pocket-item-name{font-size:15px;font-weight:700;margin-bottom:3px}
+.pocket-item-code{font-size:11px;color:#444;font-family:monospace;letter-spacing:.3px}
+.pocket-badge{font-size:11px;font-weight:700;color:#4caf50;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.25);border-radius:20px;padding:3px 11px;white-space:nowrap}
 .pocket-left{}
 .pocket-company{font-size:20px;font-weight:800;margin-bottom:4px}
 .pocket-name{font-size:13px;color:#4caf50;font-weight:700}
@@ -240,7 +247,15 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
         <div class="stat-card"><div class="stat-num blue" id="d-total-agents">0</div><div class="stat-lbl">Agents Today</div></div>
       </div>
 
-      <div class="sec-head">
+      <div class="sec-head" style="margin-top:8px">
+        <div>
+          <div class="sec-title">My Pockets</div>
+          <div class="sec-sub">Your exclusive territory access</div>
+        </div>
+      </div>
+      <div id="pockets-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-title">Loading pockets...</div></div></div>
+
+      <div class="sec-head" style="margin-top:32px">
         <div>
           <div class="sec-title">Active Routes</div>
           <div class="sec-sub">Real-time progress across all agents today</div>
@@ -545,6 +560,43 @@ function launchApp() {
   document.getElementById('d-meta').textContent = (contractorData.phone || '') + (contractorData.email ? ' · ' + contractorData.email : '');
 
   loadRoutes();
+  loadPockets();
+}
+
+// ── Pockets ───────────────────────────────────────────────────────────────
+function loadPockets() {
+  db.collection('contractors')
+    .where('ownerUid', '==', currentUser.uid)
+    .get()
+    .then(function(snap) {
+      var el = document.getElementById('pockets-list');
+      if (!el) return;
+      if (snap.empty) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No pockets found</div></div>';
+        return;
+      }
+      el.innerHTML = '';
+      snap.forEach(function(doc) {
+        var d = doc.data();
+        var pocketName = d.pocket || d.portal || '—';
+        var code = d.portal || '';
+        var company = d.company || '';
+        el.innerHTML +=
+          '<div class="pocket-item">' +
+            '<div>' +
+              '<div class="pocket-item-name">' + pocketName + (company ? ' — ' + company : '') + '</div>' +
+              '<div class="pocket-item-code">' + code + '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:12px">' +
+              '<span class="pocket-badge">● Active</span>' +
+              (code ? '<a class="btn-link" href="https://roofinder.online/pocket-builder.html?portal=' + encodeURIComponent(code) + '" target="_blank">View Pocket →</a>' : '') +
+            '</div>' +
+          '</div>';
+      });
+    })
+    .catch(function(err) {
+      console.error('loadPockets error', err);
+    });
 }
 
 // ── Routes ────────────────────────────────────────────────────────────────
