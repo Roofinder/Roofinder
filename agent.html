@@ -232,15 +232,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
 .script-obj-a em { color: var(--prime); font-style: normal; font-weight: 600; }
 #script-close-btn { display: block; width: 100%; margin-top: 20px; background: transparent; color: var(--muted); font-size: 14px; padding: 14px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; font-family: inherit; }
 
-/* ── MAP PANEL ── */
-#map-panel { display: none; height: 240px; border-bottom: 1px solid var(--border); position: relative; }
-#map-panel.open { display: block; }
+/* ── VIEW TOGGLE ── */
+#view-toggle-row { display: flex; margin-top: 10px; background: rgba(255,255,255,.04); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.vt-btn { flex: 1; padding: 8px; background: transparent; border: none; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .15s; letter-spacing: .3px; }
+.vt-btn.active { background: var(--prime); color: #000; }
+
+/* ── MAP VIEW ── */
+#map-view { position: relative; height: calc(100svh - 114px); }
 #map-el { width: 100%; height: 100%; }
-#map-toggle { background: transparent; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 0 6px; line-height: 1; transition: color .2s; }
-#map-toggle.active { color: var(--prime); }
-.map-legend { position: absolute; bottom: 8px; left: 8px; z-index: 500; background: rgba(15,17,26,0.85); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; display: flex; gap: 10px; flex-wrap: wrap; pointer-events: none; }
+.map-legend { position: absolute; bottom: 80px; left: 8px; z-index: 500; background: rgba(15,17,26,0.9); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; display: flex; gap: 10px; flex-wrap: wrap; pointer-events: none; }
 .leg-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--muted); }
 .leg-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── LIST VIEW ── */
+#list-view { display: none; padding-bottom: 100px; }
+
 .leaflet-tile-pane { filter: brightness(0.85) saturate(0.6); }
 .leaflet-container { background: #1a1d2e; }
 </style>
@@ -268,13 +274,33 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
   <div id="topbar">
     <div class="topbar-row1">
       <span id="topbar-title">Loading...</span>
-      <span style="display:flex;align-items:center;gap:4px"><button id="map-toggle" onclick="toggleMap()" title="Toggle Map">🗺</button><span id="topbar-agent"><span id="sync-dot"></span><span id="agent-name-display"></span><button onclick="signOutAgent()" style="background:transparent;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 6px;margin-left:4px;border-radius:4px;font-family:inherit">Sign Out</button></span></span>
+      <span id="topbar-agent"><span id="sync-dot"></span><span id="agent-name-display"></span><button onclick="signOutAgent()" style="background:transparent;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 6px;margin-left:4px;border-radius:4px;font-family:inherit">Sign Out</button></span>
     </div>
     <div id="prog-row">
       <div id="prog-bg"><div id="prog-fill" style="width:0%"></div></div>
       <span id="prog-label">0 / 0 knocked</span>
     </div>
+    <div id="view-toggle-row">
+      <button class="vt-btn active" data-view="map" onclick="setView('map')">🗺 Map</button>
+      <button class="vt-btn" data-view="list" onclick="setView('list')">☰ List</button>
+    </div>
   </div>
+
+  <!-- MAP VIEW (default) -->
+  <div id="map-view">
+    <div id="map-el"></div>
+    <div class="map-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#10b981"></div>Interested</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#a855f7"></div>Appt</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Callback</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>No Answer</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Not Int.</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#4b5563"></div>Pending</div>
+    </div>
+  </div>
+
+  <!-- LIST VIEW -->
+  <div id="list-view">
 
   <!-- TABS -->
   <div id="tabs">
@@ -288,21 +314,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; b
     <div class="tab" onclick="setTab('no-need',this)">No Need 🏚</div>
   </div>
 
-  <!-- MAP PANEL -->
-  <div id="map-panel">
-    <div id="map-el"></div>
-    <div class="map-legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#10b981"></div>Interested</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#a855f7"></div>Appt</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Callback</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>No Answer</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Not Int.</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#4b5563"></div>Pending</div>
-    </div>
-  </div>
-
   <!-- DOOR LIST -->
   <div id="list"></div>
+
+  </div><!-- end #list-view -->
 
   <!-- FABs -->
   <button id="add-home-fab" onclick="openAddHome()">＋ Add Home</button>
@@ -488,7 +503,7 @@ var curIdx = -1;
 var curStatus = '';
 var curTab = 'all';
 var firestoreUnsubscribe = null;
-var mapOpen = false;
+var curView = 'map';
 var agentMap = null;
 var mapMarkers = {};
 var mapInitialized = false;
@@ -643,6 +658,9 @@ function launchApp() {
     renderList();
     updateProgress();
   });
+
+  // Initialize map immediately — it's the default view
+  setTimeout(function(){ initAgentMap(); }, 200);
 }
 
 function signOutAgent() {
@@ -805,22 +823,16 @@ function setAhTier(tier, btn) {
   btn.className = 'ah-tier-btn ' + cls;
 }
 
-// ── Map Panel ────────────────────────────────────────────────────────────────
-function toggleMap() {
-  var panel = document.getElementById('map-panel');
-  var btn   = document.getElementById('map-toggle');
-  mapOpen = !mapOpen;
-  if (mapOpen) {
-    panel.classList.add('open');
-    btn.classList.add('active');
-    if (!mapInitialized) {
-      initAgentMap();
-    } else {
-      setTimeout(function(){ agentMap.invalidateSize(); }, 50);
-    }
-  } else {
-    panel.classList.remove('open');
-    btn.classList.remove('active');
+// ── View Toggle ──────────────────────────────────────────────────────────────
+function setView(v) {
+  curView = v;
+  document.getElementById('map-view').style.display  = v === 'map'  ? 'block' : 'none';
+  document.getElementById('list-view').style.display = v === 'list' ? 'block' : 'none';
+  document.querySelectorAll('.vt-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.view === v);
+  });
+  if (v === 'map' && agentMap) {
+    setTimeout(function(){ agentMap.invalidateSize(); }, 50);
   }
 }
 
@@ -847,7 +859,7 @@ function initAgentMap() {
     } else {
       geocodeLeads(zip);
     }
-    setTimeout(function(){ agentMap.invalidateSize(); }, 100);
+    setTimeout(function(){ agentMap.invalidateSize(); }, 300);
   }
 
   if (zip) {
