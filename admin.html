@@ -122,6 +122,25 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
 .ov-rs-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
 .ov-status-active{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:100px;background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);color:#4caf50;text-transform:uppercase;margin-left:8px;vertical-align:middle}
 .ov-status-other{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#555;text-transform:uppercase;margin-left:8px;vertical-align:middle}
+.ov-panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.ov-panel-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#444}
+.ov-route-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.ov-btn-sm{background:transparent;border:1px solid rgba(255,255,255,.1);color:#666;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.ov-btn-sm:hover{border-color:rgba(255,255,255,.25);color:#ccc}
+.ov-btn-sm.danger:hover{border-color:rgba(255,85,85,.35);color:#ff5555}
+.ov-btn-sm.green:hover{border-color:rgba(76,175,80,.4);color:#4caf50}
+.ov-route-actions{display:flex;gap:6px;flex-shrink:0;align-items:center;flex-wrap:wrap}
+/* OV SUB-MODAL */
+#ov-modal-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:24px}
+#ov-modal-overlay.open{display:flex}
+.ov-modal{background:#141414;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto}
+.ov-modal-title{font-size:16px;font-weight:800;margin-bottom:20px}
+.ov-form-row{margin-bottom:14px}
+.ov-form-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;display:block;margin-bottom:6px}
+.ov-form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;resize:vertical}
+.ov-form-input:focus{border-color:rgba(76,175,80,.4)}
+.ov-form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.ov-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
 
 /* ACTIVITY */
 .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
@@ -240,10 +259,66 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
   <div class="ov-body">
     <div class="ov-panel active" id="ovp-routes">
       <div class="ov-stats-row" id="ov-stats"></div>
+      <div class="ov-panel-head">
+        <div class="ov-panel-label">Routes</div>
+        <button class="btn-primary" onclick="openOvRouteModal()">+ New Route</button>
+      </div>
       <div id="ov-routes-list"><div class="empty-state"><div class="empty-state-icon">📡</div><div class="empty-state-text">Loading routes…</div></div></div>
     </div>
     <div class="ov-panel" id="ovp-agents">
+      <div class="ov-panel-head">
+        <div class="ov-panel-label">Agents</div>
+        <button class="btn-primary" onclick="openOvAgentModal(null)">+ Add Agent</button>
+      </div>
       <div id="ov-agents-list"><div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">Loading agents…</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OV SUB-MODAL -->
+<div id="ov-modal-overlay">
+  <div class="ov-modal">
+    <div class="ov-modal-title" id="ov-modal-title">New Route</div>
+
+    <!-- ROUTE FORM -->
+    <div id="ov-route-form">
+      <div class="ov-form-row">
+        <label class="ov-form-label">Route Name</label>
+        <input class="ov-form-input" id="ovr-name" placeholder="e.g. Cary Pocket 82 — Zone A"/>
+      </div>
+      <div class="ov-form-row">
+        <label class="ov-form-label">Assign to Agent</label>
+        <select class="ov-form-input" id="ovr-agent">
+          <option value="">— Unassigned —</option>
+        </select>
+      </div>
+      <div class="ov-form-row">
+        <label class="ov-form-label">Addresses <span style="font-weight:400;color:#444;text-transform:none;letter-spacing:0">— one per line</span></label>
+        <textarea class="ov-form-input" id="ovr-addresses" rows="8" placeholder="123 Main St, Cary NC 27511&#10;456 Oak Ave, Cary NC 27511&#10;..."></textarea>
+      </div>
+    </div>
+
+    <!-- AGENT FORM -->
+    <div id="ov-agent-form" style="display:none">
+      <div class="ov-form-row">
+        <label class="ov-form-label">Agent Name</label>
+        <input class="ov-form-input" id="ova-name" placeholder="e.g. Jake"/>
+      </div>
+      <div class="ov-form-row-2">
+        <div>
+          <label class="ov-form-label">PIN</label>
+          <input class="ov-form-input" id="ova-pin" placeholder="e.g. 1234" inputmode="numeric" maxlength="8"/>
+        </div>
+        <div>
+          <label class="ov-form-label">Phone</label>
+          <input class="ov-form-input" id="ova-phone" placeholder="(919) 555-0100"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="ov-modal-actions">
+      <button class="btn-ghost" onclick="closeOvModal()">Cancel</button>
+      <button class="btn-primary" id="ov-modal-save-btn" onclick="saveOvForm()">Save</button>
     </div>
   </div>
 </div>
@@ -611,7 +686,7 @@ function renderOvStats() {
 function renderOvRoutes() {
   var el = document.getElementById('ov-routes-list');
   if (!ovRoutes.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📡</div><div class="empty-state-text">No routes yet. This owner hasn\'t created any routes.</div></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📡</div><div class="empty-state-text">No routes yet. Click + New Route to create one.</div></div>';
     return;
   }
   el.innerHTML = ovRoutes.map(function(r) {
@@ -629,13 +704,21 @@ function renderOvRoutes() {
       : '<span class="ov-status-other">' + (r.status||'—') + '</span>';
     var agentLink = 'https://roofinder.online/agent.html?route=' + r._id + '&agent=' + encodeURIComponent(r.agentName||'');
     var created = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+    var archiveBtn = r.status === 'active'
+      ? '<button class="ov-btn-sm" onclick="archiveOvRoute(\'' + r._id + '\')">Archive</button>'
+      : '<button class="ov-btn-sm green" onclick="activateOvRoute(\'' + r._id + '\')">Activate</button>';
     return '<div class="ov-route-card">'
       + '<div class="ov-route-head">'
-        + '<div>'
+        + '<div style="flex:1;min-width:0">'
           + '<div class="ov-route-name">' + (r.routeName || r._id) + statusBadge + '</div>'
           + '<div class="ov-route-meta">Agent: ' + (r.agentName||'Unassigned') + ' &middot; ' + total + ' doors &middot; Created ' + created + '</div>'
         + '</div>'
-        + '<a href="' + agentLink + '" target="_blank" class="portal-link" style="flex-shrink:0">Open Agent View ↗</a>'
+        + '<div class="ov-route-actions">'
+          + '<a href="' + agentLink + '" target="_blank" class="ov-btn-sm green">Agent View ↗</a>'
+          + '<button class="ov-btn-sm" onclick="openOvReassignModal(\'' + r._id + '\')">Re-assign</button>'
+          + archiveBtn
+          + '<button class="ov-btn-sm danger" onclick="deleteOvRoute(\'' + r._id + '\')">Delete</button>'
+        + '</div>'
       + '</div>'
       + '<div class="ov-route-stats">'
         + '<div class="ov-rs"><div class="ov-rs-num">' + total + '</div><div class="ov-rs-lbl">Doors</div></div>'
@@ -651,20 +734,182 @@ function renderOvRoutes() {
 function renderOvAgents() {
   var el = document.getElementById('ov-agents-list');
   if (!ovAgents.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">No agents yet.</div></div>';
+    el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-text">No agents yet. Click + Add Agent to add one.</div></div>';
     return;
   }
-  el.innerHTML = '<div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>PIN</th><th>Phone</th><th>Active Routes</th></tr></thead><tbody>'
+  el.innerHTML = '<div class="table-wrap"><table class="data-table"><thead><tr><th>Name</th><th>PIN</th><th>Phone</th><th>Active Routes</th><th></th></tr></thead><tbody>'
     + ovAgents.map(function(a) {
       var activeRoutes = ovRoutes.filter(function(r){ return r.agentName === a.name && r.status === 'active'; }).length;
       return '<tr>'
         + '<td><div class="cell-name">' + (a.name||'—') + '</div></td>'
-        + '<td><span style="font-family:monospace;color:#4caf50;font-size:13px">' + (a.pin||'<span class="cell-dim">not set</span>') + '</span></td>'
+        + '<td><span style="font-family:monospace;color:#4caf50;font-size:13px">' + (a.pin || '<span class="cell-dim">—</span>') + '</span></td>'
         + '<td class="cell-dim">' + (a.phone||'—') + '</td>'
         + '<td><span class="cell-green">' + activeRoutes + '</span></td>'
+        + '<td style="white-space:nowrap">'
+          + '<button class="ov-btn-sm" style="margin-right:6px" onclick="openOvAgentModal(\'' + a._id + '\')">Edit</button>'
+          + '<button class="ov-btn-sm danger" onclick="deleteOvAgent(\'' + a._id + '\')">Remove</button>'
+        + '</td>'
         + '</tr>';
     }).join('')
     + '</tbody></table></div>';
+}
+
+/* ── OV MODAL HELPERS ─────────────────────────────── */
+var ovModalMode = '';        // 'route' | 'agent' | 'reassign'
+var ovEditingAgentId = null; // null = new agent, else doc id
+var ovReassignRouteId = null;
+
+function openOvRouteModal() {
+  ovModalMode = 'route';
+  ovEditingAgentId = null;
+  document.getElementById('ov-modal-title').textContent = 'New Route';
+  document.getElementById('ov-route-form').style.display = 'block';
+  document.getElementById('ov-agent-form').style.display = 'none';
+  document.getElementById('ov-reassign-form') && (document.getElementById('ov-reassign-form').style.display = 'none');
+  // clear fields
+  document.getElementById('ovr-name').value = '';
+  document.getElementById('ovr-addresses').value = '';
+  // populate agent dropdown
+  var sel = document.getElementById('ovr-agent');
+  sel.innerHTML = '<option value="">— Unassigned —</option>'
+    + ovAgents.map(function(a){ return '<option value="' + a.name + '">' + a.name + '</option>'; }).join('');
+  document.getElementById('ov-modal-overlay').classList.add('open');
+}
+
+function openOvReassignModal(routeId) {
+  ovModalMode = 'reassign';
+  ovReassignRouteId = routeId;
+  var route = ovRoutes.find(function(r){ return r._id === routeId; });
+  document.getElementById('ov-modal-title').textContent = 'Re-assign Route';
+  document.getElementById('ov-route-form').style.display = 'none';
+  document.getElementById('ov-agent-form').style.display = 'none';
+  // build a tiny reassign form inline if not present
+  var rf = document.getElementById('ov-reassign-form');
+  if (!rf) {
+    rf = document.createElement('div');
+    rf.id = 'ov-reassign-form';
+    document.getElementById('ov-agent-form').parentNode.insertBefore(rf, document.getElementById('ov-agent-form').nextSibling);
+  }
+  rf.style.display = 'block';
+  rf.innerHTML = '<div class="ov-form-row"><label class="ov-form-label">Route</label><div style="color:#888;font-size:13px;padding:4px 0">' + ((route && route.routeName) || routeId) + '</div></div>'
+    + '<div class="ov-form-row"><label class="ov-form-label">Assign To Agent</label>'
+    + '<select class="ov-form-input" id="ovra-agent"><option value="">— Unassigned —</option>'
+    + ovAgents.map(function(a){ return '<option value="' + a.name + '"' + ((route && route.agentName === a.name) ? ' selected' : '') + '>' + a.name + '</option>'; }).join('')
+    + '</select></div>';
+  document.getElementById('ov-modal-overlay').classList.add('open');
+}
+
+function openOvAgentModal(agentId) {
+  ovModalMode = 'agent';
+  ovEditingAgentId = agentId;
+  document.getElementById('ov-modal-title').textContent = agentId ? 'Edit Agent' : 'Add Agent';
+  document.getElementById('ov-route-form').style.display = 'none';
+  document.getElementById('ov-agent-form').style.display = 'block';
+  var rf = document.getElementById('ov-reassign-form');
+  if (rf) rf.style.display = 'none';
+  if (agentId) {
+    var agent = ovAgents.find(function(a){ return a._id === agentId; });
+    document.getElementById('ova-name').value = (agent && agent.name) || '';
+    document.getElementById('ova-pin').value  = (agent && agent.pin)  || '';
+    document.getElementById('ova-phone').value= (agent && agent.phone)|| '';
+  } else {
+    document.getElementById('ova-name').value = '';
+    document.getElementById('ova-pin').value  = '';
+    document.getElementById('ova-phone').value= '';
+  }
+  document.getElementById('ov-modal-overlay').classList.add('open');
+}
+
+function closeOvModal() {
+  document.getElementById('ov-modal-overlay').classList.remove('open');
+  var rf = document.getElementById('ov-reassign-form');
+  if (rf) rf.style.display = 'none';
+}
+
+function saveOvForm() {
+  if (ovModalMode === 'route')    saveOvRoute();
+  else if (ovModalMode === 'agent')   saveOvAgent();
+  else if (ovModalMode === 'reassign') saveOvReassign();
+}
+
+function saveOvRoute() {
+  var name = document.getElementById('ovr-name').value.trim();
+  var agentName = document.getElementById('ovr-agent').value;
+  var raw = document.getElementById('ovr-addresses').value;
+  if (!name) { alert('Route name is required.'); return; }
+  var leads = raw.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+  if (!leads.length) { alert('Add at least one address.'); return; }
+  var btn = document.getElementById('ov-modal-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  db.collection('agentRoutes').add({
+    routeName: name,
+    agentName: agentName || '',
+    ownerCode: currentOwnerCode,
+    leads: leads,
+    statuses: {},
+    status: 'active',
+    createdAt: Date.now()
+  }).then(function() {
+    closeOvModal();
+    btn.disabled = false; btn.textContent = 'Save';
+  }).catch(function(e) {
+    alert('Error: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Save';
+  });
+}
+
+function saveOvReassign() {
+  var agentName = document.getElementById('ovra-agent').value;
+  var btn = document.getElementById('ov-modal-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  db.collection('agentRoutes').doc(ovReassignRouteId).update({ agentName: agentName }).then(function() {
+    closeOvModal();
+    btn.disabled = false; btn.textContent = 'Save';
+  }).catch(function(e) {
+    alert('Error: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Save';
+  });
+}
+
+function saveOvAgent() {
+  var name  = document.getElementById('ova-name').value.trim();
+  var pin   = document.getElementById('ova-pin').value.trim();
+  var phone = document.getElementById('ova-phone').value.trim();
+  if (!name) { alert('Agent name is required.'); return; }
+  if (!pin)  { alert('PIN is required.'); return; }
+  var btn = document.getElementById('ov-modal-save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  var data = { name: name, pin: pin, phone: phone, ownerCode: currentOwnerCode };
+  var p = ovEditingAgentId
+    ? db.collection('agents').doc(ovEditingAgentId).update(data)
+    : db.collection('agents').add(Object.assign(data, { createdAt: Date.now() }));
+  p.then(function() {
+    closeOvModal();
+    btn.disabled = false; btn.textContent = 'Save';
+  }).catch(function(e) {
+    alert('Error: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Save';
+  });
+}
+
+function deleteOvAgent(agentId) {
+  var agent = ovAgents.find(function(a){ return a._id === agentId; });
+  if (!confirm('Remove agent "' + ((agent && agent.name) || agentId) + '"? This cannot be undone.')) return;
+  db.collection('agents').doc(agentId).delete().catch(function(e){ alert('Error: ' + e.message); });
+}
+
+function deleteOvRoute(routeId) {
+  var route = ovRoutes.find(function(r){ return r._id === routeId; });
+  if (!confirm('Delete route "' + ((route && route.routeName) || routeId) + '"? All progress data will be lost.')) return;
+  db.collection('agentRoutes').doc(routeId).delete().catch(function(e){ alert('Error: ' + e.message); });
+}
+
+function archiveOvRoute(routeId) {
+  db.collection('agentRoutes').doc(routeId).update({ status: 'archived' }).catch(function(e){ alert('Error: ' + e.message); });
+}
+
+function activateOvRoute(routeId) {
+  db.collection('agentRoutes').doc(routeId).update({ status: 'active' }).catch(function(e){ alert('Error: ' + e.message); });
 }
 </script>
 </body>
