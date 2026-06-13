@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Your Territory — RooFinder</title>
+<meta name="description" content="Claim your exclusive roofing territory on RooFinder. One contractor per zone, prequalified homeowner leads delivered."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#000;--white:#fff;--green:#4caf50;--gray:#888;--gray-light:#bbb;
+  --border:rgba(255,255,255,0.08);--card-bg:rgba(255,255,255,0.03);
+}
+html,body{height:100%;background:var(--black);color:var(--white);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nav-logo{font-size:17px;font-weight:800;letter-spacing:-.5px}
+.nav-logo span{color:var(--green)}
+.nav-back{font-size:12px;font-weight:600;color:var(--gray);display:flex;align-items:center;gap:6px;transition:color .2s}
+.nav-back:hover{color:var(--white)}
+
+/* LAYOUT */
+.page{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 60px)}
+@media(max-width:900px){.page{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+
+/* SIDEBAR */
+.sidebar{padding:32px 28px;overflow-y:auto;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:24px;max-height:calc(100vh - 60px);position:sticky;top:60px}
+@media(max-width:900px){.sidebar{max-height:none;position:static;border-right:none;border-bottom:1px solid var(--border)}}
+
+.location-header{}
+.location-eyebrow{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:8px}
+.location-name{font-size:28px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:4px}
+.location-meta{font-size:13px;color:var(--gray)}
+
+/* AVAILABILITY BADGE */
+.avail-badge{display:flex;align-items:center;gap:10px;padding:14px 18px;border-radius:10px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25)}
+.avail-dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;box-shadow:0 0 8px rgba(76,175,80,0.6);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.avail-text{font-size:14px;font-weight:700;color:#e0e4f0}
+.avail-sub{font-size:11px;color:var(--gray);margin-top:1px}
+
+/* RADIUS CHIPS */
+.radius-section-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:10px}
+.radius-chips{display:flex;gap:8px}
+.radius-chip{flex:1;padding:10px 8px;border-radius:8px;border:1px solid var(--border);background:var(--card-bg);color:var(--gray);font-size:12px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:inherit}
+.radius-chip:hover{border-color:rgba(76,175,80,0.4);color:var(--gray-light)}
+.radius-chip.active{background:rgba(76,175,80,0.1);border-color:rgba(76,175,80,0.5);color:var(--green)}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.stat-cell{padding:14px 12px;background:var(--card-bg);text-align:center}
+.stat-num{font-size:22px;font-weight:900;color:var(--white);letter-spacing:-.5px}
+.stat-lbl{font-size:10px;color:var(--gray);font-weight:500;letter-spacing:.3px;margin-top:2px;text-transform:uppercase}
+
+/* PRICING */
+.pricing-card{background:rgba(76,175,80,0.05);border:1px solid rgba(76,175,80,0.2);border-radius:12px;padding:20px}
+.pricing-label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--green);text-transform:uppercase;margin-bottom:4px}
+.pricing-amount{font-size:38px;font-weight:900;letter-spacing:-1.5px;line-height:1}
+.pricing-period{font-size:13px;color:var(--gray);font-weight:400;margin-left:4px}
+.pricing-note{font-size:12px;color:#666;margin-top:4px}
+.pricing-features{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.pricing-features li{font-size:13px;color:var(--gray-light);display:flex;align-items:flex-start;gap:8px}
+.pricing-features li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0}
+
+/* CTA */
+.cta-btn{display:block;width:100%;padding:16px;background:var(--green);color:#000;font-size:15px;font-weight:900;letter-spacing:.5px;border-radius:10px;text-align:center;border:none;cursor:pointer;font-family:inherit;transition:background .2s}
+.cta-btn:hover{background:#5cc760}
+.cta-secondary{display:block;width:100%;padding:12px;background:transparent;color:var(--gray);font-size:13px;font-weight:600;border-radius:10px;text-align:center;border:1px solid var(--border);cursor:pointer;font-family:inherit;transition:all .2s;margin-top:8px}
+.cta-secondary:hover{border-color:rgba(255,255,255,0.2);color:var(--white)}
+
+/* MAP */
+#map-wrap{position:relative}
+@media(max-width:900px){#map-wrap{height:400px}}
+#map{width:100%;height:100%;min-height:500px}
+.map-overlay{position:absolute;top:16px;right:16px;background:rgba(0,0,0,0.8);border:1px solid var(--border);border-radius:10px;padding:12px 16px;z-index:100;font-size:12px;color:var(--gray-light);max-width:200px;line-height:1.5}
+.map-overlay strong{color:var(--white);display:block;margin-bottom:4px;font-size:13px}
+
+/* LOADING / ERROR */
+#loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:12px;color:var(--gray)}
+.spinner{width:32px;height:32px;border:3px solid rgba(76,175,80,0.2);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#error-state{display:none;padding:32px;text-align:center}
+.error-icon{font-size:40px;margin-bottom:12px}
+.error-title{font-size:18px;font-weight:800;margin-bottom:8px}
+.error-sub{font-size:13px;color:var(--gray);margin-bottom:20px}
+.error-back{display:inline-block;background:var(--green);color:#000;font-weight:800;font-size:13px;padding:12px 24px;border-radius:8px;cursor:pointer}
+
+/* Leaflet dark override */
+.leaflet-tile-pane{filter:brightness(0.85) saturate(0.7)}
+.leaflet-container{background:#1a1d2e}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">Roo<span>Finder</span></a>
+    <a href="index.html" class="nav-back">← Search Again</a>
+    <a href="owner.html" style="font-size:12px;font-weight:700;color:var(--green);border:1px solid rgba(76,175,80,0.35);padding:8px 14px;border-radius:6px">Owner Login</a>
+  </div>
+</nav>
+
+<div class="page">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div id="loading">
+      <div class="spinner"></div>
+      <div>Finding your territory…</div>
+    </div>
+    <div id="error-state">
+      <div class="error-icon">📍</div>
+      <div class="error-title">Zip code not found</div>
+      <div class="error-sub">We couldn't locate that zip code. Double-check it and try again.</div>
+      <a href="index.html" class="error-back">← Try Again</a>
+    </div>
+    <div id="sidebar-content" style="display:none;display:flex;flex-direction:column;gap:20px">
+
+      <div class="location-header">
+        <div class="location-eyebrow">Available Territory</div>
+        <div class="location-name" id="loc-name">—</div>
+        <div class="location-meta" id="loc-meta">—</div>
+      </div>
+
+      <div class="avail-badge">
+        <div class="avail-dot"></div>
+        <div>
+          <div class="avail-text">Territory Available</div>
+          <div class="avail-sub">No active contractor in this zone</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="radius-section-label">Coverage Radius</div>
+        <div class="radius-chips">
+          <button class="radius-chip" onclick="changeRadius(10,this)">10 mi</button>
+          <button class="radius-chip" onclick="changeRadius(25,this)">25 mi</button>
+          <button class="radius-chip" onclick="changeRadius(50,this)">50 mi</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-cell">
+          <div class="stat-num" id="stat-homes">—</div>
+          <div class="stat-lbl">Est. Homes</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num" id="stat-leads">—</div>
+          <div class="stat-lbl">Target Leads</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-num">1</div>
+          <div class="stat-lbl">Contractor</div>
+        </div>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-label">Your Territory</div>
+        <div>
+          <span class="pricing-amount">$2,500</span><span class="pricing-period">/month</span>
+        </div>
+        <div class="pricing-note">Cancel anytime · Setup in 24 hrs</div>
+        <ul class="pricing-features">
+          <li>Exclusive zip code territory — no sharing</li>
+          <li>Prequalified homeowner lead list delivered</li>
+          <li>Real-time agent route app included</li>
+          <li>Owner dashboard with live progress tracking</li>
+          <li>New leads added as market data updates</li>
+        </ul>
+      </div>
+
+      <a href="owner.html" class="cta-btn">Claim This Territory →</a>
+      <a href="tel:9194808884" class="cta-secondary">📞 Talk to us first — (919) 480-8884</a>
+
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div class="map-overlay" id="map-overlay" style="display:none">
+      <strong id="overlay-zip">—</strong>
+      <span id="overlay-radius">—</span> coverage radius<br>
+      <span style="color:var(--green);font-weight:700">● Available</span>
+    </div>
+  </div>
+</div>
+
+<script>
+var params = new URLSearchParams(window.location.search);
+var zip = params.get('zip') || '';
+var radius = parseInt(params.get('radius') || '25', 10);
+var lat = 0, lng = 0;
+var map, circle, marker;
+
+// Homes estimate by radius
+var homesEst = { 10: '8,000–15,000', 25: '50,000–120,000', 50: '200,000+' };
+var leadsEst = { 10: '200–500', 25: '800–2,000', 50: '3,000+' };
+
+function init() {
+  if (!/^\d{5}$/.test(zip)) {
+    showError();
+    return;
+  }
+  // Fetch zip → lat/lng from free API
+  fetch('https://api.zippopotam.us/us/' + zip)
+    .then(function(r) {
+      if (!r.ok) throw new Error('not found');
+      return r.json();
+    })
+    .then(function(data) {
+      lat = parseFloat(data.places[0].latitude);
+      lng = parseFloat(data.places[0].longitude);
+      var city = data.places[0]['place name'];
+      var state = data.places[0]['state abbreviation'];
+      showResult(city, state);
+    })
+    .catch(function() {
+      showError();
+    });
+}
+
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-state').style.display = 'block';
+}
+
+function showResult(city, state) {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('sidebar-content').style.display = 'flex';
+  document.getElementById('loc-name').textContent = city + ', ' + state;
+  document.getElementById('loc-meta').textContent = 'Zip Code ' + zip + ' · ' + radius + '-mile radius';
+  updateStats();
+  buildMap(city, state);
+  // Activate correct radius chip
+  document.querySelectorAll('.radius-chip').forEach(function(chip) {
+    chip.classList.toggle('active', parseInt(chip.textContent) === radius);
+  });
+}
+
+function updateStats() {
+  document.getElementById('stat-homes').textContent = homesEst[radius] || '—';
+  document.getElementById('stat-leads').textContent = leadsEst[radius] || '—';
+  document.getElementById('loc-meta').textContent = 'Zip Code ' + zip + ' · ' + radius + '-mile radius';
+}
+
+function buildMap(city, state) {
+  map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([lat, lng], getZoomForRadius(radius));
+
+  // Dark tile layer
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    maxZoom: 18
+  }).addTo(map);
+
+  // Radius circle
+  var radiusMeters = radius * 1609.34;
+  circle = L.circle([lat, lng], {
+    radius: radiusMeters,
+    color: '#4caf50',
+    fillColor: '#4caf50',
+    fillOpacity: 0.08,
+    weight: 2,
+    dashArray: '6 4'
+  }).addTo(map);
+
+  // Center marker
+  var icon = L.divIcon({
+    className: '',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#4caf50;border:3px solid #fff;box-shadow:0 0 12px rgba(76,175,80,0.8)"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  });
+  marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+
+  // Map overlay
+  var overlayEl = document.getElementById('map-overlay');
+  overlayEl.style.display = 'block';
+  document.getElementById('overlay-zip').textContent = zip + ' · ' + city + ', ' + state;
+  document.getElementById('overlay-radius').textContent = radius + ' mi';
+}
+
+function getZoomForRadius(r) {
+  if (r <= 10) return 11;
+  if (r <= 25) return 10;
+  return 8;
+}
+
+function changeRadius(r, el) {
+  radius = r;
+  document.querySelectorAll('.radius-chip').forEach(function(c){ c.classList.remove('active'); });
+  el.classList.add('active');
+  updateStats();
+  // Update URL without reload
+  var newUrl = window.location.pathname + '?zip=' + zip + '&radius=' + r;
+  history.replaceState(null, '', newUrl);
+  document.getElementById('overlay-radius').textContent = r + ' mi';
+  document.getElementById('loc-meta').textContent = 'Zip Code ' + zip + ' · ' + r + '-mile radius';
+  if (map && circle) {
+    circle.setRadius(r * 1609.34);
+    map.setView([lat, lng], getZoomForRadius(r), { animate: true });
+  }
+}
+
+init();
+</script>
+</body>
+</html>

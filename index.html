@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>RooFinder — Exclusive Roofing Leads | North Carolina</title>
-<meta name="description" content="Exclusive, scored roofing lead lists for NC contractors. Own your territory across Raleigh, Charlotte, Greensboro, Winston-Salem, Fayetteville, Wilmington, and Asheville."/>
+<title>RooFinder — Own Your Roofing Territory | Any Zip Code in the US</title>
+<meta name="description" content="Search your zip code and claim an exclusive roofing territory. RooFinder delivers prequalified homeowner leads to one contractor per zone — anywhere in the US."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -54,6 +54,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(
 .btn-primary:hover{background:#5cc760}
 .btn-secondary{background:transparent;color:var(--white);font-size:13px;font-weight:600;padding:14px 28px;border-radius:8px;border:1px solid var(--border);transition:border-color .2s,background .2s;display:inline-flex;align-items:center;gap:8px}
 .btn-secondary:hover{border-color:rgba(255,255,255,0.25);background:rgba(255,255,255,0.04)}
+/* ── ZIP SEARCH ── */
+#zip-search-box{margin:36px auto 0;max-width:600px;width:100%}
+#zip-search-inner{display:flex;gap:0;border:1px solid rgba(76,175,80,0.35);border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.04);backdrop-filter:blur(8px)}
+#zip-field-wrap{flex:1;display:flex;align-items:center;gap:10px;padding:0 16px;border-right:1px solid rgba(255,255,255,0.08);min-width:0}
+#zip-pin-icon{flex-shrink:0}
+#zip-input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:16px;font-family:inherit;font-weight:600;letter-spacing:.5px;padding:16px 0;min-width:0}
+#zip-input::placeholder{color:#555;font-weight:400;letter-spacing:0}
+#radius-select{background:rgba(255,255,255,0.04);border:none;border-right:1px solid rgba(255,255,255,0.08);color:#aaa;font-size:13px;font-weight:600;font-family:inherit;padding:0 16px;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;white-space:nowrap;flex-shrink:0}
+#zip-search-btn{background:var(--green);color:#000;font-size:13px;font-weight:800;letter-spacing:.5px;padding:0 24px;border:none;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s;flex-shrink:0}
+#zip-search-btn:hover{background:#5cc760}
+@media(max-width:600px){
+  #zip-search-inner{flex-direction:column;border-radius:12px}
+  #zip-field-wrap{border-right:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:14px 16px}
+  #radius-select{border-right:none;border-bottom:1px solid rgba(255,255,255,0.08);padding:12px 16px;text-align:left}
+  #zip-search-btn{padding:16px;border-radius:0 0 11px 11px}
+}
 .hero-proof{margin-top:56px;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--gray);font-size:12px;font-weight:500;letter-spacing:.5px}
 .hero-proof-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
 .hero-stats{display:flex;align-items:center;justify-content:center;gap:40px;margin-top:60px;padding-top:60px;border-top:1px solid var(--border);flex-wrap:wrap}
@@ -319,31 +335,45 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">Exclusive Roofing Leads · North Carolina</div>
-    <h1 class="hero-headline">Know Which<br>Roofs Need You<br><span>Before You Knock</span></h1>
-    <p class="hero-sub">RooFinder prequalifies every home on your list. Know which roofs need you before you knock.</p>
-    <div class="hero-actions">
-      <a href="#cta" class="btn-primary">Get Access →</a>
-      <a href="#sample" class="btn-secondary">See Sample Data</a>
+    <div class="hero-eyebrow">Available Nationwide · Any Zip Code</div>
+    <h1 class="hero-headline">Own Your<br>Roofing Territory.<br><span>Anywhere.</span></h1>
+    <p class="hero-sub">Enter your zip code and claim an exclusive territory. RooFinder delivers prequalified homeowner leads — one contractor per zone, no sharing.</p>
+
+    <!-- ZIP SEARCH -->
+    <div id="zip-search-box">
+      <div id="zip-search-inner">
+        <div id="zip-field-wrap">
+          <svg id="zip-pin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <input id="zip-input" type="text" inputmode="numeric" maxlength="5" placeholder="Enter your zip code" autocomplete="postal-code"/>
+        </div>
+        <select id="radius-select">
+          <option value="10">10 miles</option>
+          <option value="25" selected>25 miles</option>
+          <option value="50">50 miles</option>
+        </select>
+        <button id="zip-search-btn" onclick="searchTerritory()">Find My Territory →</button>
+      </div>
+      <div id="zip-err" style="display:none;color:#ff5555;font-size:12px;margin-top:10px">Please enter a valid 5-digit zip code.</div>
     </div>
+
     <div class="hero-proof">
       <div class="hero-proof-dot"></div>
-      500 homes screened per pocket &mdash; 45–100 prequalified leads delivered
+      One contractor per zone &mdash; yours until you cancel
     </div>
     <div class="hero-stats">
       <div>
-        <div class="hero-stat-num">9</div>
-        <div class="hero-stat-lbl">Raleigh Cities</div>
+        <div class="hero-stat-num">25,000+</div>
+        <div class="hero-stat-lbl">US Zip Codes</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
-        <div class="hero-stat-num">50</div>
-        <div class="hero-stat-lbl">Exclusive Pockets</div>
+        <div class="hero-stat-num">50+</div>
+        <div class="hero-stat-lbl">Doors Per Pocket</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
-        <div class="hero-stat-num">45–100</div>
-        <div class="hero-stat-lbl">Prequalified Leads Per Pocket</div>
+        <div class="hero-stat-num">100%</div>
+        <div class="hero-stat-lbl">Exclusive Territory</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
@@ -751,6 +781,29 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
     var target = document.querySelector(this.getAttribute('href'));
     if (target) { e.preventDefault(); target.scrollIntoView({behavior:'smooth'}); }
   });
+});
+
+// ── Zip Territory Search ─────────────────────────────────────────────────
+function searchTerritory() {
+  var zip = document.getElementById('zip-input').value.trim();
+  var radius = document.getElementById('radius-select').value;
+  var errEl = document.getElementById('zip-err');
+  if (!/^\d{5}$/.test(zip)) {
+    errEl.style.display = 'block';
+    document.getElementById('zip-input').focus();
+    return;
+  }
+  errEl.style.display = 'none';
+  window.location.href = 'search.html?zip=' + zip + '&radius=' + radius;
+}
+
+// Allow Enter key in zip input
+document.getElementById('zip-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') searchTerritory();
+  // Only allow digits
+  if (!/[\d\b]/.test(e.key) && !['ArrowLeft','ArrowRight','Delete','Tab'].includes(e.key)) {
+    e.preventDefault();
+  }
 });
 </script>
 </body>
