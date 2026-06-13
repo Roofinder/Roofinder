@@ -290,9 +290,10 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
     <div class="panel" id="panel-agents">
       <div class="sec-head">
         <div>
-          <div class="sec-title">Agent History</div>
-          <div class="sec-sub">Lifetime stats per agent across all routes</div>
+          <div class="sec-title">Agents</div>
+          <div class="sec-sub">Manage your team and track lifetime stats</div>
         </div>
+        <button class="btn-primary" onclick="openAgentModal()">+ Add Agent</button>
       </div>
       <div class="table-wrap">
         <table class="data-table">
@@ -331,6 +332,22 @@ main{max-width:1100px;margin:0 auto;padding:32px 24px}
     </div>
     <div style="margin-top:12px;text-align:right;display:none" id="cr-done-actions">
       <button class="btn-ghost" onclick="closeCreateModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── AGENT MODAL ── -->
+<div class="modal-overlay" id="agent-modal">
+  <div class="modal">
+    <div class="modal-title" id="agent-modal-title">Add Agent</div>
+    <label class="form-label">Name</label>
+    <input class="form-input" id="ag-name" placeholder="e.g. Jake"/>
+    <label class="form-label">Phone (optional)</label>
+    <input class="form-input" id="ag-phone" placeholder="e.g. (919) 555-1234" type="tel"/>
+    <div id="ag-err" style="color:#ff5555;font-size:12px;margin-top:-8px;display:none">Name is required.</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeAgentModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveAgent()">Save Agent →</button>
     </div>
   </div>
 </div>
@@ -423,6 +440,8 @@ var POCKET_LEADS = {
 var currentUser = null;
 var contractorData = null;
 var allRoutes = [];
+var agentsList = []; // from Firestore agents collection
+var editingAgentId = null; // doc ID when editing
 var detailUnsub = null;
 var detailRouteCode = null;
 var createdRouteCode = null;
@@ -566,6 +585,77 @@ function launchApp() {
 
   loadRoutes();
   loadPockets();
+  loadAgents();
+}
+
+// ── Agents Collection ─────────────────────────────────────────────────────
+function loadAgents() {
+  db.collection('agents')
+    .where('ownerUid', '==', currentUser.uid)
+    .onSnapshot(function(snap) {
+      agentsList = [];
+      snap.forEach(function(doc) { agentsList.push(Object.assign({ id: doc.id }, doc.data())); });
+      renderAgents();
+    }, function(err) { console.error('loadAgents error', err); });
+}
+
+function openAgentModal(agentId) {
+  editingAgentId = agentId || null;
+  var modal = document.getElementById('agent-modal');
+  document.getElementById('ag-err').style.display = 'none';
+  if (agentId) {
+    var agent = agentsList.find(function(a){ return a.id === agentId; });
+    document.getElementById('agent-modal-title').textContent = 'Edit Agent';
+    document.getElementById('ag-name').value = agent ? agent.name : '';
+    document.getElementById('ag-phone').value = agent ? (agent.phone || '') : '';
+  } else {
+    document.getElementById('agent-modal-title').textContent = 'Add Agent';
+    document.getElementById('ag-name').value = '';
+    document.getElementById('ag-phone').value = '';
+  }
+  modal.style.display = 'flex';
+  setTimeout(function(){ document.getElementById('ag-name').focus(); }, 50);
+}
+
+function closeAgentModal() {
+  document.getElementById('agent-modal').style.display = 'none';
+  editingAgentId = null;
+}
+
+function saveAgent() {
+  var name = document.getElementById('ag-name').value.trim();
+  var phone = document.getElementById('ag-phone').value.trim();
+  if (!name) { document.getElementById('ag-err').style.display = 'block'; return; }
+  document.getElementById('ag-err').style.display = 'none';
+
+  if (editingAgentId) {
+    // Update existing agent doc
+    var oldAgent = agentsList.find(function(a){ return a.id === editingAgentId; });
+    var oldName = oldAgent ? oldAgent.name : null;
+    db.collection('agents').doc(editingAgentId).update({ name: name, phone: phone }).then(function() {
+      // Rename across routes if name changed
+      if (oldName && oldName !== name) {
+        var batch = db.batch();
+        allRoutes.forEach(function(r) {
+          if (r.agentName === oldName) {
+            batch.update(db.collection('agentRoutes').doc(r.routeCode), { agentName: name });
+          }
+        });
+        batch.commit();
+      }
+    }).catch(function(e){ alert('Error: ' + e.message); });
+  } else {
+    // Create new agent
+    db.collection('agents').add({
+      name: name,
+      phone: phone,
+      ownerUid: currentUser.uid,
+      ownerCode: contractorData.portal || '',
+      active: true,
+      createdAt: Date.now()
+    }).catch(function(e){ alert('Error: ' + e.message); });
+  }
+  closeAgentModal();
 }
 
 // ── Pockets ───────────────────────────────────────────────────────────────
@@ -710,11 +800,12 @@ function routeCardHtml(r, showArchive) {
 
 // ── Render Agents ─────────────────────────────────────────────────────────
 function renderAgents() {
-  var agentMap = {};
+  // Build stats from routes
+  var statMap = {};
   allRoutes.forEach(function(r) {
     var name = r.agentName || 'Unknown';
-    if (!agentMap[name]) agentMap[name] = { routes: 0, knocked: 0, interested: 0, appt: 0, lastActive: 0 };
-    var a = agentMap[name];
+    if (!statMap[name]) statMap[name] = { routes: 0, knocked: 0, interested: 0, appt: 0, lastActive: 0 };
+    var a = statMap[name];
     a.routes++;
     var st = r.statuses || {};
     Object.values(st).forEach(function(s) {
@@ -725,45 +816,77 @@ function renderAgents() {
     if (r.lastUpdate > a.lastActive) a.lastActive = r.lastUpdate;
   });
 
+  // Merge Firestore agents + route-derived agents
+  var seen = {};
+  var rows = [];
+
+  // Firestore agents first (have an id for editing)
+  agentsList.filter(function(a){ return a.active !== false; }).forEach(function(agent) {
+    seen[agent.name] = true;
+    var s = statMap[agent.name] || { routes: 0, knocked: 0, interested: 0, appt: 0, lastActive: 0 };
+    rows.push({ id: agent.id, name: agent.name, phone: agent.phone || '', stats: s });
+  });
+
+  // Route-only agents (not yet in Firestore)
+  Object.keys(statMap).forEach(function(name) {
+    if (!seen[name]) rows.push({ id: null, name: name, phone: '', stats: statMap[name] });
+  });
+
   var tbody = document.getElementById('agents-tbody');
-  var agents = Object.keys(agentMap);
-  if (!agents.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>';
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet — click "+ Add Agent" to get started</div></div></td></tr>';
     return;
   }
-  tbody.innerHTML = agents.map(function(name) {
-    var a = agentMap[name];
-    var rate = a.knocked > 0 ? Math.round(a.interested / a.knocked * 100) : 0;
-    var lastDate = a.lastActive ? new Date(a.lastActive).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
-    var safeName = name.replace(/'/g, "\\'");
+  tbody.innerHTML = rows.map(function(row) {
+    var s = row.stats;
+    var rate = s.knocked > 0 ? Math.round(s.interested / s.knocked * 100) : 0;
+    var lastDate = s.lastActive ? new Date(s.lastActive).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+    var safeId = row.id ? row.id.replace(/'/g,"\\'") : '';
+    var safeName = row.name.replace(/'/g,"\\'");
+    var editBtn = row.id
+      ? '<button class="tbl-btn" onclick="openAgentModal(\'' + safeId + '\')">✏️ Edit</button>'
+      : '<button class="tbl-btn" onclick="editAgent(\'' + safeName + '\')">✏️ Edit</button>';
     return '<tr>'
-      + '<td><div class="cell-name">' + name + '</div></td>'
-      + '<td>' + a.routes + '</td>'
-      + '<td class="green">' + a.knocked + '</td>'
-      + '<td class="yellow">' + a.interested + '</td>'
-      + '<td class="purple">' + a.appt + '</td>'
+      + '<td><div class="cell-name">' + row.name + '</div>'
+        + (row.phone ? '<div style="font-size:11px;color:#555">' + row.phone + '</div>' : '')
+      + '</td>'
+      + '<td>' + s.routes + '</td>'
+      + '<td class="green">' + s.knocked + '</td>'
+      + '<td class="yellow">' + s.interested + '</td>'
+      + '<td class="purple">' + s.appt + '</td>'
       + '<td>' + rate + '%</td>'
       + '<td class="dim">' + lastDate + '</td>'
       + '<td style="white-space:nowrap">'
-        + '<button class="tbl-btn" onclick="editAgent(\'' + safeName + '\')">✏️ Edit</button> '
+        + editBtn + ' '
         + '<button class="tbl-btn danger" onclick="removeAgent(\'' + safeName + '\')">🗑 Remove</button>'
       + '</td>'
       + '</tr>';
   }).join('');
 }
 
-// ── Edit Agent ────────────────────────────────────────────────────────────
+// ── Edit Agent (route-only fallback — opens modal pre-filled by name) ─────
 function editAgent(oldName) {
-  var newName = prompt('Rename agent "' + oldName + '" to:', oldName);
-  if (!newName || newName.trim() === oldName) return;
-  newName = newName.trim();
-  var batch = db.batch();
-  allRoutes.forEach(function(r) {
-    if (r.agentName === oldName) {
-      batch.update(db.collection('agentRoutes').doc(r.routeCode), { agentName: newName });
-    }
-  });
-  batch.commit().catch(function(e) { alert('Error renaming agent: ' + e.message); });
+  // Pre-fill modal for agents that exist in routes but not yet in Firestore
+  editingAgentId = null;
+  document.getElementById('agent-modal-title').textContent = 'Edit Agent';
+  document.getElementById('ag-name').value = oldName;
+  document.getElementById('ag-phone').value = '';
+  document.getElementById('ag-err').style.display = 'none';
+  document.getElementById('agent-modal').style.display = 'flex';
+  // Override saveAgent to do a route-only rename
+  document.querySelector('#agent-modal .btn-primary').onclick = function() {
+    var newName = document.getElementById('ag-name').value.trim();
+    if (!newName) { document.getElementById('ag-err').style.display = 'block'; return; }
+    var batch = db.batch();
+    allRoutes.forEach(function(r) {
+      if (r.agentName === oldName) {
+        batch.update(db.collection('agentRoutes').doc(r.routeCode), { agentName: newName });
+      }
+    });
+    batch.commit().catch(function(e){ alert('Error: ' + e.message); });
+    closeAgentModal();
+    document.querySelector('#agent-modal .btn-primary').onclick = saveAgent;
+  };
 }
 
 // ── Remove Agent ──────────────────────────────────────────────────────────
