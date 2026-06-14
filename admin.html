@@ -1215,6 +1215,122 @@ function zbUpdateRouteCount() {
   document.getElementById('zb-route-preview').textContent = count;
 }
 
+function zbGetCountyConfig(zip) {
+  // Wake County, NC (zips 275xx, 276xx)
+  if (/^27[56]/.test(zip)) {
+    return {
+      name: 'Wake County, NC',
+      endpoint: 'https://maps.wake.gov/arcgis/rest/services/Property/Parcels/MapServer/0',
+      zipField: 'ZIPNUM', addrField: 'SITE_ADDRESS', ownerField: 'OWNER',
+      yearField: 'YEAR_BUILT', valField: 'TOTAL_VALUE_ASSD',
+      streetField: 'FULL_STREET_NAME', typeField: 'TYPE_USE_DECODE',
+      resTypes: ['SINGLFAM', 'TWOFAM', 'TOWNHSE']
+    };
+  }
+  // More counties can be added here
+  return null;
+}
+
+function zbFetchLiveData() {
+  var btn = document.getElementById('zb-fetch-btn');
+  var statusEl = document.getElementById('zb-fetch-status');
+  var err = document.getElementById('zb-parse-err');
+  err.style.display = 'none';
+
+  if (!zbZip) { err.textContent = 'No zip code linked. Open zone builder from an application card.'; err.style.display = 'inline'; return; }
+
+  var c = zbGetCountyConfig(zbZip);
+  if (!c) {
+    err.textContent = 'Auto-fetch not yet available for zip ' + zbZip + '. Use the CSV upload above.';
+    err.style.display = 'inline';
+    return;
+  }
+
+  var curYear = new Date().getFullYear();
+  var ageMin  = parseInt(document.getElementById('zb-age-min').value) || 18;
+  var ageMax  = parseInt(document.getElementById('zb-age-max').value) || 27;
+  var minVal  = parseInt(document.getElementById('zb-min-val').value) || 250000;
+  var yearMin = curYear - ageMax;
+  var yearMax = curYear - ageMin;
+
+  btn.textContent = 'Fetching…'; btn.disabled = true;
+  statusEl.textContent = 'Pulling ' + c.name + ' records for ' + zbZip + '…';
+
+  var where = c.zipField + "='" + zbZip + "' AND " +
+              c.yearField + ">=" + yearMin + " AND " +
+              c.yearField + "<=" + yearMax + " AND " +
+              c.valField  + ">=" + minVal;
+  var outFields = [c.addrField, c.ownerField, c.yearField, c.valField, c.zipField, c.streetField, c.typeField].join(',');
+  var url = c.endpoint + '/query?where=' + encodeURIComponent(where) +
+    '&outFields=' + encodeURIComponent(outFields) +
+    '&returnGeometry=false&f=json&resultRecordCount=2000';
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      if (data.error) throw new Error(data.error.message);
+      var features = (data.features || []).filter(function(f) {
+        return !c.resTypes || c.resTypes.indexOf(f.attributes[c.typeField]) >= 0;
+      });
+      if (!features.length) {
+        throw new Error('No qualifying homes found in zip ' + zbZip + '. Try adjusting the filters.');
+      }
+
+      zbLeads = [];
+      features.forEach(function(f) {
+        var a = f.attributes;
+        var addr = (a[c.addrField] || '').trim();
+        var year = a[c.yearField];
+        if (!addr || !year) return;
+        var val  = a[c.valField];
+        var age  = curYear - year;
+        var tier = age <= 22 ? 'PRIME' : age <= 25 ? 'HOT' : 'WARM';
+        zbLeads.push({
+          addr:   addr,
+          owner:  (a[c.ownerField] || '').trim(),
+          tier:   tier,
+          age:    age,
+          val:    val ? '$' + Math.round(val/1000) + 'k' : '',
+          street: (a[c.streetField] || '').trim() || addr.replace(/^\d+\s+/,'').trim()
+        });
+      });
+
+      var tierOrder = {PRIME:0, HOT:1, WARM:2};
+      zbLeads.sort(function(a,b){ return (tierOrder[a.tier]||0)-(tierOrder[b.tier]||0); });
+
+      statusEl.textContent = '✓ ' + zbLeads.length + ' homes fetched from ' + c.name;
+      btn.textContent = 'Fetch Live Data →'; btn.disabled = false;
+
+      var tbody = document.getElementById('zb-preview-body');
+      tbody.innerHTML = '';
+      zbLeads.slice(0,30).forEach(function(lead,i) {
+        var tc = lead.tier==='PRIME'?'#4caf50':lead.tier==='HOT'?'#ff9800':'#64b5f6';
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td style="color:#555">'+(i+1)+'</td>' +
+          '<td style="font-weight:600">'+lead.addr+'</td>' +
+          '<td style="color:#888">'+(lead.owner||'—')+'</td>' +
+          '<td style="color:'+tc+';font-weight:700;font-size:11px">'+lead.tier+' '+lead.age+'yr</td>' +
+          '<td style="color:#888">'+(lead.val||'—')+'</td>';
+        tbody.appendChild(tr);
+      });
+      if (zbLeads.length > 30) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="5" style="color:#444;text-align:center;font-size:12px">… and '+(zbLeads.length-30)+' more</td>';
+        tbody.appendChild(tr);
+      }
+      document.getElementById('zb-lead-summary').textContent = zbLeads.length + ' homes pulled live from county records';
+      zbUpdateRouteCount();
+      document.getElementById('zb-per-route').oninput = zbUpdateRouteCount;
+      zbShowStep(2);
+    })
+    .catch(function(e) {
+      err.textContent = (e.message || 'Fetch failed') + '. Try CSV upload instead.';
+      err.style.display = 'inline';
+      btn.textContent = 'Fetch Live Data →'; btn.disabled = false;
+      statusEl.textContent = 'Uses the age range &amp; min value settings above';
+    });
+}
+
 function zbLaunchZone() {
   var ownerCode = document.getElementById('zb-owner-code').value.trim();
   var perRoute  = parseInt(document.getElementById('zb-per-route').value) || 25;
@@ -1328,6 +1444,19 @@ function zbCopyCode(el) {
       <div style="display:flex;gap:12px;margin-top:16px;align-items:center">
         <button onclick="zbProcessParcel()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 24px;border:none;border-radius:8px;cursor:pointer">Filter & Preview →</button>
         <span id="zb-parse-err" style="color:#ff5555;font-size:12px;display:none"></span>
+      </div>
+
+      <!-- OR: Fetch live from county API -->
+      <div style="text-align:center;margin:20px 0;position:relative">
+        <div style="border-top:1px solid #1a1a1a;position:absolute;top:50%;left:0;right:0"></div>
+        <span style="position:relative;background:#0a0a0a;padding:0 16px;font-size:11px;font-weight:700;letter-spacing:1px;color:#444;text-transform:uppercase">or</span>
+      </div>
+      <div style="background:#0d0d0d;border:1px solid rgba(76,175,80,0.2);border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">⚡ Auto-Fetch from County Database</div>
+          <div id="zb-fetch-status" style="font-size:12px;color:#666">Uses the age range &amp; min value settings above</div>
+        </div>
+        <button id="zb-fetch-btn" onclick="zbFetchLiveData()" style="background:transparent;border:2px solid #4caf50;color:#4caf50;font-weight:800;font-size:13px;padding:10px 22px;border-radius:8px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:all .2s" onmouseover="this.style.background='rgba(76,175,80,0.1)'" onmouseout="this.style.background='transparent'">Fetch Live Data →</button>
       </div>
     </div>
 
