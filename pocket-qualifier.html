@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RooFinder — Zone Qualifier</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+
+/* LOGIN */
+#auth{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(76,175,80,0.12) 0%,transparent 60%),#0a0a0a}
+.auth-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:48px 40px;max-width:400px;width:100%;text-align:center}
+.auth-logo{font-size:22px;font-weight:900;margin-bottom:4px}.auth-logo span{color:#4caf50}
+.auth-sub{font-size:13px;color:#888;margin-bottom:32px}
+.auth-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;display:block;margin-bottom:8px;text-align:left}
+.auth-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px 16px;color:#fff;font-size:14px;font-family:inherit;margin-bottom:16px;outline:none}
+.auth-input:focus{border-color:rgba(76,175,80,0.5)}
+.auth-btn{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:14px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
+.auth-err{color:#ff5555;font-size:12px;margin-top:8px;display:none}
+
+/* TOOL */
+#tool{display:none;max-width:1100px;margin:0 auto;padding:40px 28px 80px}
+
+/* HEADER */
+.tool-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.tool-logo{font-size:18px;font-weight:900}.tool-logo span{color:#4caf50}
+.tool-badge{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);color:#4caf50;padding:4px 12px;border-radius:100px}
+
+/* STEP CARDS */
+.step-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:28px 32px;margin-bottom:20px}
+.step-card.active{border-color:rgba(76,175,80,0.3);background:rgba(76,175,80,0.03)}
+.step-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4caf50;margin-bottom:8px}
+.step-title{font-size:16px;font-weight:800;margin-bottom:4px}
+.step-sub{font-size:12px;color:#666;margin-bottom:20px}
+
+/* DROP ZONE */
+.drop-zone{border:2px dashed rgba(255,255,255,0.12);border-radius:10px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px}
+.drop-zone:hover,.drop-zone.drag{border-color:rgba(76,175,80,0.5);background:rgba(76,175,80,0.04)}
+.drop-icon{font-size:32px;margin-bottom:10px}
+.drop-text{font-size:13px;color:#888}
+.drop-text span{color:#4caf50;text-decoration:underline;cursor:pointer}
+#file-input{display:none}
+.file-status{font-size:13px;color:#4caf50;font-weight:700;display:none;margin-top:8px}
+
+/* FILTERS */
+.filter-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+@media(max-width:700px){.filter-grid{grid-template-columns:1fr}}
+.filter-item label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;display:block;margin-bottom:8px}
+.filter-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-weight:700;font-family:inherit;outline:none}
+.filter-input:focus{border-color:rgba(76,175,80,0.5)}
+.filter-hint{font-size:11px;color:#555;margin-top:5px}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.toggle{width:40px;height:22px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:100px;position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:#4caf50;border-color:#4caf50}
+.toggle::after{content:'';width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s}
+.toggle.on::after{left:20px}
+.toggle-label{font-size:13px;font-weight:600}
+.toggle-sub{font-size:11px;color:#555}
+
+/* ANALYZE BTN */
+.analyze-btn{background:#4caf50;color:#000;font-size:14px;font-weight:800;padding:14px 32px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;transition:background .2s}
+.analyze-btn:hover{background:#5cc760}
+.analyze-btn:disabled{background:#1a3a1c;color:#3a5a3c;cursor:not-allowed}
+
+/* RESULTS */
+#results{display:none}
+.results-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+@media(max-width:700px){.results-summary{grid-template-columns:1fr 1fr}}
+.stat-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:16px 18px}
+.stat-num{font-size:24px;font-weight:900;margin-bottom:2px}
+.stat-num.green{color:#4caf50}
+.stat-num.red{color:#ef4444}
+.stat-label{font-size:11px;color:#555}
+
+/* ZIP TABLE */
+.zip-table-wrap{overflow-x:auto;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#555;padding:10px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07)}
+td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.zip-code{font-size:15px;font-weight:800;letter-spacing:2px}
+.value-bar{display:flex;align-items:center;gap:8px}
+.bar{height:4px;background:rgba(76,175,80,0.2);border-radius:2px;flex:1}
+.bar-fill{height:4px;background:#4caf50;border-radius:2px}
+.quality-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700}
+.q-high{background:rgba(76,175,80,0.15);color:#4caf50;border:1px solid rgba(76,175,80,0.3)}
+.q-med{background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25)}
+.q-low{background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2)}
+.check-cell input[type=checkbox]{width:16px;height:16px;accent-color:#4caf50;cursor:pointer}
+
+/* SEED CONTROLS */
+.seed-controls{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.seed-btn{background:#4caf50;color:#000;font-size:14px;font-weight:800;padding:14px 28px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
+.seed-btn:hover{background:#5cc760}
+.seed-btn:disabled{background:#1a3a1c;color:#3a5a3c;cursor:not-allowed}
+.select-all-btn{background:rgba(255,255,255,0.05);color:#aaa;font-size:12px;font-weight:700;padding:10px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-family:inherit}
+.select-all-btn:hover{background:rgba(255,255,255,0.08)}
+.seed-count-label{font-size:13px;color:#888}
+
+/* PROGRESS */
+.seed-progress{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:20px;margin-bottom:16px}
+.progress-track{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;margin-bottom:10px}
+.progress-fill{height:6px;background:#4caf50;border-radius:3px;width:0;transition:width .3s}
+.progress-meta{display:flex;justify-content:space-between;font-size:12px;color:#888}
+
+/* LOG */
+.log{max-height:220px;overflow-y:auto;font-size:12px;font-family:monospace;display:none;margin-top:12px}
+.log-ok{color:#4caf50}.log-err{color:#ef4444}.log-warn{color:#f59e0b}.log-info{color:#888}.log-bold{color:#fff;font-weight:700}
+
+/* DONE */
+.done-banner{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:10px;padding:20px 24px;display:none;margin-top:16px}
+.done-banner-title{font-size:15px;font-weight:800;color:#4caf50;margin-bottom:4px}
+.done-banner-sub{font-size:12px;color:#888}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth">
+  <div class="auth-box">
+    <div class="auth-logo">ROOF<span>FINDER</span></div>
+    <div class="auth-sub" style="margin-top:4px">Zone Qualifier — Admin Only</div>
+    <label class="auth-label">Password</label>
+    <input class="auth-input" type="password" id="pw-input" placeholder="••••••••••" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="auth-btn" onclick="login()">Enter →</button>
+    <div class="auth-err" id="auth-err">Incorrect password.</div>
+  </div>
+</div>
+
+<!-- TOOL -->
+<div id="tool">
+
+  <div class="tool-header">
+    <div class="tool-logo">ROOF<span>FINDER</span></div>
+    <div class="tool-badge">Zone Qualifier</div>
+  </div>
+
+  <!-- STEP 1: UPLOAD + FILTERS -->
+  <div class="step-card active" id="step1">
+    <div class="step-label">Step 1</div>
+    <div class="step-title">Upload County Assessor CSV</div>
+    <div class="step-sub">Download property records from your county assessor's website and drop the CSV here. The tool will filter and organize by zip code automatically.</div>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="ev.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+      <div class="drop-icon">📂</div>
+      <div class="drop-text">Drop CSV here or <span>browse files</span></div>
+    </div>
+    <input type="file" id="file-input" accept=".csv" onchange="handleFile(this.files[0])"/>
+    <div class="file-status" id="file-status"></div>
+
+    <div style="margin:24px 0 12px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#555">Qualification Filters</div>
+    <div class="filter-grid">
+      <div class="filter-item">
+        <label>Min Roof Age (years)</label>
+        <input class="filter-input" type="number" id="min-age" value="18" min="1" max="50"/>
+        <div class="filter-hint" id="min-age-hint"></div>
+      </div>
+      <div class="filter-item">
+        <label>Max Roof Age (years)</label>
+        <input class="filter-input" type="number" id="max-age" value="27" min="1" max="80"/>
+        <div class="filter-hint" id="max-age-hint"></div>
+      </div>
+      <div class="filter-item">
+        <label>Min Home Value ($)</label>
+        <input class="filter-input" type="text" id="min-value" value="250000"/>
+        <div class="filter-hint">Homes assessed at or above this amount</div>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle on" id="sf-toggle" onclick="this.classList.toggle('on')"></div>
+      <div>
+        <div class="toggle-label">Single-family residential only</div>
+        <div class="toggle-sub">Filters out condos, multi-family, and commercial — removes most HOA-roof-managed properties</div>
+      </div>
+    </div>
+
+    <button class="analyze-btn" id="analyze-btn" onclick="analyzeCSV()" disabled>Analyze & Qualify →</button>
+  </div>
+
+  <!-- STEP 2: RESULTS -->
+  <div id="results">
+    <div class="step-card">
+      <div class="step-label">Step 2</div>
+      <div class="step-title">Qualification Results</div>
+      <div class="step-sub" id="results-sub"></div>
+
+      <div class="results-summary">
+        <div class="stat-box">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-label">Total homes in CSV</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num green" id="stat-qualified">0</div>
+          <div class="stat-label">Qualified homes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-zips">0</div>
+          <div class="stat-label">Zip codes found</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-avg-value">—</div>
+          <div class="stat-label">Avg qualifying value</div>
+        </div>
+      </div>
+
+      <div class="zip-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="check-all" style="accent-color:#4caf50;cursor:pointer" onchange="toggleAll(this.checked)"/></th>
+              <th>Zip Code</th>
+              <th>Qualified Homes</th>
+              <th>Total in CSV</th>
+              <th>Pass Rate</th>
+              <th>Avg Value</th>
+              <th>Quality</th>
+            </tr>
+          </thead>
+          <tbody id="zip-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STEP 3: SEED -->
+    <div class="step-card" id="step3">
+      <div class="step-label">Step 3</div>
+      <div class="step-title">Seed Selected Zones</div>
+      <div class="step-sub">Seeds only the qualified homes for each selected zip code into Firestore. Existing data for that zip will be replaced.</div>
+
+      <div class="seed-controls">
+        <button class="seed-btn" id="seed-btn" onclick="seedSelected()" disabled>Seed Selected Zones →</button>
+        <button class="select-all-btn" onclick="toggleAll(true);document.getElementById('check-all').checked=true">Select All</button>
+        <button class="select-all-btn" onclick="toggleAll(false);document.getElementById('check-all').checked=false">Deselect All</button>
+        <span class="seed-count-label" id="seed-count-label">0 zips selected · 0 homes</span>
+      </div>
+
+      <div class="seed-progress" id="seed-progress" style="display:none">
+        <div style="font-size:12px;color:#888;margin-bottom:8px" id="seed-status-text">Seeding...</div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-meta"><span id="progress-text">Starting...</span><span id="progress-pct">0%</span></div>
+      </div>
+
+      <div class="log" id="log"></div>
+
+      <div class="done-banner" id="done-banner">
+        <div class="done-banner-title">✓ Zones Seeded Successfully</div>
+        <div class="done-banner-sub" id="done-banner-sub"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
+  authDomain: "roofinder-cc880.firebaseapp.com",
+  projectId: "roofinder-cc880",
+  storageBucket: "roofinder-cc880.firebasestorage.app",
+  messagingSenderId: "882068436752",
+  appId: "1:882068436752:web:2ccd00b3580a47ec749795"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+var ADMIN_PW = 'ROOFADMIN1';
+var allRows = [];
+var zipData = {}; // { zip: { all: [], qualified: [] } }
+var CURRENT_YEAR = new Date().getFullYear();
+
+// --- AUTH ---
+function login() {
+  if (document.getElementById('pw-input').value === ADMIN_PW) {
+    document.getElementById('auth').style.display = 'none';
+    document.getElementById('tool').style.display = 'block';
+    updateAgeHints();
+  } else {
+    document.getElementById('auth-err').style.display = 'block';
+  }
+}
+
+// --- AGE HINTS ---
+function updateAgeHints() {
+  var minAge = parseInt(document.getElementById('min-age').value) || 18;
+  var maxAge = parseInt(document.getElementById('max-age').value) || 27;
+  document.getElementById('min-age-hint').textContent = 'Built on or before ' + (CURRENT_YEAR - minAge);
+  document.getElementById('max-age-hint').textContent = 'Built on or after ' + (CURRENT_YEAR - maxAge);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('min-age').addEventListener('input', updateAgeHints);
+  document.getElementById('max-age').addEventListener('input', updateAgeHints);
+  updateAgeHints();
+});
+
+// --- CSV PARSING ---
+function normKey(k) { return k.toLowerCase().replace(/[\s_\-]+/g,'_'); }
+
+function getField(row) {
+  var keys = Object.keys(row);
+  function pick() {
+    for (var i=0; i<arguments.length; i++) {
+      var target = normKey(arguments[i]);
+      for (var j=0; j<keys.length; j++) {
+        var nk = normKey(keys[j]);
+        if (nk === target || (nk.includes(target) && target.length > 3)) {
+          return (row[keys[j]] || '').toString().trim();
+        }
+      }
+    }
+    return '';
+  }
+  return {
+    owner:      pick('owner','owner_name','owner name','name','taxpayer','grantee'),
+    address:    pick('address','property_address','property address','street_address','street address','situs','site_address','location'),
+    city:       pick('city','city_name','situs_city','property_city'),
+    zip:        pick('zip','zip_code','zipcode','postal_code','situs_zip','zip5','property_zip','mail_zip'),
+    year_built: pick('year_built','year built','yr_built','built','yrblt','effective_year','eff_yr','const_yr','yearbuilt','age'),
+    value:      pick('value','assessed_value','assessed value','home_value','total_value','appr_value','av','market_value','just_value','total_assessed','appraisal_value','mkt_value'),
+    prop_type:  pick('property_type','prop_type','land_use','use_code','class','property_class','type','land_use_code','use_desc','property_use','land_class','property_description')
+  };
+}
+
+function parseValue(v) {
+  if (!v) return 0;
+  return parseFloat(v.toString().replace(/[$,\s]/g,'')) || 0;
+}
+
+function parseYear(v) {
+  if (!v) return 0;
+  var n = parseInt(v.toString().replace(/[^\d]/g,''));
+  if (!n) return 0;
+  // Handle 2-digit years
+  if (n < 100) n = n < 50 ? 2000 + n : 1900 + n;
+  return n;
+}
+
+function isSingleFamily(typeStr) {
+  if (!typeStr) return true; // if no type field, don't exclude
+  var t = typeStr.toUpperCase();
+  var exclude = ['CONDO','CONDOMINIUM','MULTI','APARTMENT','COMMERCIAL','INDUSTRIAL','MOBILE','MANUFACTURED','TOWNHOME','TOWNHOUSE','HOA','PLANNED UNIT','PUD','CO-OP','COOPERATIVE','VACANT','LAND'];
+  for (var i=0; i<exclude.length; i++) {
+    if (t.indexOf(exclude[i]) !== -1) return false;
+  }
+  return true;
+}
+
+function splitCSVLine(line) {
+  var out=[],cur='',inQ=false;
+  for(var i=0;i<line.length;i++){
+    var c=line[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){out.push(cur.replace(/^"|"$/g,'').trim());cur='';}
+    else{cur+=c;}
+  }
+  out.push(cur.replace(/^"|"$/g,'').trim());
+  return out;
+}
+
+// --- FILE HANDLING ---
+function handleDrop(ev) {
+  ev.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  if (ev.dataTransfer.files[0]) handleFile(ev.dataTransfer.files[0]);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  var r = new FileReader();
+  r.onload = function(e) {
+    var text = e.target.result;
+    var lines = text.split(/\r?\n/).filter(function(l){return l.trim();});
+    if (lines.length < 2) { alert('CSV appears empty.'); return; }
+    var headers = splitCSVLine(lines[0]);
+    allRows = [];
+    for (var i=1; i<lines.length; i++) {
+      var vals = splitCSVLine(lines[i]);
+      var row = {};
+      headers.forEach(function(h,idx){ row[h]=(vals[idx]||'').trim(); });
+      allRows.push(row);
+    }
+    var statusEl = document.getElementById('file-status');
+    statusEl.textContent = '✓ ' + allRows.length.toLocaleString() + ' rows loaded — ' + file.name;
+    statusEl.style.display = 'block';
+    document.getElementById('analyze-btn').disabled = false;
+  };
+  r.readAsText(file);
+}
+
+// --- ANALYSIS ---
+function analyzeCSV() {
+  var minAge = parseInt(document.getElementById('min-age').value) || 18;
+  var maxAge = parseInt(document.getElementById('max-age').value) || 27;
+  var minValue = parseValue(document.getElementById('min-value').value) || 250000;
+  var sfOnly = document.getElementById('sf-toggle').classList.contains('on');
+
+  var minYear = CURRENT_YEAR - maxAge;
+  var maxYear = CURRENT_YEAR - minAge;
+
+  zipData = {};
+  var noZip = [];
+
+  allRows.forEach(function(rawRow) {
+    var row = getField(rawRow);
+    if (!row.address) return;
+
+    var zip = row.zip;
+    if (!zip || !/^\d{5}/.test(zip)) {
+      noZip.push(rawRow);
+      return;
+    }
+    zip = zip.substring(0,5);
+
+    if (!zipData[zip]) zipData[zip] = { all: [], qualified: [] };
+
+    var lead = {
+      owner:    row.owner || '',
+      address:  row.address,
+      city:     row.city || '',
+      zip:      zip,
+      year_built: parseYear(row.year_built),
+      value:    parseValue(row.value),
+      prop_type: row.prop_type || ''
+    };
+
+    zipData[zip].all.push(lead);
+
+    // Qualification checks
+    var ageOk   = lead.year_built >= minYear && lead.year_built <= maxYear;
+    var valueOk = lead.value >= minValue;
+    var sfOk    = !sfOnly || isSingleFamily(lead.prop_type);
+
+    if (ageOk && valueOk && sfOk) {
+      zipData[zip].qualified.push(lead);
+    }
+  });
+
+  renderResults(minYear, maxYear, minValue, sfOnly, noZip.length);
+}
+
+function fmt(n) {
+  if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return '$' + Math.round(n/1000) + 'k';
+  return '$' + n;
+}
+
+function renderResults(minYear, maxYear, minValue, sfOnly, noZipCount) {
+  var zips = Object.keys(zipData).sort();
+  var totalAll = 0, totalQual = 0, totalValue = 0, valueCount = 0;
+
+  zips.forEach(function(z) {
+    totalAll += zipData[z].all.length;
+    totalQual += zipData[z].qualified.length;
+    zipData[z].qualified.forEach(function(l) {
+      if (l.value) { totalValue += l.value; valueCount++; }
+    });
+  });
+
+  document.getElementById('stat-total').textContent = totalAll.toLocaleString();
+  document.getElementById('stat-qualified').textContent = totalQual.toLocaleString();
+  document.getElementById('stat-zips').textContent = zips.length;
+  document.getElementById('stat-avg-value').textContent = valueCount ? fmt(Math.round(totalValue/valueCount)) : '—';
+
+  var sub = 'Homes built ' + minYear + '–' + maxYear + ' · $' + minValue.toLocaleString() + '+ value';
+  if (sfOnly) sub += ' · Single-family only';
+  if (noZipCount) sub += ' · (' + noZipCount.toLocaleString() + ' rows skipped — no zip code)';
+  document.getElementById('results-sub').textContent = sub;
+
+  var maxQual = Math.max.apply(null, zips.map(function(z){ return zipData[z].qualified.length; }));
+  var maxVal  = Math.max.apply(null, zips.map(function(z){
+    var q = zipData[z].qualified;
+    if (!q.length) return 0;
+    return q.reduce(function(s,l){return s+l.value;},0)/q.length;
+  }));
+
+  var tbody = document.getElementById('zip-tbody');
+  tbody.innerHTML = '';
+
+  zips.forEach(function(zip) {
+    var d = zipData[zip];
+    var qual = d.qualified.length;
+    var total = d.all.length;
+    var passRate = total ? Math.round(qual/total*100) : 0;
+    var avgVal = qual ? d.qualified.reduce(function(s,l){return s+l.value;},0)/qual : 0;
+    var quality = qual >= 100 && passRate >= 20 ? 'high' : qual >= 40 ? 'med' : 'low';
+    var barPct = maxQual ? Math.round(qual/maxQual*100) : 0;
+    var valBarPct = maxVal && avgVal ? Math.round(avgVal/maxVal*100) : 0;
+
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="check-cell"><input type="checkbox" class="zip-check" data-zip="'+zip+'" '+(qual>0?'checked':'disabled')+' style="accent-color:#4caf50;cursor:pointer" onchange="updateSeedCount()"/></td>'+
+      '<td><div class="zip-code">'+zip+'</div></td>'+
+      '<td><div class="value-bar"><div class="bar"><div class="bar-fill" style="width:'+barPct+'%"></div></div><strong>'+qual.toLocaleString()+'</strong></div></td>'+
+      '<td style="color:#555">'+total.toLocaleString()+'</td>'+
+      '<td style="color:'+(passRate>=20?'#4caf50':passRate>=10?'#f59e0b':'#ef4444')+'">'+passRate+'%</td>'+
+      '<td><div class="value-bar"><div class="bar"><div class="bar-fill" style="width:'+valBarPct+'%"></div></div>'+(avgVal?fmt(Math.round(avgVal)):'—')+'</div></td>'+
+      '<td><span class="quality-badge q-'+quality+'">'+quality.toUpperCase()+'</span></td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('results').style.display = 'block';
+  updateSeedCount();
+
+  // Scroll to results
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function toggleAll(checked) {
+  document.querySelectorAll('.zip-check:not([disabled])').forEach(function(cb) {
+    cb.checked = checked;
+  });
+  updateSeedCount();
+}
+
+function updateSeedCount() {
+  var selectedZips = getSelectedZips();
+  var totalHomes = selectedZips.reduce(function(s,z){ return s + (zipData[z]?zipData[z].qualified.length:0); }, 0);
+  document.getElementById('seed-count-label').textContent = selectedZips.length + ' zip' + (selectedZips.length!==1?'s':'') + ' selected · ' + totalHomes.toLocaleString() + ' homes';
+  document.getElementById('seed-btn').disabled = selectedZips.length === 0;
+}
+
+function getSelectedZips() {
+  var selected = [];
+  document.querySelectorAll('.zip-check:checked:not([disabled])').forEach(function(cb) {
+    selected.push(cb.getAttribute('data-zip'));
+  });
+  return selected;
+}
+
+// --- SEEDING ---
+function logLine(msg, type) {
+  var el = document.getElementById('log');
+  el.style.display = 'block';
+  var d = document.createElement('div');
+  d.className = 'log-' + (type||'info');
+  d.textContent = msg;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function seedZip(zip, leads) {
+  var CHUNK_SIZE = 400;
+  if (leads.length <= CHUNK_SIZE) {
+    await db.collection('zipLeads').doc(zip).set({
+      leads: leads,
+      zip: zip,
+      total: leads.length,
+      chunks: 1,
+      qualified: true,
+      updatedAt: Date.now()
+    });
+  } else {
+    var chunks = [];
+    for (var i=0; i<leads.length; i+=CHUNK_SIZE) chunks.push(leads.slice(i,i+CHUNK_SIZE));
+    for (var ci=0; ci<chunks.length; ci++) {
+      await db.collection('zipLeads').doc(zip+'_chunk'+ci).set({
+        leads: chunks[ci], chunk: ci, zip: zip, updatedAt: Date.now()
+      });
+    }
+    await db.collection('zipLeads').doc(zip).set({
+      zip: zip, chunks: chunks.length, total: leads.length, qualified: true, updatedAt: Date.now()
+    });
+  }
+}
+
+async function seedSelected() {
+  var selectedZips = getSelectedZips();
+  if (!selectedZips.length) return;
+
+  var btn = document.getElementById('seed-btn');
+  btn.disabled = true;
+  btn.textContent = 'Seeding...';
+  document.getElementById('seed-progress').style.display = 'block';
+  document.getElementById('done-banner').style.display = 'none';
+  document.getElementById('log').innerHTML = '';
+
+  var totalZips = selectedZips.length;
+  var totalHomes = 0;
+  var errors = 0;
+
+  for (var i=0; i<totalZips; i++) {
+    var zip = selectedZips[i];
+    var leads = zipData[zip] ? zipData[zip].qualified : [];
+    var pct = Math.round(((i+1)/totalZips)*100);
+
+    document.getElementById('seed-status-text').textContent = 'Seeding zip ' + zip + ' (' + (i+1) + ' of ' + totalZips + ')...';
+    document.getElementById('progress-text').textContent = zip + ' — ' + leads.length.toLocaleString() + ' homes';
+    document.getElementById('progress-pct').textContent = pct + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    try {
+      await seedZip(zip, leads);
+      totalHomes += leads.length;
+      logLine('✓ ' + zip + ' — ' + leads.length.toLocaleString() + ' homes seeded', 'ok');
+    } catch(err) {
+      errors++;
+      logLine('✗ ' + zip + ' — failed: ' + err.message, 'err');
+    }
+  }
+
+  document.getElementById('seed-status-text').textContent = 'Complete';
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('progress-pct').textContent = '100%';
+  document.getElementById('progress-text').textContent = 'Done';
+
+  var banner = document.getElementById('done-banner');
+  var sub = totalHomes.toLocaleString() + ' qualified homes seeded across ' + (totalZips - errors) + ' zip code' + (totalZips-errors!==1?'s':'') + '.';
+  if (errors) sub += ' ' + errors + ' zip(s) failed — see log above.';
+  sub += ' Open Zone Builder to assign zones to contractors.';
+  document.getElementById('done-banner-sub').textContent = sub;
+  banner.style.display = 'block';
+
+  btn.textContent = 'Seed Selected Zones →';
+  btn.disabled = false;
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
