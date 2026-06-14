@@ -102,7 +102,7 @@ section{padding:100px 24px;border-top:1px solid var(--border)}
 .market-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:4px;margin-bottom:10px}
 .market-badge.live{background:rgba(76,175,80,0.15);color:var(--green);border:1px solid rgba(76,175,80,0.3)}
 .market-badge.waitlist{background:rgba(255,160,0,0.1);color:#f0a030;border:1px solid rgba(255,160,0,0.25)}
-.market-pockets{font-size:12px;color:var(--gray)}
+.market-zones{font-size:12px;color:var(--gray)}
 
 /* ── SAMPLE DATA ── */
 .sample-wrap{margin-top:48px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
@@ -160,17 +160,17 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 .scarcity-bar-bg{height:10px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden}
 .scarcity-bar-fill{height:100%;background:linear-gradient(90deg,#388e3c,#66bb6a);border-radius:100px;transition:width 1.2s cubic-bezier(.22,.68,0,1.2)}
 .scarcity-bar-note{font-size:11px;color:var(--gray);margin-top:10px}
-.pocket-market-group{margin:40px 0}
-.pocket-market-label{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gray);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.pocket-market-label .open-count{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;color:#4caf50;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);padding:2px 9px;border-radius:100px}
-.pocket-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
-.pocket-card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:16px 18px;transition:border-color .2s,background .2s;display:block;color:inherit}
-.pocket-card.pocket-open{cursor:pointer}
-.pocket-card.pocket-open:hover{border-color:rgba(76,175,80,0.45);background:rgba(76,175,80,0.04)}
-.pocket-card.pocket-sold{opacity:.45;cursor:default}
-.pocket-card-name{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--white)}
-.pocket-status-open{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--green);background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);padding:3px 9px;border-radius:4px}
-.pocket-status-sold{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#555;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);padding:3px 9px;border-radius:4px}
+.zone-market-group{margin:40px 0}
+.zone-market-label{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--gray);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.zone-market-label .open-count{font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;color:#4caf50;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);padding:2px 9px;border-radius:100px}
+.zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.zone-card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:16px 18px;transition:border-color .2s,background .2s;display:block;color:inherit}
+.zone-card.zone-open{cursor:pointer}
+.zone-card.zone-open:hover{border-color:rgba(76,175,80,0.45);background:rgba(76,175,80,0.04)}
+.zone-card.zone-sold{opacity:.45;cursor:default}
+.zone-card-name{font-size:14px;font-weight:600;margin-bottom:8px;color:var(--white)}
+.zone-status-open{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--green);background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);padding:3px 9px;border-radius:4px}
+.zone-status-sold{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#555;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);padding:3px 9px;border-radius:4px}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
@@ -188,7 +188,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
   .hero-stats{gap:24px}
   .sample-table{font-size:11px}
   .sample-table th,.sample-table td{padding:8px 10px}
-  .pocket-grid{grid-template-columns:repeat(2,1fr)}
+  .zone-grid{grid-template-columns:repeat(2,1fr)}
   .scarcity-counts{flex-direction:column;align-items:flex-start}
 }
 
@@ -305,19 +305,19 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           <svg id="zip-pin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
           <input id="zip-input" type="text" inputmode="numeric" maxlength="5" placeholder="Enter your zip code" autocomplete="postal-code"/>
         </div>
-        <button id="zip-search-btn" onclick="searchTerritory()">Find My Pocket →</button>
+        <button id="zip-search-btn" onclick="searchTerritory()">Find My Zone →</button>
       </div>
       <div id="zip-err" style="display:none;color:#ff5555;font-size:12px;margin-top:10px">Please enter a valid 5-digit zip code.</div>
     </div>
 
     <div class="hero-proof">
       <div class="hero-proof-dot"></div>
-      One pocket at a time &mdash; work it, then get another
+      One zone at a time &mdash; work it, then get another
     </div>
     <div class="hero-stats">
       <div>
         <div class="hero-stat-num">5 mi</div>
-        <div class="hero-stat-lbl">Radius Per Pocket</div>
+        <div class="hero-stat-lbl">Radius Per Zone</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
@@ -332,7 +332,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
         <div class="hero-stat-num">48 hr</div>
-        <div class="hero-stat-lbl">Pocket Built For You</div>
+        <div class="hero-stat-lbl">Zone Built For You</div>
       </div>
     </div>
   </div>
@@ -342,8 +342,8 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 <section id="how-it-works">
   <div class="section-inner">
     <div class="section-eyebrow">How It Works</div>
-    <h2 class="section-title">Buy a Pocket. Get the List. Start Knocking.</h2>
-    <p class="section-sub">Pick your zone, get your scored lead list, and start knocking the right doors. Your pocket is yours until you cancel — no sharing, no exceptions.</p>
+    <h2 class="section-title">Buy a Zone. Get the List. Start Knocking.</h2>
+    <p class="section-sub">Pick your zone, get your scored lead list, and start knocking the right doors. Your zone is yours until you cancel — no sharing, no exceptions.</p>
     <div class="steps">
       <div class="step">
         <div class="step-num">STEP 01</div>
@@ -353,8 +353,8 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
             <circle cx="20" cy="15" r="3.5" stroke="#4caf50" stroke-width="2"/>
           </svg>
         </div>
-        <div class="step-title">Buy Your Pocket</div>
-        <div class="step-body">Enter your zip code and we build your pocket within that area — any zip in the US. One contractor per pocket. Once it's yours, no other RooFinder contractor works your streets. $2,500/mo covers everything — leads, CRM, routes, and the agent app.</div>
+        <div class="step-title">Buy Your Zone</div>
+        <div class="step-body">Enter your zip code and we build your zone within that area — any zip in the US. One contractor per zone. Once it's yours, no other RooFinder contractor works your streets. $2,500/mo covers everything — leads, CRM, routes, and the agent app.</div>
       </div>
       <div class="step">
         <div class="step-num">STEP 02</div>
@@ -368,7 +368,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           </svg>
         </div>
         <div class="step-title">Get the List</div>
-        <div class="step-body">Your pocket arrives within 48 hours — real addresses, real owners, roof age, and home value. Add your agents, assign them routes, and watch progress update in real time from your owner dashboard.</div>
+        <div class="step-body">Your zone arrives within 48 hours — real addresses, real owners, roof age, and home value. Add your agents, assign them routes, and watch progress update in real time from your owner dashboard.</div>
       </div>
       <div class="step">
         <div class="step-num">STEP 03</div>
@@ -389,17 +389,17 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 <!-- MARKETS & POCKETS -->
 <section id="markets">
   <div class="section-inner">
-    <div class="section-eyebrow">Example Pocket · Raleigh, NC</div>
+    <div class="section-eyebrow">Example Zone · Raleigh, NC</div>
     <h2 class="section-title">Here's What You Get</h2>
-    <p class="section-sub">Every pocket is custom-built for your neighborhood — real addresses, real owners, pre-scored by roof age and home value. Here's a real example from a live Cary, NC pocket.</p>
+    <p class="section-sub">Every zone is custom-built for your neighborhood — real addresses, real owners, pre-scored by roof age and home value. Here's a real example from a live Cary, NC zone.</p>
 
     <div style="margin-top:48px;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;max-width:860px">
 
       <!-- Pocket header -->
       <div style="padding:22px 28px;background:rgba(76,175,80,0.05);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
         <div>
-          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:6px">● Active Pocket</div>
-          <div style="font-size:22px;font-weight:900;letter-spacing:-.5px">Cary Pocket 82</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:6px">● Active Zone</div>
+          <div style="font-size:22px;font-weight:900;letter-spacing:-.5px">Cary Zone 82</div>
           <div style="font-size:12px;color:var(--gray);margin-top:3px">West Cary, NC · 27519 · 5-mile radius</div>
         </div>
         <div style="display:flex;gap:28px;flex-wrap:wrap">
@@ -478,7 +478,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 
       <!-- Footer -->
       <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:rgba(255,255,255,0.02)">
-        <span style="font-size:12px;color:var(--gray)">+ 20 more homes in this pocket · full list delivered within 48 hrs of signup</span>
+        <span style="font-size:12px;color:var(--gray)">+ 20 more homes in this zone · full list delivered within 48 hrs of signup</span>
         <a href="#hero" style="background:var(--green);color:#000;font-size:12px;font-weight:800;padding:10px 20px;border-radius:6px;text-decoration:none">Find Your Zip →</a>
       </div>
     </div>
@@ -491,7 +491,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
   <div class="section-inner">
     <div class="section-eyebrow">Sample Data</div>
     <h2 class="section-title">This Is What You're Buying</h2>
-    <p class="section-sub">Real addresses. Real owners. Every lead in your pocket has been individually reviewed — homes that match the age, value, and ownership profile worth knocking on. No filler. No guessing. Just a curated list ready to work.</p>
+    <p class="section-sub">Real addresses. Real owners. Every lead in your zone has been individually reviewed — homes that match the age, value, and ownership profile worth knocking on. No filler. No guessing. Just a curated list ready to work.</p>
     <div class="sample-wrap">
       <div class="sample-header">
         <span class="sample-tag">🔒 Live Feed Preview — Raleigh / Durham</span>
@@ -560,7 +560,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
   <div class="section-inner">
     <div class="section-eyebrow">Pricing</div>
     <h2 class="section-title">One System. Everything Included.</h2>
-    <p class="section-sub">Your neighborhood pocket, your CRM, your routes, your mobile team app — one flat monthly price. No duct-taping three different tools together.</p>
+    <p class="section-sub">Your neighborhood zone, your CRM, your routes, your mobile team app — one flat monthly price. No duct-taping three different tools together.</p>
 
     <div style="margin-top:48px;max-width:700px">
 
@@ -569,16 +569,16 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           <div class="tier-card-price" style="color:#4caf50">$2,500</div>
           <div style="font-size:15px;color:#555;font-weight:500">/month · everything included</div>
         </div>
-        <div class="tier-card-price-sub">Neighborhood pocket built within 48 hrs · Cancel anytime</div>
+        <div class="tier-card-price-sub">Neighborhood zone built within 48 hrs · Cancel anytime</div>
         <div class="tier-card-divider"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
             <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#555;text-transform:uppercase;margin-bottom:10px">Your Leads</div>
             <ul class="tier-card-features">
-              <li>Custom-built neighborhood pocket — prequalified homeowners</li>
+              <li>Custom-built neighborhood zone — prequalified homeowners</li>
               <li>Aged roofs, high-value homes — only doors worth knocking</li>
               <li>Your area exclusively — zero sharing, ever</li>
-              <li>Request a new pocket when you've worked it through</li>
+              <li>Request a new zone when you've worked it through</li>
             </ul>
           </div>
           <div>
@@ -592,7 +592,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           </div>
         </div>
         <div style="margin-top:16px;padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;font-size:12px;color:#666;line-height:1.7">Most roofing companies pay <span style="color:#bbb">$800+/mo for a CRM</span>, <span style="color:#bbb">$1,200+/mo for leads</span>, and <span style="color:#bbb">$200+/mo for route software</span> — and still have no system for their guys in the field. <span style="color:#4caf50;font-weight:600">RooFinder replaces all of it.</span></div>
-        <a href="search.html" class="tier-card-cta" style="background:#4caf50;color:#000;margin-top:16px;display:block;text-align:center">Find Your Pocket →</a>
+        <a href="search.html" class="tier-card-cta" style="background:#4caf50;color:#000;margin-top:16px;display:block;text-align:center">Find Your Zone →</a>
       </div>
 
     </div>
@@ -602,7 +602,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
         <div style="font-size:14px;font-weight:700;margin-bottom:4px">Questions? We confirm availability same day.</div>
         <div style="font-size:13px;color:var(--gray)">Text or call <a href="tel:9194808884" style="color:var(--green);font-weight:700;text-decoration:none">(919) 480-8884</a></div>
       </div>
-      <a href="#cta" class="btn-primary">Claim a Pocket →</a>
+      <a href="#cta" class="btn-primary">Claim a Zone →</a>
     </div>
 
   </div>
@@ -614,16 +614,16 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
     <div class="section-eyebrow" style="margin-bottom:20px">Ready to Own Your Territory?</div>
     <h2 class="cta-title">Stop Guessing.<br>Start Closing.</h2>
     <p style="font-size:14px;color:var(--green);margin-bottom:8px;margin-top:-8px">📱 Text or call: <a href="tel:9194808884" style="color:var(--green);font-weight:800;text-decoration:none">(919) 480-8884</a></p>
-    <p class="cta-sub">Tell us which market you're in and we'll confirm which pockets are available. No commitment required — just a quick conversation.</p>
+    <p class="cta-sub">Tell us which market you're in and we'll confirm which zones are available. No commitment required — just a quick conversation.</p>
     <form id="contact-form" onsubmit="submitForm(event)" style="display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto">
       <input type="text" placeholder="Your name" id="f-name" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="email" placeholder="Your email" id="f-email" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="text" placeholder="Your city or zip code" id="f-market" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:14px;border:none;cursor:pointer;width:100%">Show Me Available Pockets →</button>
+      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:14px;border:none;cursor:pointer;width:100%">Show Me Available Zones →</button>
     </form>
     <div id="form-success" style="display:none;padding:20px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:8px;margin-top:12px">
       <div style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:4px">✓ Got it — we'll be in touch shortly.</div>
-      <div style="font-size:13px;color:var(--gray)">We'll confirm available pockets in your market within 24 hours. You can also text us at (919) 480-8884 for a faster reply.</div>
+      <div style="font-size:13px;color:var(--gray)">We'll confirm available zones in your market within 24 hours. You can also text us at (919) 480-8884 for a faster reply.</div>
     </div>
     <p style="margin-top:20px;font-size:12px;color:#444">No spam. No sales calls unless you want one. Just the data.</p>
   </div>
@@ -634,7 +634,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
   <div class="footer-inner">
     <div>
       <div class="footer-logo" style="display:flex;align-items:center;gap:6px"><svg width="28" height="28" viewBox="0 0 100 100" fill="none"><defs><linearGradient id="lgRoofF" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#5dd261"/><stop offset="100%" stop-color="#2d6b30"/></linearGradient></defs><rect x="18" y="52" width="52" height="38" rx="2" fill="#1a1a1a"/><rect x="38" y="66" width="14" height="24" rx="2" fill="#0a0a0a"/><polygon points="10,55 50,18 90,55" fill="url(#lgRoofF)"/><circle cx="72" cy="38" r="18" fill="#0f0f0f" stroke="#4caf50" stroke-width="4"/><line x1="67" y1="38" x2="77" y2="38" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round"/><line x1="72" y1="33" x2="72" y2="43" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round"/><line x1="84" y1="51" x2="95" y2="62" stroke="#4caf50" stroke-width="5" stroke-linecap="round"/></svg> Roo<span>Finder</span></div>
-      <div style="font-size:12px;color:#444;margin-top:6px">Exclusive neighborhood pockets · Available nationwide</div>
+      <div style="font-size:12px;color:#444;margin-top:6px">Exclusive neighborhood zones · Available nationwide</div>
       <div style="font-size:12px;margin-top:4px"><a href="tel:9194808884" style="color:var(--green);text-decoration:none;font-weight:600">(919) 480-8884</a></div>
     </div>
     <div class="footer-links">
@@ -700,4 +700,4 @@ function submitForm(e) {
 }
 </script>
 </body>
-</html>
+</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               

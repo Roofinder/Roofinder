@@ -138,22 +138,22 @@ nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filte
       <div class="avail-badge">
         <div class="avail-dot"></div>
         <div>
-          <div class="avail-text">Pockets Available Near You</div>
-          <div class="avail-sub">We build your pocket within this area — yours exclusively</div>
+          <div class="avail-text">Zones Available Near You</div>
+          <div class="avail-sub">We build your zone within this area — yours exclusively</div>
         </div>
       </div>
 
       <div class="how-it-works-box">
         <div class="hiw-title">How It Works</div>
-        <div class="hiw-step"><span class="hiw-num">1</span><span>Sign up — we custom-build your neighborhood pocket within this 5-mile area</span></div>
-        <div class="hiw-step"><span class="hiw-num">2</span><span>Your agents work the pocket from the mobile app — organized routes, full CRM, real-time tracking</span></div>
-        <div class="hiw-step"><span class="hiw-num">3</span><span>When you've worked it through, request your next pocket in a new neighborhood</span></div>
+        <div class="hiw-step"><span class="hiw-num">1</span><span>Sign up — we custom-build your neighborhood zone within this 5-mile area</span></div>
+        <div class="hiw-step"><span class="hiw-num">2</span><span>Your agents work the zone from the mobile app — organized routes, full CRM, real-time tracking</span></div>
+        <div class="hiw-step"><span class="hiw-num">3</span><span>When you've worked it through, request your next zone in a new neighborhood</span></div>
       </div>
 
       <div class="stats-row">
         <div class="stat-cell">
           <div class="stat-num" style="font-size:14px;padding-top:4px">Neighborhood</div>
-          <div class="stat-lbl">Pocket</div>
+          <div class="stat-lbl">Zone</div>
         </div>
         <div class="stat-cell">
           <div class="stat-num">5 mi</div>
@@ -166,23 +166,23 @@ nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filte
       </div>
 
       <div class="pricing-card">
-        <div class="pricing-label">Your Pocket</div>
+        <div class="pricing-label">Your Zone</div>
         <div>
           <span class="pricing-amount">$2,500</span><span class="pricing-period">/month</span>
         </div>
-        <div class="pricing-note">Pocket built within 48 hrs of signup · Cancel anytime</div>
+        <div class="pricing-note">Zone built within 48 hrs of signup · Cancel anytime</div>
         <ul class="pricing-features">
-          <li>Custom-built neighborhood pocket — prequalified homeowners, yours exclusively</li>
+          <li>Custom-built neighborhood zone — prequalified homeowners, yours exclusively</li>
           <li>Full CRM — track every homeowner interaction from first knock to close</li>
           <li>Organized door-knocking routes — knock efficiently, skip no one</li>
           <li>Mobile app your agents work from in the field</li>
           <li>Owner dashboard — manage your team and pipeline in real time</li>
-          <li>Request a new pocket when you've worked it through</li>
+          <li>Request a new zone when you've worked it through</li>
         </ul>
         <div style="margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;font-size:11px;color:#666;line-height:1.7">Most roofing companies pay <span style="color:#999">$800+/mo for a CRM</span>, <span style="color:#999">$1,200+/mo for leads</span>, and <span style="color:#999">$200+/mo for route software</span> — and still have no system for their guys in the field. RooFinder replaces all of it.</div>
       </div>
 
-      <a href="owner.html" class="cta-btn">Request My Pocket →</a>
+      <a href="owner.html" class="cta-btn">Request My Zone →</a>
       <a href="tel:9194808884" class="cta-secondary">📞 Questions? Call us — (919) 480-8884</a>
 
     </div>
@@ -202,7 +202,7 @@ nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filte
 <script>
 var params = new URLSearchParams(window.location.search);
 var zip = params.get('zip') || '';
-var RADIUS = 5; // fixed 5-mile pocket search area
+var RADIUS = 5; // fixed 5-mile zone search area
 var lat = 0, lng = 0;
 var map, circle, marker;
 
@@ -229,7 +229,7 @@ function showResult(city, state) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('sidebar-content').style.display = 'flex';
   document.getElementById('loc-name').textContent = city + ', ' + state;
-  document.getElementById('loc-meta').textContent = 'Zip ' + zip + ' · 5-mile pocket area';
+  document.getElementById('loc-meta').textContent = 'Zip ' + zip + ' · 5-mile zone area';
   buildMap(city, state);
 }
 
@@ -241,7 +241,7 @@ function buildMap(city, state) {
     maxZoom: 18
   }).addTo(map);
 
-  // 5-mile radius circle (pocket search area)
+  // 5-mile radius circle (zone search area)
   circle = L.circle([lat, lng], {
     radius: RADIUS * 1609.34,
     color: '#4caf50',

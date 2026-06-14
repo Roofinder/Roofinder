@@ -66,7 +66,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
 .btn-link:hover{background:rgba(76,175,80,.18)}
 
 /* ── POCKET INFO CARD ── */
-#pocket-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.2);border-radius:14px;padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+#zone-card{background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.2);border-radius:14px;padding:24px 28px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
 
 /* ── TABLE ACTION BUTTONS ── */
 .tbl-btn{background:transparent;border:1px solid rgba(255,255,255,.1);color:#888;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .15s}
@@ -74,18 +74,18 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
 .tbl-btn.danger:hover{border-color:#ff5555;color:#ff5555}
 
 /* ── MY POCKETS LIST ── */
-.pocket-item{background:#111;border:1px solid #222;border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;transition:border-color .2s}
-.pocket-item:hover{border-color:#333}
-.pocket-item-name{font-size:15px;font-weight:700;margin-bottom:3px}
-.pocket-item-code{font-size:11px;color:#444;font-family:monospace;letter-spacing:.3px}
-.pocket-badge{font-size:11px;font-weight:700;color:#4caf50;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.25);border-radius:20px;padding:3px 11px;white-space:nowrap}
-.pocket-left{}
-.pocket-company{font-size:20px;font-weight:800;margin-bottom:4px}
-.pocket-name{font-size:13px;color:#4caf50;font-weight:700}
-.pocket-meta{font-size:12px;color:#555;margin-top:4px}
-.pocket-right{text-align:right}
-.pocket-stat-big{font-size:32px;font-weight:900;color:#4caf50;line-height:1}
-.pocket-stat-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.zone-item{background:#111;border:1px solid #222;border-radius:12px;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:10px;transition:border-color .2s}
+.zone-item:hover{border-color:#333}
+.zone-item-name{font-size:15px;font-weight:700;margin-bottom:3px}
+.zone-item-code{font-size:11px;color:#444;font-family:monospace;letter-spacing:.3px}
+.zone-badge{font-size:11px;font-weight:700;color:#4caf50;background:rgba(76,175,80,.1);border:1px solid rgba(76,175,80,.25);border-radius:20px;padding:3px 11px;white-space:nowrap}
+.zone-left{}
+.zone-company{font-size:20px;font-weight:800;margin-bottom:4px}
+.zone-name{font-size:13px;color:#4caf50;font-weight:700}
+.zone-meta{font-size:12px;color:#555;margin-top:4px}
+.zone-right{text-align:right}
+.zone-stat-big{font-size:32px;font-weight:900;color:#4caf50;line-height:1}
+.zone-stat-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
 
 /* ── STATS GRID ── */
 .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
@@ -265,11 +265,11 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
 
       <div class="sec-head" style="margin-top:8px">
         <div>
-          <div class="sec-title">My Pockets</div>
+          <div class="sec-title">My Zones</div>
           <div class="sec-sub">Your exclusive territory access</div>
         </div>
       </div>
-      <div id="pockets-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-title">Loading pockets...</div></div></div>
+      <div id="pockets-list"><div class="empty"><div class="empty-icon">📦</div><div class="empty-title">Loading zones...</div></div></div>
 
       <div class="sec-head" style="margin-top:32px">
         <div>
@@ -421,9 +421,9 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var auth = firebase.auth();
 
-// ── Built-in lead sets per pocket code ───────────────────────────────────
+// ── Built-in lead sets per zone code ───────────────────────────────────
 var POCKET_LEADS = {
-  'cary-pocket-82': [
+  'cary-zone-82': [
     {addr:'510 Emerald Downs Rd',owner:'Chen, Zhongmin / Du, Xiaoli',tier:'PRIME',age:20,val:'$579,338',street:'Emerald Downs Rd'},
     {addr:'514 Emerald Downs Rd',owner:'Patel, Chetan / Patel, Neema',tier:'PRIME',age:20,val:'$667,407',street:'Emerald Downs Rd'},
     {addr:'517 Emerald Downs Rd',owner:'Aiman, Ramish / Aiman, Susan',tier:'PRIME',age:20,val:'$585,788',street:'Emerald Downs Rd'},
@@ -684,30 +684,30 @@ function loadPockets() {
       var el = document.getElementById('pockets-list');
       if (!el) return;
       if (snap.empty) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No pockets found</div></div>';
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">No zones found</div></div>';
         return;
       }
       el.innerHTML = '';
       snap.forEach(function(doc) {
         var d = doc.data();
-        var pocketName = d.pocket || d.portal || '—';
+        var zoneName = d.zone || d.portal || '—';
         var code = d.portal || '';
         var company = d.company || '';
         el.innerHTML +=
           '<div class="pocket-item">' +
             '<div>' +
-              '<div class="pocket-item-name">' + pocketName + (company ? ' — ' + company : '') + '</div>' +
+              '<div class="pocket-item-name">' + zoneName + (company ? ' — ' + company : '') + '</div>' +
               '<div class="pocket-item-code">' + code + '</div>' +
             '</div>' +
             '<div style="display:flex;align-items:center;gap:12px">' +
               '<span class="pocket-badge">● Active</span>' +
-              (code ? '<a class="btn-link" href="https://roofinder.online/pocket-builder.html?slug=' + encodeURIComponent(code) + '&auto=1" target="_blank">View Pocket →</a>' : '') +
+              (code ? '<a class="btn-link" href="https://roofinder.online/pocket-builder.html?slug=' + encodeURIComponent(code) + '&auto=1" target="_blank">View Zone →</a>' : '') +
             '</div>' +
           '</div>';
       });
     })
     .catch(function(err) {
-      console.error('loadPockets error', err);
+      console.error('loadZones error', err);
     });
 }
 
@@ -940,15 +940,15 @@ function createRoute() {
   var notes = document.getElementById('cr-notes').value.trim();
   if (!name) { alert('Please enter a route name.'); return; }
 
-  var pocketCode = (contractorData.portal || 'ROUTE').toUpperCase().replace(/-/g,'').slice(0,8);
+  var zoneCode = (contractorData.portal || 'ROUTE').toUpperCase().replace(/-/g,'').slice(0,8);
   var datePart = new Date().toISOString().slice(2,10).replace(/-/g,'');
   var rand = Math.random().toString(36).slice(2,5).toUpperCase();
-  var routeCode = pocketCode + '-' + datePart + '-' + rand;
+  var routeCode = zoneCode + '-' + datePart + '-' + rand;
 
   var leads = POCKET_LEADS[contractorData.portal] || [];
   var routeData = {
     routeName: name,
-    pocket: contractorData.pocket || '',
+    zone: contractorData.zone || '',
     ownerUid: currentUser.uid,
     ownerCode: contractorData.portal,
     agentName: agentName,
