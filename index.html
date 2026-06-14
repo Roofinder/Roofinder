@@ -505,18 +505,19 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 <section id="cta" style="border-top:1px solid var(--border);text-align:center;padding:120px 24px;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(76,175,80,0.08) 0%,transparent 70%)">
   <div style="max-width:600px;margin:0 auto">
     <div class="section-eyebrow" style="margin-bottom:20px">Get Started</div>
-    <h2 class="cta-title">Apply for Your Zone.</h2>
-    <p class="cta-sub" style="margin-bottom:28px">Fill out the form below and we'll confirm availability in your target market within 24 hours. No commitment required.</p>
+    <h2 class="cta-title">Claim Your Zone.</h2>
+    <p class="cta-sub" style="margin-bottom:28px">Enter your info below and lock in your territory. Your zone is exclusive — once it's taken, it's gone.</p>
     <form id="contact-form" onsubmit="submitForm(event)" style="display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto;text-align:left">
       <input type="text" placeholder="Company name" id="f-company" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="tel" placeholder="Your phone number" id="f-phone" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="email" placeholder="Your email address" id="f-email" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <input type="text" placeholder="Target zip code(s) to canvass" id="f-zip" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:14px;border:none;cursor:pointer;width:100%">Submit Application →</button>
+      <input type="text" placeholder="Target zip code" id="f-zip" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
+      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:15px;font-weight:800;border:none;cursor:pointer;width:100%">Claim My Territory — $999 →</button>
+      <p style="font-size:11px;color:#444;text-align:center;margin-top:4px">First month $999 · Then $2,500/mo · Cancel anytime</p>
     </form>
     <div id="form-success" style="display:none;padding:24px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:10px;margin-top:16px;text-align:center">
-      <div style="font-size:18px;font-weight:900;color:var(--green);margin-bottom:6px">✓ Application received.</div>
-      <div style="font-size:13px;color:var(--gray-light)">We'll confirm your zone availability within 24 hours.</div>
+      <div style="font-size:18px;font-weight:900;color:var(--green);margin-bottom:6px">✓ Info saved — redirecting to payment…</div>
+      <div style="font-size:13px;color:var(--gray-light)">You'll be taken to our secure Stripe checkout.</div>
     </div>
   </div>
 </section>
@@ -540,10 +541,15 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 var API_KEY = 'AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U';
 var APP_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/applications';
 
+// ── Stripe Payment Link ───────────────────────────────────────────
+// Replace with your real Stripe payment link once created in Stripe dashboard
+// Products → Create product → $999 one-time → Copy link
+var STRIPE_LINK = 'https://buy.stripe.com/YOUR_PAYMENT_LINK';
+
 function submitForm(e) {
   e.preventDefault();
   var btn = e.target.querySelector('button[type="submit"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving your info…'; }
 
   var company = (document.getElementById('f-company').value || '').trim();
   var phone   = (document.getElementById('f-phone').value   || '').trim();
@@ -568,15 +574,30 @@ function submitForm(e) {
     body: body
   })
   .then(function() {
-    document.getElementById('contact-form').style.display = 'none';
-    document.getElementById('form-success').style.display = 'block';
     notifyDalton(company, phone, email, zip);
+    redirectToPayment(company, email, zip);
   })
   .catch(function() {
-    document.getElementById('contact-form').style.display = 'none';
-    document.getElementById('form-success').style.display = 'block';
+    // Even if Firestore fails, still notify and redirect
     notifyDalton(company, phone, email, zip);
+    redirectToPayment(company, email, zip);
   });
+}
+
+function redirectToPayment(company, email, zip) {
+  document.getElementById('contact-form').style.display = 'none';
+  document.getElementById('form-success').style.display = 'block';
+  if (STRIPE_LINK.indexOf('YOUR_PAYMENT_LINK') !== -1) {
+    // Stripe not configured yet — show success and stay on page
+    document.querySelector('#form-success div:first-child').textContent = '✓ Info saved!';
+    document.querySelector('#form-success div:last-child').textContent = 'We\'ll be in touch within 24 hours to complete your setup.';
+    return;
+  }
+  // Redirect to Stripe after short delay so they see the confirmation
+  setTimeout(function() {
+    var url = STRIPE_LINK + '?prefilled_email=' + encodeURIComponent(email) + '&client_reference_id=' + encodeURIComponent(zip);
+    window.location.href = url;
+  }, 1200);
 }
 
 // ── New application notification ──────────────────────────────────
