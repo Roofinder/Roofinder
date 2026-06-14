@@ -587,9 +587,9 @@ function submitForm(e) {
 //    → copy Template ID into EMAILJS_TEMPLATE
 // 4. Go to Account → copy Public Key into EMAILJS_KEY
 // Until configured, this silently does nothing.
-var EMAILJS_SERVICE  = 'YOUR_SERVICE_ID';
-var EMAILJS_TEMPLATE = 'YOUR_TEMPLATE_ID';
-var EMAILJS_KEY      = 'YOUR_PUBLIC_KEY';
+var EMAILJS_SERVICE  = 'service_wrxg3bk';
+var EMAILJS_TEMPLATE = 'template_9xutlf8';
+var EMAILJS_KEY      = 'iEZ0uYUSYLHqsQjqg';
 
 function notifyDalton(company, phone, email, zip) {
   if (EMAILJS_SERVICE.startsWith('YOUR')) return; // not configured yet
@@ -599,7 +599,7 @@ function notifyDalton(company, phone, email, zip) {
     script.onload = function() {
       emailjs.init(EMAILJS_KEY);
       emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
-        to_email: 'daltonnicely@gmail.com',
+        to_email: 'hello@roofinder.online',
         company: company,
         phone: phone,
         email: email,
