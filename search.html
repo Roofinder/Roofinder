@@ -134,7 +134,7 @@ footer{position:relative;overflow:hidden}
       <div class="error-sub">We couldn't locate that zip code. Double-check it and try again.</div>
       <a href="index.html" class="error-back">← Try Again</a>
     </div>
-    <div id="sidebar-content" style="display:none;display:flex;flex-direction:column;gap:20px">
+    <div id="sidebar-content" style="display:none;flex-direction:column;gap:20px">
 
       <div class="location-header">
         <div class="location-eyebrow">Available Territory</div>
@@ -213,9 +213,19 @@ var RADIUS = 5; // fixed 5-mile zone search area
 var lat = 0, lng = 0;
 var map, circle, marker;
 
+function fetchWithTimeout(url, ms) {
+  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var opts = controller ? { signal: controller.signal } : {};
+  var tid = setTimeout(function() { if (controller) controller.abort(); }, ms);
+  return fetch(url, opts).then(
+    function(r) { clearTimeout(tid); return r; },
+    function(e) { clearTimeout(tid); throw e; }
+  );
+}
+
 function init() {
   if (!/^\d{5}$/.test(zip)) { showError(); return; }
-  fetch('https://api.zippopotam.us/us/' + zip)
+  fetchWithTimeout('https://api.zippopotam.us/us/' + zip, 5000)
     .then(function(r) { if (!r.ok) throw new Error('not found'); return r.json(); })
     .then(function(data) {
       lat = parseFloat(data.places[0].latitude);
@@ -224,7 +234,24 @@ function init() {
       var state = data.places[0]['state abbreviation'];
       showResult(city, state);
     })
-    .catch(function() { showError(); });
+    .catch(function() {
+      // Fallback: OpenStreetMap Nominatim
+      return fetchWithTimeout(
+        'https://nominatim.openstreetmap.org/search?postalcode=' + zip + '&country=US&format=json&limit=1&addressdetails=1',
+        8000
+      )
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data || !data.length) throw new Error('not found');
+          lat = parseFloat(data[0].lat);
+          lng = parseFloat(data[0].lon);
+          var addr = data[0].address || {};
+          var city = addr.city || addr.town || addr.village || addr.county || zip;
+          var state = addr.state_code || '';
+          showResult(city, state);
+        })
+        .catch(function() { showError(); });
+    });
 }
 
 function showError() {
