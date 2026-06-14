@@ -1035,6 +1035,7 @@ var zbRawCSV = '';
 
 function buildZone(id, company, zip) {
   zbAppId = id; zbZip = zip; zbCompany = company; zbRawCSV = '';
+  zbMidSession = false; zbTotalSent = 0; zbKeptLeads = []; zbAllLeads = []; zbScreenIdx = 0;
   document.getElementById('zb-title').textContent = company;
   document.getElementById('zb-subtitle').textContent = 'Zip Code: ' + zip;
   document.getElementById('zb-zip-label').textContent = zip;
@@ -1201,9 +1202,11 @@ function zbUpdateRouteCount() {
 }
 
 /* ── LEAD SCREENER ── */
-var zbScreenIdx = 0;
-var zbKeptLeads = [];
-var zbAllLeads  = [];
+var zbScreenIdx  = 0;
+var zbKeptLeads  = [];
+var zbAllLeads   = [];
+var zbMidSession = false;
+var zbTotalSent  = 0;
 
 function zbStartScreener() {
   zbAllLeads  = zbLeads.slice();
@@ -1262,6 +1265,51 @@ function zbKeepLead() {
   zbScreenIdx++;
   document.getElementById('sc-kept').textContent = zbKeptLeads.length;
   document.getElementById('sc-skip').textContent = zbScreenIdx - zbKeptLeads.length;
+  // Show / update send button
+  var sendBtn = document.getElementById('sc-send-btn');
+  sendBtn.style.display = 'inline-block';
+  document.getElementById('sc-send-count').textContent = zbKeptLeads.length;
+  zbShowScreenCard(zbScreenIdx);
+}
+
+function zbSendBatch() {
+  if (!zbKeptLeads.length) return;
+  zbMidSession = true;
+  zbLeads = zbKeptLeads.slice();
+  // Populate step 3 preview
+  var tbody = document.getElementById('zb-preview-body');
+  tbody.innerHTML = '';
+  zbLeads.slice(0,30).forEach(function(lead,i) {
+    var tc = lead.tier==='PRIME'?'#4caf50':lead.tier==='HOT'?'#ff9800':'#64b5f6';
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td style="color:#555">'+(i+1)+'</td>' +
+      '<td style="font-weight:600">'+lead.addr+'</td>' +
+      '<td style="color:#888">'+(lead.owner||'—')+'</td>' +
+      '<td style="color:'+tc+';font-weight:700;font-size:11px">'+lead.tier+' '+lead.age+'yr</td>' +
+      '<td style="color:#888">'+(lead.val||'—')+'</td>';
+    tbody.appendChild(tr);
+  });
+  var remaining = zbAllLeads.length - zbScreenIdx;
+  document.getElementById('zb-lead-summary').textContent =
+    zbLeads.length + ' approved leads in this batch · ' + remaining + ' addresses still unscreened';
+  zbUpdateRouteCount();
+  document.getElementById('zb-per-route').oninput = zbUpdateRouteCount;
+  zbShowStep(3);
+}
+
+function zbContinueScreening() {
+  // Reset batch — keep position
+  zbTotalSent += zbKeptLeads.length;
+  zbKeptLeads = [];
+  document.getElementById('sc-kept').textContent = 0;
+  document.getElementById('sc-skip').textContent = zbScreenIdx - 0;
+  document.getElementById('sc-send-btn').style.display = 'none';
+  document.getElementById('sc-send-count').textContent = 0;
+  document.getElementById('sc-card-grid').style.display = 'grid';
+  document.getElementById('sc-done').style.display = 'none';
+  // Reset skip counter display correctly
+  document.getElementById('sc-skip').textContent = zbScreenIdx - zbTotalSent;
+  zbShowStep(2);
   zbShowScreenCard(zbScreenIdx);
 }
 
@@ -1444,6 +1492,15 @@ function zbLaunchZone() {
       document.getElementById('zb-s-leads').textContent  = zbLeads.length;
       document.getElementById('zb-s-routes').textContent = chunks.length;
       document.getElementById('zb-s-zip').textContent    = zbZip;
+      // Show "Continue Screening" if mid-session with addresses remaining
+      var continueBtn = document.getElementById('zb-continue-btn');
+      if (zbMidSession && zbScreenIdx < zbAllLeads.length) {
+        var rem = zbAllLeads.length - zbScreenIdx;
+        continueBtn.textContent = '▶ Continue Screening (' + rem + ' left)';
+        continueBtn.style.display = 'inline-block';
+      } else {
+        continueBtn.style.display = 'none';
+      }
       zbShowStep(4);
       btn.textContent = 'Launch Zone →'; btn.disabled = false;
     })
@@ -1540,10 +1597,11 @@ function zbCopyCode(el) {
           <div style="font-size:16px;font-weight:800;margin-bottom:3px">Step 2 — Screen Each Address</div>
           <div style="font-size:13px;color:#666">Check the map, decide if it's worth knocking. <kbd style="background:#111;border:1px solid #222;border-radius:4px;padding:1px 6px;font-size:11px;color:#666">A</kbd> keep &nbsp;<kbd style="background:#111;border:1px solid #222;border-radius:4px;padding:1px 6px;font-size:11px;color:#666">S</kbd> skip</div>
         </div>
-        <div style="display:flex;align-items:center;gap:16px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <div style="font-size:13px;color:#888"><span id="sc-idx">0</span> / <span id="sc-total">0</span></div>
           <button onclick="zbBack()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#666;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer">← Back</button>
-          <button onclick="zbFinishScreening()" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer">Done Screening →</button>
+          <button id="sc-send-btn" onclick="zbSendBatch()" style="display:none;background:#4caf50;color:#000;font-weight:800;font-size:12px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:inherit">⚡ Send <span id="sc-send-count">0</span> Approved →</button>
+          <button onclick="zbFinishScreening()" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer">Done →</button>
         </div>
       </div>
 
@@ -1657,7 +1715,10 @@ function zbCopyCode(el) {
           </div>
         </div>
 
-        <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">← Back to Admin</button>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button id="zb-continue-btn" onclick="zbContinueScreening()" style="display:none;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer;font-family:inherit">▶ Continue Screening</button>
+          <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">← Back to Admin</button>
+        </div>
       </div>
     </div>
   </div>
