@@ -244,6 +244,19 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
         <div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">📡</div><div class="empty-state-text">No active pockets yet.</div></div>
       </div>
     </div>
+    <!-- ── APPLICATIONS ── -->
+    <div class="panel" id="panel-applications">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div style="font-size:18px;font-weight:800;color:#e0e4f0">Applications</div>
+          <div style="font-size:12px;color:#555;margin-top:2px">Inbound zone applications from roofinder.online</div>
+        </div>
+        <button onclick="loadApplications()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer">↻ Refresh</button>
+      </div>
+      <div id="app-list">
+        <div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading...</div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -994,19 +1007,6 @@ function updateAppStatus(id, status) {
 
 </script>
 
-    <!-- ── APPLICATIONS ── -->
-    <div class="panel" id="panel-applications" style="max-width:1300px;margin:0 auto;padding:24px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div>
-          <div style="font-size:18px;font-weight:800;color:#e0e4f0">Applications</div>
-          <div style="font-size:12px;color:#555;margin-top:2px">Inbound zone applications from roofinder.online</div>
-        </div>
-        <button onclick="loadApplications()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer">↻ Refresh</button>
-      </div>
-      <div id="app-list">
-        <div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading...</div>
-      </div>
-    </div>
 
 </body>
 </html>
