@@ -1083,7 +1083,6 @@ function showPanel(name, btn) {
   document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
-}
   if (name === 'applications') loadApplications();
 }
 // ── Utilities ─────────────────────────────────────────────────────────────
