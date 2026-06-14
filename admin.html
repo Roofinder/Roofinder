@@ -91,6 +91,21 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
 .empty-state-icon{font-size:40px;margin-bottom:16px}
 .empty-state-text{font-size:14px}
 
+/* ZONE BUILDER */
+#zone-builder{position:fixed;inset:0;z-index:400;background:#0a0a0a;display:none;overflow-y:auto}
+#zone-builder.open{display:block}
+.zb-inner{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+.zb-step{display:none}.zb-step.active{display:block}
+.zb-csv{width:100%;background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px;color:#e0e4f0;font-family:'Courier New',monospace;font-size:12px;line-height:1.7;min-height:220px;resize:vertical;outline:none}
+.zb-csv:focus{border-color:rgba(76,175,80,0.4)}
+.zb-table{width:100%;border-collapse:collapse;font-size:13px}
+.zb-table th{text-align:left;padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;background:#0d0d0d;border-bottom:1px solid #1a1a1a}
+.zb-table td{padding:9px 14px;border-bottom:1px solid #141414;color:#e0e4f0}
+.zb-table tr:last-child td{border-bottom:none}
+.zb-field{background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none}
+.zb-field:focus{border-color:rgba(76,175,80,0.4)}
+.zb-success-code{font-size:28px;font-weight:900;color:#4caf50;letter-spacing:2px;background:#0d1f0d;border:1px solid rgba(76,175,80,0.3);border-radius:10px;padding:16px 24px;text-align:center;margin:16px 0;cursor:pointer}
+
 /* OWNER VIEW OVERLAY */
 #owner-overlay{position:fixed;inset:0;z-index:300;background:#0a0a0a;display:none;flex-direction:column;overflow:hidden}
 #owner-overlay.open{display:flex}
@@ -963,8 +978,9 @@ function loadApplications() {
       var d = doc.data();
       var isNew = d.status === 'new';
       if (isNew) newCount++;
-      var statusColor = isNew ? '#4caf50' : (d.status === 'approved' ? '#3b82f6' : '#555');
-      var statusLabel = isNew ? 'NEW' : (d.status === 'approved' ? 'APPROVED' : 'REVIEWED');
+      var isBuilt = d.status === 'zone-built';
+      var statusColor = isNew ? '#4caf50' : (d.status === 'approved' ? '#3b82f6' : (isBuilt ? '#a855f7' : '#555'));
+      var statusLabel = isNew ? 'NEW' : (d.status === 'approved' ? 'APPROVED' : (isBuilt ? 'ZONE BUILT' : 'REVIEWED'));
       var date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '--';
       var card = document.createElement('div');
       card.style.cssText = 'background:#111;border:1px solid ' + (isNew ? 'rgba(76,175,80,0.3)' : '#222') + ';border-radius:12px;padding:20px 22px;margin-bottom:12px';
@@ -985,6 +1001,7 @@ function loadApplications() {
           '<div style="display:flex;gap:8px;flex-shrink:0">' +
             (isNew ? '<button class="app-action" data-id="' + doc.id + '" data-status="reviewed" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#aaa;cursor:pointer">Mark Reviewed</button>' : '') +
             '<button class="app-action" data-id="' + doc.id + '" data-status="approved" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.08);color:#3b82f6;cursor:pointer">Approve</button>' +
+            '<button onclick="buildZone(\'' + doc.id + '\',\'' + (d.company||'').replace(/'/g,"\\'") + '\',\'' + (d.targetZip||'') + '\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);color:#4caf50;cursor:pointer">🗺 Build Zone</button>' +
             '<button onclick="deleteApplication(\'' + doc.id + '\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);color:#ef4444;cursor:pointer">Delete</button>' +
           '</div>' +
         '</div>';
@@ -1011,8 +1028,241 @@ function deleteApplication(id) {
   db.collection('applications').doc(id).delete().then(loadApplications);
 }
 
+/* ── ZONE BUILDER ── */
+var zbAppId = '', zbZip = '', zbCompany = '', zbLeads = [];
+
+function buildZone(id, company, zip) {
+  zbAppId = id; zbZip = zip; zbCompany = company;
+  document.getElementById('zb-title').textContent = company;
+  document.getElementById('zb-subtitle').textContent = 'Zip Code: ' + zip;
+  // Auto-generate owner code
+  var slug = company.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,20);
+  document.getElementById('zb-owner-code').value = slug + '-' + zip;
+  document.getElementById('zb-csv').value = '';
+  document.getElementById('zb-parse-err').style.display = 'none';
+  zbShowStep(1);
+  document.getElementById('zone-builder').classList.add('open');
+}
+
+function closeZoneBuilder() {
+  document.getElementById('zone-builder').classList.remove('open');
+}
+
+function zbShowStep(n) {
+  document.querySelectorAll('.zb-step').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('zb-step' + n).classList.add('active');
+}
+
+function zbBack() { zbShowStep(1); }
+
+function zbParseCSV() {
+  var raw = document.getElementById('zb-csv').value.trim();
+  var err = document.getElementById('zb-parse-err');
+  if (!raw) { err.textContent = 'Paste some addresses first.'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  zbLeads = [];
+  raw.split('\n').forEach(function(line) {
+    line = line.trim();
+    if (!line) return;
+    var parts = line.split(',');
+    var addr  = parts[0].trim();
+    var owner = parts.slice(1).join(',').trim();
+    // Extract street name (everything after house number, before suffix)
+    var street = addr.replace(/^\d+\s+/,'').replace(/\s+(St|Ave|Rd|Dr|Ln|Blvd|Way|Ct|Pl|Loop|Cir|Ter|Trl|Pkwy|Hwy|Blvd)\.?$/i,'').trim();
+    zbLeads.push({ addr: addr, owner: owner || '', tier: 'PRIME', age: 0, val: '', street: street });
+  });
+
+  if (zbLeads.length === 0) { err.textContent = 'No valid addresses found.'; err.style.display = 'block'; return; }
+
+  // Build preview table (show first 30)
+  var tbody = document.getElementById('zb-preview-body');
+  tbody.innerHTML = '';
+  zbLeads.slice(0, 30).forEach(function(lead, i) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td style="color:#555">' + (i+1) + '</td><td style="font-weight:600">' + lead.addr + '</td><td style="color:#888">' + (lead.owner||'—') + '</td><td style="color:#555;font-size:11px">' + lead.street + '</td>';
+    tbody.appendChild(tr);
+  });
+  if (zbLeads.length > 30) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="4" style="color:#444;text-align:center;font-size:12px">... and ' + (zbLeads.length - 30) + ' more</td>';
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('zb-lead-summary').textContent = zbLeads.length + ' addresses parsed';
+  zbUpdateRouteCount();
+  zbShowStep(2);
+
+  // Update route count when per-route changes
+  document.getElementById('zb-per-route').oninput = zbUpdateRouteCount;
+}
+
+function zbUpdateRouteCount() {
+  var per = parseInt(document.getElementById('zb-per-route').value) || 25;
+  var count = Math.ceil(zbLeads.length / per);
+  document.getElementById('zb-route-preview').textContent = count;
+}
+
+function zbLaunchZone() {
+  var ownerCode = document.getElementById('zb-owner-code').value.trim();
+  var perRoute  = parseInt(document.getElementById('zb-per-route').value) || 25;
+  var errEl     = document.getElementById('zb-launch-err');
+  var btn       = document.getElementById('zb-launch-btn');
+
+  if (!ownerCode) { errEl.textContent = 'Set an owner code.'; errEl.style.display = 'inline'; return; }
+  errEl.style.display = 'none';
+  btn.textContent = 'Launching…'; btn.disabled = true;
+
+  // Split into route chunks
+  var chunks = [];
+  for (var i = 0; i < zbLeads.length; i += perRoute) {
+    chunks.push(zbLeads.slice(i, i + perRoute));
+  }
+
+  var promises = chunks.map(function(leads, i) {
+    return db.collection('agentRoutes').add({
+      ownerCode:  ownerCode,
+      routeName:  zbCompany + ' — Route ' + (i + 1),
+      pocket:     ownerCode,
+      targetZip:  zbZip,
+      company:    zbCompany,
+      leads:      leads,
+      status:     'active',
+      statuses:   {},
+      notes:      {},
+      coords:     {},
+      agentName:  '',
+      createdAt:  new Date().toISOString()
+    });
+  });
+
+  Promise.all(promises)
+    .then(function() {
+      // Mark application as zone-built
+      if (zbAppId) {
+        db.collection('applications').doc(zbAppId).update({ status: 'zone-built', ownerCode: ownerCode });
+      }
+      // Show success
+      document.getElementById('zb-success-code').textContent = ownerCode;
+      document.getElementById('zb-s-leads').textContent  = zbLeads.length;
+      document.getElementById('zb-s-routes').textContent = chunks.length;
+      document.getElementById('zb-s-zip').textContent    = zbZip;
+      zbShowStep(3);
+      btn.textContent = 'Launch Zone →'; btn.disabled = false;
+    })
+    .catch(function(e) {
+      errEl.textContent = 'Error: ' + e.message; errEl.style.display = 'inline';
+      btn.textContent = 'Launch Zone →'; btn.disabled = false;
+    });
+}
+
+function zbCopyCode(el) {
+  navigator.clipboard.writeText(el.textContent.trim()).then(function() {
+    var orig = el.textContent;
+    el.textContent = 'Copied!';
+    setTimeout(function() { el.textContent = orig; }, 1500);
+  });
+}
+
 </script>
 
+
+<!-- ── ZONE BUILDER ── -->
+<div id="zone-builder">
+  <div class="zb-inner">
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:36px">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4caf50;margin-bottom:8px">Zone Builder</div>
+        <div id="zb-title" style="font-size:26px;font-weight:900;letter-spacing:-.5px"></div>
+        <div id="zb-subtitle" style="font-size:13px;color:#555;margin-top:4px"></div>
+      </div>
+      <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer">✕ Close</button>
+    </div>
+
+    <!-- STEP 1: Paste Addresses -->
+    <div class="zb-step active" id="zb-step1">
+      <div style="margin-bottom:20px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:6px">Step 1 — Paste Your Address List</div>
+        <div style="font-size:13px;color:#666;line-height:1.6">One address per line. Include owner name after a comma if available.<br>Format: <span style="color:#4caf50;font-family:monospace">123 Main St, Smith J.</span> or just <span style="color:#4caf50;font-family:monospace">123 Main St</span></div>
+      </div>
+      <textarea class="zb-csv" id="zb-csv" placeholder="510 Emerald Downs Rd, Williams T.&#10;514 Emerald Downs Rd, Chen M.&#10;517 Emerald Downs Rd, Johnson K.&#10;..."></textarea>
+      <div style="display:flex;gap:12px;margin-top:14px;align-items:center">
+        <button onclick="zbParseCSV()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 24px;border:none;border-radius:8px;cursor:pointer">Preview Leads →</button>
+        <span id="zb-parse-err" style="color:#ff5555;font-size:12px;display:none"></span>
+      </div>
+    </div>
+
+    <!-- STEP 2: Preview + Configure -->
+    <div class="zb-step" id="zb-step2">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Step 2 — Configure &amp; Launch</div>
+      <div id="zb-lead-summary" style="font-size:13px;color:#666;margin-bottom:20px"></div>
+
+      <!-- Preview table -->
+      <div style="border:1px solid #1a1a1a;border-radius:10px;overflow:hidden;margin-bottom:24px">
+        <table class="zb-table">
+          <thead><tr><th>#</th><th>Address</th><th>Owner</th><th>Street</th></tr></thead>
+          <tbody id="zb-preview-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Config row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Owner Code</div>
+          <input class="zb-field" id="zb-owner-code" type="text" placeholder="e.g. raleigh-27601" style="width:100%"/>
+          <div style="font-size:11px;color:#444;margin-top:4px">Contractor uses this to log in</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Addresses Per Route</div>
+          <input class="zb-field" id="zb-per-route" type="number" value="25" min="5" max="100" style="width:100%"/>
+          <div style="font-size:11px;color:#444;margin-top:4px">How many doors per agent</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Routes Preview</div>
+          <div id="zb-route-preview" style="font-size:22px;font-weight:900;color:#4caf50;margin-top:4px">—</div>
+          <div style="font-size:11px;color:#444;margin-top:2px">routes will be created</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <button onclick="zbBack()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer">← Back</button>
+        <button id="zb-launch-btn" onclick="zbLaunchZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer">Launch Zone →</button>
+        <span id="zb-launch-err" style="color:#ff5555;font-size:12px;align-self:center;display:none"></span>
+      </div>
+    </div>
+
+    <!-- STEP 3: Success -->
+    <div class="zb-step" id="zb-step3">
+      <div style="text-align:center;max-width:480px;margin:60px auto 0">
+        <div style="font-size:40px;margin-bottom:20px">✅</div>
+        <div style="font-size:22px;font-weight:900;margin-bottom:8px">Zone Is Live!</div>
+        <div style="font-size:13px;color:#666;margin-bottom:32px">Routes created and loaded into the system. Share the owner code with the contractor so they can log into their dashboard.</div>
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Owner Code</div>
+        <div class="zb-success-code" id="zb-success-code" onclick="zbCopyCode(this)" title="Click to copy">—</div>
+        <div style="font-size:11px;color:#444;margin-bottom:32px">Click to copy</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:32px">
+          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
+            <div id="zb-s-leads" style="font-size:24px;font-weight:900;color:#4caf50"></div>
+            <div style="font-size:11px;color:#555;margin-top:2px">Addresses</div>
+          </div>
+          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
+            <div id="zb-s-routes" style="font-size:24px;font-weight:900;color:#4caf50"></div>
+            <div style="font-size:11px;color:#555;margin-top:2px">Routes</div>
+          </div>
+          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
+            <div id="zb-s-zip" style="font-size:24px;font-weight:900;color:#4caf50"></div>
+            <div style="font-size:11px;color:#555;margin-top:2px">Zip Code</div>
+          </div>
+        </div>
+
+        <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">← Back to Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
