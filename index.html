@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -320,6 +322,18 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
       <div id="zip-err" style="display:none;color:#ff5555;font-size:12px;margin-top:10px">Please enter a valid 5-digit zip code.</div>
     </div>
 
+    <!-- ZIP MAP RESULT -->
+    <div id="zip-map-result" style="display:none;margin-top:20px;border-radius:14px;overflow:hidden;border:1px solid rgba(76,175,80,.3);background:#0d0d0d;max-width:600px;width:100%;box-shadow:0 0 40px rgba(76,175,80,.08)">
+      <div id="zip-map" style="height:260px;width:100%;position:relative"></div>
+      <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <div id="zip-city-label" style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.3px"></div>
+          <div style="font-size:11px;color:#666;margin-top:3px">Exclusive zone · 300+ pre-qualified homes</div>
+        </div>
+        <button onclick="claimZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:10px 22px;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;letter-spacing:-.2px">Claim This Zone →</button>
+      </div>
+    </div>
+
     <div class="hero-proof">
       <div class="hero-proof-dot"></div>
       One zone at a time &mdash; work it, then get another
@@ -566,16 +580,17 @@ function notifyDalton(company, phone, email, zip) {
 }
 
 // ── Zip Search ───────────────────────────────────────────────────────
-// Called by the hero "Find My Zone →" button.
-// Self-contained: validates input, pre-fills the apply form, scrolls down.
-// No external calls so it cannot silently break.
+var _zipMap = null;
+var _zipCircle = null;
+var _currentZip = '';
+
 function searchTerritory() {
   var input = document.getElementById('zip-input');
   var err   = document.getElementById('zip-err');
   var btn   = document.getElementById('zip-search-btn');
   var zip   = (input ? input.value : '').replace(/\D/g,'').slice(0,5);
 
-  if (input) input.value = zip; // strip non-digits in place
+  if (input) input.value = zip;
 
   if (!/^\d{5}$/.test(zip)) {
     if (err) { err.textContent = 'Please enter a valid 5-digit zip code.'; err.style.display = 'block'; }
@@ -583,31 +598,83 @@ function searchTerritory() {
     return;
   }
   if (err) err.style.display = 'none';
+  if (btn) { btn.textContent = 'Loading…'; btn.disabled = true; }
 
-  // Button feedback
-  if (btn) { btn.textContent = 'Checking…'; btn.disabled = true; }
+  fetch('https://api.zippopotam.us/us/' + zip)
+    .then(function(r) {
+      if (!r.ok) throw new Error('not found');
+      return r.json();
+    })
+    .then(function(data) {
+      var place = data.places[0];
+      var lat   = parseFloat(place.latitude);
+      var lng   = parseFloat(place.longitude);
+      var city  = place['place name'] + ', ' + place['state abbreviation'];
+      _currentZip = zip;
 
-  setTimeout(function() {
-    if (btn) { btn.textContent = 'Find My Zone →'; btn.disabled = false; }
+      // Show map container
+      var result = document.getElementById('zip-map-result');
+      result.style.display = 'block';
 
-    // Pre-fill zip into the apply form
-    var fZip = document.getElementById('f-zip');
-    if (fZip) { fZip.value = zip; }
+      // Update city label
+      document.getElementById('zip-city-label').textContent = zip + ' — ' + city;
 
-    // Scroll to apply section and briefly highlight the form
-    var cta = document.getElementById('cta');
-    if (cta) {
-      cta.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      var form = document.getElementById('contact-form');
-      if (form) {
-        setTimeout(function() {
-          form.style.transition = 'box-shadow .4s';
-          form.style.boxShadow = '0 0 0 3px rgba(76,175,80,.5)';
-          setTimeout(function() { form.style.boxShadow = ''; }, 1400);
-        }, 500);
+      // Pre-fill the apply form zip
+      var fZip = document.getElementById('f-zip');
+      if (fZip) fZip.value = zip;
+
+      // Init or update the map
+      if (!_zipMap) {
+        _zipMap = L.map('zip-map', { zoomControl: false, scrollWheelZoom: false, dragging: false, attributionControl: false });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 13 }).addTo(_zipMap);
+        L.control.zoom({ position: 'bottomright' }).addTo(_zipMap);
       }
+      _zipMap.setView([lat, lng], 12);
+
+      if (_zipCircle) _zipCircle.remove();
+      _zipCircle = L.circle([lat, lng], {
+        radius: 2400,
+        color: '#4caf50',
+        fillColor: '#4caf50',
+        fillOpacity: 0.12,
+        weight: 2
+      }).addTo(_zipMap);
+
+      // Pulse marker at center
+      var pulseIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:14px;height:14px;border-radius:50%;background:#4caf50;border:2px solid #fff;box-shadow:0 0 0 4px rgba(76,175,80,.3)"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+      L.marker([lat, lng], { icon: pulseIcon }).addTo(_zipMap);
+
+      if (btn) { btn.textContent = 'Find My Zone →'; btn.disabled = false; }
+
+      // Smooth scroll to show map
+      result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    })
+    .catch(function() {
+      if (err) { err.textContent = 'Zip code not found. Please try another.'; err.style.display = 'block'; }
+      if (btn) { btn.textContent = 'Find My Zone →'; btn.disabled = false; }
+    });
+}
+
+function claimZone() {
+  var fZip = document.getElementById('f-zip');
+  if (fZip && _currentZip) fZip.value = _currentZip;
+  var cta = document.getElementById('cta');
+  if (cta) {
+    cta.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    var form = document.getElementById('contact-form');
+    if (form) {
+      setTimeout(function() {
+        form.style.transition = 'box-shadow .4s';
+        form.style.boxShadow = '0 0 0 3px rgba(76,175,80,.5)';
+        setTimeout(function() { form.style.boxShadow = ''; }, 1400);
+      }, 500);
     }
-  }, 700);
+  }
 }
 
 // Allow pressing Enter in the zip input to trigger search
