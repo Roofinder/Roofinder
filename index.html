@@ -565,6 +565,65 @@ function notifyDalton(company, phone, email, zip) {
   } catch(e) {}
 }
 
+// ── Zip Search ───────────────────────────────────────────────────────
+// Called by the hero "Find My Zone →" button.
+// Self-contained: validates input, pre-fills the apply form, scrolls down.
+// No external calls so it cannot silently break.
+function searchTerritory() {
+  var input = document.getElementById('zip-input');
+  var err   = document.getElementById('zip-err');
+  var btn   = document.getElementById('zip-search-btn');
+  var zip   = (input ? input.value : '').replace(/\D/g,'').slice(0,5);
+
+  if (input) input.value = zip; // strip non-digits in place
+
+  if (!/^\d{5}$/.test(zip)) {
+    if (err) { err.textContent = 'Please enter a valid 5-digit zip code.'; err.style.display = 'block'; }
+    if (input) input.focus();
+    return;
+  }
+  if (err) err.style.display = 'none';
+
+  // Button feedback
+  if (btn) { btn.textContent = 'Checking…'; btn.disabled = true; }
+
+  setTimeout(function() {
+    if (btn) { btn.textContent = 'Find My Zone →'; btn.disabled = false; }
+
+    // Pre-fill zip into the apply form
+    var fZip = document.getElementById('f-zip');
+    if (fZip) { fZip.value = zip; }
+
+    // Scroll to apply section and briefly highlight the form
+    var cta = document.getElementById('cta');
+    if (cta) {
+      cta.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      var form = document.getElementById('contact-form');
+      if (form) {
+        setTimeout(function() {
+          form.style.transition = 'box-shadow .4s';
+          form.style.boxShadow = '0 0 0 3px rgba(76,175,80,.5)';
+          setTimeout(function() { form.style.boxShadow = ''; }, 1400);
+        }, 500);
+      }
+    }
+  }, 700);
+}
+
+// Allow pressing Enter in the zip input to trigger search
+(function() {
+  var zi = document.getElementById('zip-input');
+  if (zi) {
+    zi.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); searchTerritory(); }
+    });
+    // Strip non-numeric characters as user types
+    zi.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g,'').slice(0,5);
+    });
+  }
+})();
+
 // Smooth scroll for nav anchors
 document.querySelectorAll('a[href^="#"]').forEach(function(a) {
   a.addEventListener('click', function(e) {
