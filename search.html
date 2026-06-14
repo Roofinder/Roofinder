@@ -21,8 +21,8 @@ a{color:inherit;text-decoration:none}
 /* NAV */
 nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);overflow:hidden}
 .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;z-index:1}
-.verse-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:300;letter-spacing:.3em;color:rgba(255,255,255,0.11);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
-.verse-footer-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:300;letter-spacing:.3em;color:rgba(255,255,255,0.08);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
+.verse-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:300;letter-spacing:.15em;color:rgba(255,255,255,0.32);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
+.verse-footer-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-start;font-size:14px;font-weight:300;letter-spacing:.15em;color:rgba(255,255,255,0.26);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
 footer{position:relative;overflow:hidden}
 .nav-logo{font-size:17px;font-weight:800;letter-spacing:-.5px}
 .nav-logo span{color:var(--green)}
@@ -113,7 +113,7 @@ footer{position:relative;overflow:hidden}
 <body>
 
 <nav>
-  <div class="verse-bg" aria-hidden="true">"For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." — John 3:16 NIV</div>
+  <div class="verse-bg" aria-hidden="true">"For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." — John 3:16 NIV · "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." — John 3:16 NIV · "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." — John 3:16 NIV</div>
   <div class="nav-inner">
     <a href="index.html" class="nav-logo"><img src="logo.png" height="38" alt="RooFinder" style="display:block"></a>
     <a href="index.html" class="nav-back">← Search Again</a>
@@ -246,51 +246,4 @@ function buildMap(city, state) {
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '© OpenStreetMap © CARTO',
     maxZoom: 18
-  }).addTo(map);
-
-  // 5-mile radius circle (zone search area)
-  circle = L.circle([lat, lng], {
-    radius: RADIUS * 1609.34,
-    color: '#4caf50',
-    fillColor: '#4caf50',
-    fillOpacity: 0.08,
-    weight: 2,
-    dashArray: '6 4'
-  }).addTo(map);
-
-  // Center pin
-  var icon = L.divIcon({
-    className: '',
-    html: '<div style="width:14px;height:14px;border-radius:50%;background:#4caf50;border:3px solid #fff;box-shadow:0 0 12px rgba(76,175,80,0.8)"></div>',
-    iconSize: [14, 14], iconAnchor: [7, 7]
-  });
-  marker = L.marker([lat, lng], { icon: icon }).addTo(map);
-
-  // Map overlay badge
-  document.getElementById('map-overlay').style.display = 'block';
-  document.getElementById('overlay-zip').textContent = zip + ' · ' + city + ', ' + state;
-  document.getElementById('overlay-radius').textContent = '5 mi';
-}
-
-init();
-</script>
-
-<!-- FOOTER -->
-<footer style="padding:36px 24px;border-top:1px solid var(--border)">
-  <div class="verse-footer-bg" aria-hidden="true">"Jesus answered, 'I am the way and the truth and the life. No one comes to the Father except through me.'" — John 14:6 NIV</div>
-  <div style="position:relative;z-index:1;max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
-    <div>
-      <img src="logo.png" height="26" alt="RooFinder" style="display:block">
-      <div style="font-size:12px;color:#444;margin-top:6px">Exclusive neighborhood zones · Available nationwide</div>
-    </div>
-    <div style="display:flex;gap:24px;flex-wrap:wrap">
-      <a href="index.html" style="font-size:12px;color:#888;font-weight:500">Home</a>
-      <a href="how-it-works.html" style="font-size:12px;color:#888;font-weight:500">How It Works</a>
-      <a href="privacy.html" style="font-size:12px;color:#888;font-weight:500">Privacy</a>
-    </div>
-  </div>
-  <div style="position:relative;z-index:1;font-size:11px;color:#444;margin-top:20px;text-align:center">© 2026 RooFinder. All rights reserved.</div>
-</footer>
-
-</body>
-</html>
+  }).addTo(
