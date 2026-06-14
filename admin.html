@@ -985,6 +985,7 @@ function loadApplications() {
           '<div style="display:flex;gap:8px;flex-shrink:0">' +
             (isNew ? '<button class="app-action" data-id="' + doc.id + '" data-status="reviewed" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#aaa;cursor:pointer">Mark Reviewed</button>' : '') +
             '<button class="app-action" data-id="' + doc.id + '" data-status="approved" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.08);color:#3b82f6;cursor:pointer">Approve</button>' +
+            '<button onclick="deleteApplication(\'' + doc.id + '\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);color:#ef4444;cursor:pointer">Delete</button>' +
           '</div>' +
         '</div>';
       list.appendChild(card);
@@ -1003,6 +1004,11 @@ function loadApplications() {
 
 function updateAppStatus(id, status) {
   db.collection('applications').doc(id).update({ status: status }).then(loadApplications);
+}
+
+function deleteApplication(id) {
+  if (!confirm('Delete this application? This cannot be undone.')) return;
+  db.collection('applications').doc(id).delete().then(loadApplications);
 }
 
 </script>
