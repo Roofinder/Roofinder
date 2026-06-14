@@ -409,6 +409,21 @@ function initDashboard() {
     renderPockets();
     updateStats();
   });
+
+  // Real-time unread badge on Applications tab
+  db.collection('applications').where('status','==','new').onSnapshot(function(snap) {
+    var badge = document.getElementById('app-badge');
+    var count = snap.size;
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = 'inline';
+      badge.style.background = '#ff5555';
+      document.title = '(' + count + ' New) RooFinder Admin';
+    } else {
+      badge.style.display = 'none';
+      document.title = 'RooFinder Admin';
+    }
+  });
 }
 
 function updateStats() {

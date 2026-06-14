@@ -254,6 +254,38 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
   </div>
 </div>
 
+<!-- DELIVERY MODAL -->
+<div id="delivery-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;align-items:center;justify-content:center">
+  <div style="background:#111;border:1px solid rgba(76,175,80,0.4);border-radius:16px;padding:36px;max-width:520px;width:90%;position:relative">
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4caf50;margin-bottom:8px">Zone Ready to Deliver</div>
+    <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:4px" id="dm-heading"></div>
+    <div style="font-size:13px;color:#555;margin-bottom:24px" id="dm-sub"></div>
+
+    <div style="background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:20px;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#555;margin-bottom:8px">Access Code</div>
+      <div style="font-size:32px;font-weight:900;letter-spacing:6px;color:#4caf50;font-family:monospace" id="dm-code"></div>
+      <div style="font-size:12px;color:#444;margin-top:4px" id="dm-zip-line"></div>
+    </div>
+
+    <div style="background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#555;margin-bottom:10px">Pre-Written Message</div>
+      <div style="font-size:13px;color:#bbb;line-height:1.7;white-space:pre-wrap" id="dm-message"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <button onclick="copyDeliveryMsg()" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.35);color:#4caf50;font-size:12px;font-weight:700;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:inherit" id="copy-msg-btn">📋 Copy Message</button>
+      <button onclick="textSelf()" style="background:rgba(66,165,245,0.1);border:1px solid rgba(66,165,245,0.3);color:#42a5f5;font-size:12px;font-weight:700;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:inherit">📱 Text Yourself Reminder</button>
+      <button onclick="emailContractor()" style="background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);color:#ffa500;font-size:12px;font-weight:700;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:inherit">✉️ Open Email Draft</button>
+    </div>
+
+    <div style="font-size:11px;color:#444;padding:10px 14px;background:rgba(255,165,0,0.04);border:1px solid rgba(255,165,0,0.12);border-radius:7px;margin-bottom:20px">
+      ⚠️ This zip is now <strong style="color:#ffa500">exclusive</strong> — no other contractor will be assigned zone <span id="dm-zip-excl"></span>.
+    </div>
+
+    <button onclick="closeDelivery()" style="width:100%;background:transparent;border:1px solid #333;color:#666;font-size:13px;font-weight:600;padding:12px;border-radius:8px;cursor:pointer;font-family:inherit">Done →</button>
+  </div>
+</div>
+
 <!-- PORTAL -->
 <div id="portal">
   <nav>
@@ -275,6 +307,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
       <div class="mgr-tip">⚙️ Admin Mode — <strong>Keep / Skip</strong> to qualify leads &nbsp;·&nbsp; <strong>Hide</strong> removes from contractor view &nbsp;·&nbsp; <strong>Delete</strong> removes permanently</div>
       <div class="mgr-count" id="mgr-count"></div>
       <button class="mgr-btn" onclick="setFilter('hidden',document.querySelector('[data-f=hidden]'))">View Hidden</button>
+      <button class="mgr-btn" style="border-color:rgba(255,215,0,0.4);color:#ffd700;background:rgba(255,215,0,0.06)" onclick="autoQualify()">⚡ Auto-Qualify</button>
       <button class="mgr-btn danger" onclick="restoreAll()">Restore All</button>
       <button class="mgr-btn switch" onclick="switchZone()">← Switch Zone</button>
     </div>
@@ -288,6 +321,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
       <button class="filter-btn" data-f="not_reviewed" onclick="setFilter('not_reviewed',this)">Not Reviewed</button>
       <button class="filter-btn" data-f="keep" onclick="setFilter('keep',this)">Kept</button>
       <button class="filter-btn" data-f="skip" onclick="setFilter('skip',this)">Skipped</button>
+      <button class="filter-btn" data-f="qualified" onclick="setFilter('qualified',this)">⭐ Qualified</button>
       <button class="filter-btn" data-f="hidden" onclick="setFilter('hidden',this)" id="hidden-filter-btn" style="display:none">Hidden</button>
       <input class="search-box" id="search" placeholder="Search by name or address..." oninput="renderTable()"/>
       <span class="count-tag" id="count-tag"></span>
@@ -321,6 +355,16 @@ var db = firebase.firestore();
 // ── Auth config ───────────────────────────────────────────────────
 var ADMIN_PW    = 'ROOFADMIN1';
 var ADMIN_EMAIL = 'daltonnicely@gmail.com';
+
+// ── Zone qualification criteria ───────────────────────────────────
+var VALUE_MIN = 250000;  // $250K minimum home value
+var ROOF_MIN  = 15;      // 15+ year roof age
+
+function isQualified(l) {
+  var val = parseInt((l.value||'').toString().replace(/[^0-9]/g,'')) || 0;
+  var age = parseInt((l.roof_age||'').toString().replace(/[^0-9]/g,'')) || 0;
+  return val >= VALUE_MIN && age >= ROOF_MIN;
+}
 
 // ── App state ─────────────────────────────────────────────────────
 var currentRole   = null;
@@ -539,9 +583,18 @@ async function saveCode() {
   if (!name) { alert('Please enter a contractor name.'); return; }
   if (!/^\d{5}$/.test(zip)) { alert('Enter a valid 5-digit zip code.'); return; }
   if (code === ADMIN_PW) { alert('That code is reserved.'); return; }
+
+  // Exclusivity check — one contractor per zip
+  var existingCode = assignedZips[zip];
+  if (existingCode) {
+    if (!confirm('⚠️ Zip ' + zip + ' is already assigned to code ' + existingCode + '.\n\nRooFinder zones are exclusive. Assigning another code would break exclusivity.\n\nAssign anyway?')) return;
+  }
+
   try {
     await db.collection('codes').doc(code).set({ contractorName: name, zip: zip, createdAt: Date.now() });
     document.getElementById('add-code-form').style.display = 'none';
+    assignedZips[zip] = code;
+    showDeliveryPanel(code, zip, name);
   } catch(e) { alert('Error saving code: ' + e.message); }
 }
 
@@ -708,6 +761,7 @@ function renderTable() {
     if (currentFilter === 'skip'         && s !== 'skip') return;
     if (currentFilter === 'not_reviewed' && s !== '') return;
     if (currentFilter === 'hidden'       && !isHid) return;
+    if (currentFilter === 'qualified'    && !isQualified(l)) return;
     if (search && !l.owner.toLowerCase().includes(search) && !l.address.toLowerCase().includes(search)) return;
     rows.push({l:l, i:i, s:s, isHid:isHid});
   });
@@ -732,9 +786,11 @@ function renderTable() {
         + '<button class="del-btn" onclick="deleteLead(' + i + ')">Delete</button>'
         + '</div></td>'
       : '';
+    var qualified = isQualified(l);
+    var qBadge = qualified ? ' <span style="font-size:9px;font-weight:800;background:rgba(76,175,80,0.15);color:#4caf50;border:1px solid rgba(76,175,80,0.3);padding:1px 5px;border-radius:4px;letter-spacing:.5px">Q</span>' : '';
     return '<tr' + rowCls + '>'
       + '<td style="color:#555;font-size:11px">' + (i+1) + '</td>'
-      + '<td><div class="owner-name">' + owner + '</div><div class="addr-text">' + (l.address||'') + '</div></td>'
+      + '<td><div class="owner-name">' + owner + qBadge + '</div><div class="addr-text">' + (l.address||'') + '</div></td>'
       + '<td>' + fmtValue(l.value) + '</td>'
       + '<td>' + roofAge + '</td>'
       + '<td><button class="map-popup-btn" onclick="openMap(\'' + ea + '\',\'' + ec + '\')">🗺 Map</button></td>'
@@ -770,6 +826,19 @@ function restoreAll() {
   saveField('hidden', hidden);
 }
 
+function autoQualify() {
+  var qualify = LEADS.filter(function(l,i){ return !deleted[i] && isQualified(l); }).length;
+  var disqualify = LEADS.filter(function(l,i){ return !deleted[i] && !isQualified(l); }).length;
+  if (!confirm('Auto-Qualify will:\n✓ Keep ' + qualify + ' homes ($250K+ value, 15+ yr roof)\n✗ Skip ' + disqualify + ' homes that don\'t meet criteria\n\nContinue?')) return;
+  LEADS.forEach(function(l, i) {
+    if (deleted[i]) return;
+    statuses[l.address] = isQualified(l) ? 'keep' : 'skip';
+  });
+  saveField('statuses', statuses);
+  updateStats();
+  renderTable();
+}
+
 // ── Stats ─────────────────────────────────────────────────────────
 function updateStats() {
   var visible = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; });
@@ -783,6 +852,51 @@ function updateMgrCount() {
   var cnt = LEADS.filter(function(_,i){ return !deleted[i] && !!hidden[i]; }).length;
   var el = document.getElementById('mgr-count');
   if (el) el.textContent = cnt > 0 ? cnt + ' hidden' : '';
+}
+
+// ── Delivery panel ────────────────────────────────────────────────
+var _dmCode='', _dmName='', _dmZip='', _dmMsg='';
+
+function showDeliveryPanel(code, zip, name) {
+  _dmCode = code; _dmName = name; _dmZip = zip;
+  var kept = Object.values(statuses).filter(function(v){ return v==='keep'; }).length;
+  _dmMsg = 'Hi ' + name.split(' ')[0] + ',\n\nYour RooFinder zone is ready!\n\n'
+    + 'Zone: ' + zip + ' (' + (kept || 'your') + ' qualified leads)\n'
+    + 'Access code: ' + code + '\n'
+    + 'Login at: roofinder.online/pocket-builder.html\n\n'
+    + 'Use your code to log in and view your exclusive homeowner list.\n'
+    + 'Questions? Text or call (919) 480-8884.\n\n'
+    + '— Dalton, RooFinder';
+
+  document.getElementById('dm-heading').textContent = name + ' — Zone ' + zip;
+  document.getElementById('dm-sub').textContent = 'Code created. Ready to deliver.';
+  document.getElementById('dm-code').textContent = code;
+  document.getElementById('dm-zip-line').textContent = 'Assigned zip: ' + zip + ' · Exclusive zone';
+  document.getElementById('dm-zip-excl').textContent = zip;
+  document.getElementById('dm-message').textContent = _dmMsg;
+  document.getElementById('delivery-modal').style.display = 'flex';
+}
+
+function closeDelivery() {
+  document.getElementById('delivery-modal').style.display = 'none';
+}
+
+function copyDeliveryMsg() {
+  navigator.clipboard.writeText(_dmMsg).then(function() {
+    var btn = document.getElementById('copy-msg-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(function(){ btn.textContent = '📋 Copy Message'; }, 2000);
+  });
+}
+
+function textSelf() {
+  var msg = 'RooFinder reminder: Send code ' + _dmCode + ' to ' + _dmName + ' for zip ' + _dmZip + '. roofinder.online/pocket-builder.html';
+  window.open('sms:+19194808884?body=' + encodeURIComponent(msg));
+}
+
+function emailContractor() {
+  var subject = 'Your RooFinder Zone is Ready — ' + _dmZip;
+  window.open('mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(_dmMsg));
 }
 
 // ── URL params ────────────────────────────────────────────────────

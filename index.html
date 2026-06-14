@@ -570,12 +570,45 @@ function submitForm(e) {
   .then(function() {
     document.getElementById('contact-form').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
+    notifyDalton(company, phone, email, zip);
   })
   .catch(function() {
-    // Show success anyway — don't punish the user for network quirks
     document.getElementById('contact-form').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
+    notifyDalton(company, phone, email, zip);
   });
+}
+
+// ── New application notification ──────────────────────────────────
+// Uses EmailJS (free tier, 200 emails/mo). Requires a one-time setup:
+// 1. Sign up at emailjs.com with daltonnicely@gmail.com
+// 2. Connect Gmail as a service → copy Service ID into EMAILJS_SERVICE
+// 3. Create template with vars {{company}} {{phone}} {{email}} {{zip}}
+//    → copy Template ID into EMAILJS_TEMPLATE
+// 4. Go to Account → copy Public Key into EMAILJS_KEY
+// Until configured, this silently does nothing.
+var EMAILJS_SERVICE  = 'YOUR_SERVICE_ID';
+var EMAILJS_TEMPLATE = 'YOUR_TEMPLATE_ID';
+var EMAILJS_KEY      = 'YOUR_PUBLIC_KEY';
+
+function notifyDalton(company, phone, email, zip) {
+  if (EMAILJS_SERVICE.startsWith('YOUR')) return; // not configured yet
+  try {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+    script.onload = function() {
+      emailjs.init(EMAILJS_KEY);
+      emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+        to_email: 'daltonnicely@gmail.com',
+        company: company,
+        phone: phone,
+        email: email,
+        zip: zip,
+        time: new Date().toLocaleString('en-US',{timeZone:'America/New_York'})
+      }).catch(function(){});
+    };
+    document.head.appendChild(script);
+  } catch(e) {}
 }
 
 // Smooth scroll for nav anchors
