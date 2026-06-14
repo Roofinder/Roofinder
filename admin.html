@@ -1210,19 +1210,24 @@ var zbMidSession   = false;
 var zbTotalSent    = 0;
 var zbListView     = false;
 var zbCardSort     = 'street';
+var zbCardSortDir  = 1;   /* 1 = default, -1 = reversed */
 var zbListSort     = 'street';
+var zbListSortDir  = 1;
 var zbListPage     = 0;
 var zbListPageSize = 50;
+var zbSortLabels   = {street:'🏘 By Street', addr:'A–Z Address', age:'🕐 Roof Age', val:'💰 Home Value'};
 
 function zbStartScreener() {
   zbAllLeads  = zbLeads.slice();
   zbKeptLeads = [];
   zbScreenIdx = 0;
   zbStatus    = zbAllLeads.map(function(){ return 'pending'; });
-  zbListView  = false;
-  zbCardSort  = 'street';
-  zbListSort  = 'street';
-  zbListPage  = 0;
+  zbListView     = false;
+  zbCardSort     = 'street';
+  zbCardSortDir  = 1;
+  zbListSort     = 'street';
+  zbListSortDir  = 1;
+  zbListPage     = 0;
 
   /* Default card order: street name → house number */
   zbAllLeads.sort(function(a,b){
@@ -1239,7 +1244,8 @@ function zbStartScreener() {
   document.getElementById('sc-list-view').style.display  = 'none';
   document.getElementById('sc-card-grid').style.display  = 'grid';
   document.getElementById('sc-done').style.display       = 'none';
-  zbSetSortBtn('street');
+  zbSetSortBtn('street', 1);
+  zbSetCardSortBtn('street', 1);
   zbRenderListView();
   zbAdvanceTo(0);
   zbShowStep(2);
@@ -1300,8 +1306,7 @@ function zbShowScreenCard(idx) {
   document.getElementById('sc-val').textContent      = lead.val  || '—';
   document.getElementById('sc-zip-disp').textContent = lead.zip  || zbZip;
   var enc = encodeURIComponent(lead.addr + ' NC USA');
-  document.getElementById('sc-map').src      = 'https://maps.google.com/maps?q=' + enc + '&output=embed&z=17';
-  document.getElementById('sc-sv-link').href = 'https://www.google.com/maps?q=' + enc + '&layer=c';
+  document.getElementById('sc-map').src = 'https://maps.google.com/maps?q=' + enc + '&output=embed&z=17';
 }
 
 function zbKeepLead() {
@@ -1321,7 +1326,7 @@ function zbSkipLead() {
 }
 
 /* ── CARD SORT ── */
-function zbSetCardSortBtn(sort) {
+function zbSetCardSortBtn(sort, dir) {
   ['street','addr','age','val'].forEach(function(s){
     var btn = document.getElementById('sc-csort-'+s);
     if (!btn) return;
@@ -1330,35 +1335,56 @@ function zbSetCardSortBtn(sort) {
     btn.style.borderColor = active ? 'rgba(76,175,80,0.4)'  : '#1a1a1a';
     btn.style.color       = active ? '#4caf50'               : '#555';
     btn.style.fontWeight  = active ? '800'                   : '600';
+    btn.textContent       = zbSortLabels[s] + (active ? (dir === 1 ? ' ▲' : ' ▼') : '');
   });
 }
 
 function zbSetCardSort(sort) {
-  zbCardSort = sort;
+  if (sort === zbCardSort) {
+    zbCardSortDir = -zbCardSortDir; /* Same sort clicked — reverse */
+  } else {
+    zbCardSort    = sort;
+    zbCardSortDir = 1;
+  }
+  var dir = zbCardSortDir;
   /* Save current status by address so it survives the re-sort */
   var statusMap = {};
   zbAllLeads.forEach(function(lead, i){ statusMap[lead.addr] = zbStatus[i]; });
   /* Re-sort zbAllLeads in place */
   zbAllLeads.sort(function(a, b){
+    var r = 0;
     if (sort === 'street') {
       var sa = (a.street||'').trim() || a.addr.replace(/^\d+\s+/,'').trim();
       var sb = (b.street||'').trim() || b.addr.replace(/^\d+\s+/,'').trim();
-      if (sa !== sb) return sa.localeCompare(sb);
-      return (parseInt(a.addr)||0) - (parseInt(b.addr)||0);
-    }
-    if (sort === 'addr') return a.addr.localeCompare(b.addr);
-    if (sort === 'age')  return (parseInt(b.age)||0)  - (parseInt(a.age)||0);
-    if (sort === 'val') {
+      r = sa !== sb ? sa.localeCompare(sb) : (parseInt(a.addr)||0) - (parseInt(b.addr)||0);
+    } else if (sort === 'addr') {
+      r = a.addr.localeCompare(b.addr);
+    } else if (sort === 'age') {
+      r = (parseInt(b.age)||0) - (parseInt(a.age)||0);
+    } else if (sort === 'val') {
       var va = parseInt((a.val||'').replace(/\D/g,''))||0;
       var vb = parseInt((b.val||'').replace(/\D/g,''))||0;
-      return vb - va;
+      r = vb - va;
     }
-    return 0;
+    return r * dir;
   });
   /* Rebuild zbStatus in new index order */
   zbStatus = zbAllLeads.map(function(lead){ return statusMap[lead.addr] || 'pending'; });
-  zbSetCardSortBtn(sort);
+  zbSetCardSortBtn(sort, dir);
   zbAdvanceTo(0);
+}
+
+/* ── STREET VIEW POPUP ── */
+function zbOpenSV() {
+  var addr = document.getElementById('sc-addr').textContent;
+  if (!addr) return;
+  var enc = encodeURIComponent(addr + ' NC USA');
+  document.getElementById('sv-iframe').src = 'https://maps.google.com/maps?q=' + enc + '&layer=c&output=embed&z=17';
+  document.getElementById('sv-modal').style.display = 'flex';
+}
+function zbCloseSV() {
+  document.getElementById('sv-modal').style.display = 'none';
+  document.getElementById('sv-iframe').src = '';
 }
 
 /* ── VIEW TOGGLE ── */
@@ -1374,7 +1400,7 @@ function zbToggleView() {
 }
 
 /* ── LIST VIEW ── */
-function zbSetSortBtn(sort) {
+function zbSetSortBtn(sort, dir) {
   ['street','addr','age','val'].forEach(function(s){
     var btn = document.getElementById('sc-sort-'+s);
     if (!btn) return;
@@ -1383,34 +1409,41 @@ function zbSetSortBtn(sort) {
     btn.style.borderColor = active ? 'rgba(76,175,80,0.4)'  : '#1a1a1a';
     btn.style.color       = active ? '#4caf50'               : '#555';
     btn.style.fontWeight  = active ? '800'                   : '600';
+    btn.textContent       = zbSortLabels[s] + (active ? (dir === 1 ? ' ▲' : ' ▼') : '');
   });
 }
 
 function zbSetListSort(sort) {
-  zbListSort = sort;
+  if (sort === zbListSort) {
+    zbListSortDir = -zbListSortDir;
+  } else {
+    zbListSort    = sort;
+    zbListSortDir = 1;
+  }
   zbListPage = 0;
-  zbSetSortBtn(sort);
+  zbSetSortBtn(sort, zbListSortDir);
   zbRenderListView();
 }
 
 function zbGetSortedLeads() {
+  var dir   = zbListSortDir;
   var items = zbAllLeads.map(function(l,i){ return {lead:l, idx:i}; });
   if (zbListSort === 'street') {
     items.sort(function(a,b){
       var sa = (a.lead.street||'').trim() || a.lead.addr.replace(/^\d+\s+/,'').trim();
       var sb = (b.lead.street||'').trim() || b.lead.addr.replace(/^\d+\s+/,'').trim();
-      if (sa !== sb) return sa.localeCompare(sb);
-      return (parseInt(a.lead.addr)||0) - (parseInt(b.lead.addr)||0);
+      var r  = sa !== sb ? sa.localeCompare(sb) : (parseInt(a.lead.addr)||0) - (parseInt(b.lead.addr)||0);
+      return r * dir;
     });
   } else if (zbListSort === 'addr') {
-    items.sort(function(a,b){ return a.lead.addr.localeCompare(b.lead.addr); });
+    items.sort(function(a,b){ return a.lead.addr.localeCompare(b.lead.addr) * dir; });
   } else if (zbListSort === 'age') {
-    items.sort(function(a,b){ return (parseInt(b.lead.age)||0) - (parseInt(a.lead.age)||0); });
+    items.sort(function(a,b){ return ((parseInt(b.lead.age)||0) - (parseInt(a.lead.age)||0)) * dir; });
   } else if (zbListSort === 'val') {
     items.sort(function(a,b){
       var va = parseInt((a.lead.val||'').replace(/\D/g,''))||0;
       var vb = parseInt((b.lead.val||'').replace(/\D/g,''))||0;
-      return vb - va;
+      return (vb - va) * dir;
     });
   }
   return items;
@@ -1904,7 +1937,7 @@ function zbCopyCode(el) {
                 <div><div style="font-size:10px;color:#444;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Zip</div><div id="sc-zip-disp" style="font-size:12px;color:#ccc;font-weight:600"></div></div>
               </div>
             </div>
-            <a id="sc-sv-link" href="#" target="_blank" rel="noopener" style="display:block;text-align:center;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:10px;padding:10px;font-size:12px;font-weight:700;color:#666;text-decoration:none">🔍 Open in Google Street View</a>
+            <button onclick="zbOpenSV()" style="display:block;width:100%;text-align:center;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:10px;padding:10px;font-size:12px;font-weight:700;color:#666;cursor:pointer;font-family:inherit">🔍 Open in Street View</button>
             <button onclick="zbKeepLead()" style="background:#4caf50;color:#000;font-weight:900;font-size:15px;padding:15px;border:none;border-radius:10px;cursor:pointer">✅ Good Lead — Keep</button>
             <button onclick="zbSkipLead()" style="background:#111;border:1px solid #1e1e1e;color:#555;font-weight:700;font-size:13px;padding:12px;border-radius:10px;cursor:pointer">❌ Skip</button>
           </div>
@@ -1955,20 +1988,4 @@ function zbCopyCode(el) {
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px">
         <div>
           <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Owner Code</div>
-          <input class="zb-field" id="zb-owner-code" type="text" placeholder="e.g. raleigh-27601" style="width:100%"/>
-          <div style="font-size:11px;color:#444;margin-top:4px">Contractor uses this to log in</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Addresses Per Route</div>
-          <input class="zb-field" id="zb-per-route" type="number" value="25" min="5" max="100" style="width:100%"/>
-          <div style="font-size:11px;color:#444;margin-top:4px">How many doors per agent</div>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Routes Preview</div>
-          <div id="zb-route-preview" style="font-size:22px;font-weight:900;color:#4caf50;margin-top:4px">—</div>
-          <div style="font-size:11px;color:#444;margin-top:2px">routes will be created</div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px">
-        <button onclick="zbShowStep(2)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:p
+          
