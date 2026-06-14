@@ -1118,18 +1118,21 @@ function loadApplications() {
     var badge = document.getElementById('app-badge');
     var newCount = 0;
     if (snap.empty) {
-      list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">No applications yet &#8212; submissions will appear here.</div>';
+      list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">No applications yet — submissions will appear here.</div>';
+      badge.style.display = 'none';
       return;
     }
-    var html = '';
+    list.innerHTML = '';
     snap.forEach(function(doc) {
       var d = doc.data();
       var isNew = d.status === 'new';
       if (isNew) newCount++;
-      var statusColor = isNew ? '#4caf50' : d.status === 'approved' ? '#3b82f6' : '#555';
-      var statusLabel = isNew ? 'NEW' : d.status === 'approved' ? 'APPROVED' : 'REVIEWED';
+      var statusColor = isNew ? '#4caf50' : (d.status === 'approved' ? '#3b82f6' : '#555');
+      var statusLabel = isNew ? 'NEW' : (d.status === 'approved' ? 'APPROVED' : 'REVIEWED');
       var date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
-      html += '<div style="background:#111;border:1px solid ' + (isNew ? 'rgba(76,175,80,0.3)' : '#222') + ';border-radius:12px;padding:20px 22px;margin-bottom:12px;transition:border-color .2s">' +
+      var card = document.createElement('div');
+      card.style.cssText = 'background:#111;border:1px solid ' + (isNew ? 'rgba(76,175,80,0.3)' : '#222') + ';border-radius:12px;padding:20px 22px;margin-bottom:12px';
+      card.innerHTML =
         '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
           '<div style="flex:1;min-width:0">' +
             '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
@@ -1137,20 +1140,25 @@ function loadApplications() {
               '<span style="font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:6px;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + '44">' + statusLabel + '</span>' +
             '</div>' +
             '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">' +
-              '<div style="font-size:12px;color:#666">📞 <a href="tel:' + (d.phone||'') + '" style="color:#4caf50;font-weight:600">' + (d.phone || '—') + '</a></div>' +
-              '<div style="font-size:12px;color:#666">✉️ <a href="mailto:' + (d.email||'') + '" style="color:#4caf50;font-weight:600">' + (d.email || '—') + '</a></div>' +
+              '<div style="font-size:12px;color:#666">📞 <a href="tel:' + (d.phone || '') + '" style="color:#4caf50;font-weight:600">' + (d.phone || '—') + '</a></div>' +
+              '<div style="font-size:12px;color:#666">✉️ <a href="mailto:' + (d.email || '') + '" style="color:#4caf50;font-weight:600">' + (d.email || '—') + '</a></div>' +
               '<div style="font-size:12px;color:#666">📍 Target zip: <span style="color:#e0e4f0;font-weight:700">' + (d.targetZip || '—') + '</span></div>' +
               '<div style="font-size:11px;color:#444">' + date + '</div>' +
             '</div>' +
           '</div>' +
-          '<div style="display:flex;gap:8px;flex-shrink:0">' +
-            (isNew ? '<button class="tbl-btn" onclick="updateAppStatus('' + doc.id + '','reviewed')">Mark Reviewed</button>' : '') +
-            '<button class="tbl-btn" style="border-color:rgba(59,130,246,0.3);color:#3b82f6" onclick="updateAppStatus('' + doc.id + '','approved')">Approve</button>' +
+          '<div style="display:flex;gap:8px;flex-shrink:0" id="btns-' + doc.id + '">' +
+            (isNew ? '<button class="tbl-btn app-action" data-id="' + doc.id + '" data-status="reviewed">Mark Reviewed</button>' : '') +
+            '<button class="tbl-btn app-action" data-id="' + doc.id + '" data-status="approved" style="border-color:rgba(59,130,246,0.3);color:#3b82f6">Approve</button>' +
           '</div>' +
-        '</div>' +
-      '</div>';
+        '</div>';
+      list.appendChild(card);
     });
-    list.innerHTML = html;
+    // Attach click handlers via event delegation
+    list.querySelectorAll('.app-action').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        updateAppStatus(this.dataset.id, this.dataset.status);
+      });
+    });
     if (newCount > 0) {
       badge.style.display = 'inline';
       badge.textContent = newCount;
@@ -1158,7 +1166,7 @@ function loadApplications() {
       badge.style.display = 'none';
     }
   }).catch(function(err) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#ff5555;font-size:13px">Error loading applications: ' + err.message + '</div>';
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#ff5555;font-size:13px">Error: ' + err.message + '</div>';
   });
 }
 
