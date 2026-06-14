@@ -217,7 +217,7 @@ footer { position: relative; overflow: hidden; }
 
 <!-- CONTRACTOR JOURNEY -->
 <div class="wrap">
-<div style="max-width:960px;margin:0 auto 80px">
+<div style="max-width:980px;margin:0 auto 80px">
 
   <!-- Header -->
   <div style="text-align:center;margin-bottom:40px">
@@ -228,21 +228,33 @@ footer { position: relative; overflow: hidden; }
 
   <!-- Step Tabs -->
   <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid rgba(255,255,255,0.08);overflow-x:auto" id="journey-tabs">
-    <button class="jtab active" onclick="showStep(0)" style="flex:1;min-width:120px">
+    <button class="jtab active" onclick="showStep(0)" style="flex:1;min-width:90px">
       <div class="jtab-num">A</div>
-      <div class="jtab-label">Claim Territory</div>
+      <div class="jtab-label">Claim Zone</div>
     </button>
-    <button class="jtab" onclick="showStep(1)" style="flex:1;min-width:120px">
+    <button class="jtab" onclick="showStep(1)" style="flex:1;min-width:90px">
       <div class="jtab-num">B</div>
-      <div class="jtab-label">We Build Zone</div>
+      <div class="jtab-label">We Build</div>
     </button>
-    <button class="jtab" onclick="showStep(2)" style="flex:1;min-width:120px">
+    <button class="jtab" onclick="showStep(2)" style="flex:1;min-width:90px">
       <div class="jtab-num">C</div>
-      <div class="jtab-label">Get Your Code</div>
+      <div class="jtab-label">Get Code</div>
     </button>
-    <button class="jtab" onclick="showStep(3)" style="flex:1;min-width:120px">
+    <button class="jtab" onclick="showStep(3)" style="flex:1;min-width:90px">
       <div class="jtab-num">D</div>
-      <div class="jtab-label">Start Canvassing</div>
+      <div class="jtab-label">Owner Login</div>
+    </button>
+    <button class="jtab" onclick="showStep(4)" style="flex:1;min-width:90px">
+      <div class="jtab-num">E</div>
+      <div class="jtab-label">Build Routes</div>
+    </button>
+    <button class="jtab" onclick="showStep(5)" style="flex:1;min-width:90px">
+      <div class="jtab-num">F</div>
+      <div class="jtab-label">Deploy Team</div>
+    </button>
+    <button class="jtab" onclick="showStep(6)" style="flex:1;min-width:90px">
+      <div class="jtab-num">G</div>
+      <div class="jtab-label">Hit the Doors</div>
     </button>
   </div>
 
@@ -250,7 +262,7 @@ footer { position: relative; overflow: hidden; }
   <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-top:none;border-radius:0 0 16px 16px;overflow:hidden">
 
     <!-- STEP A: Claim Territory -->
-    <div class="jstep active" id="jstep-0">
+    <div class="jstep active" id="jstep-0" style="animation:fadeIn .25s">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
         <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step A · 5 Minutes</div>
@@ -381,61 +393,211 @@ footer { position: relative; overflow: hidden; }
       </div>
     </div>
 
-    <!-- STEP D: Start Canvassing -->
+    <!-- STEP D: Owner Dashboard Login -->
     <div class="jstep" id="jstep-3">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
         <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
-          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step D · Day 1</div>
-          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Open the App &<br>Start Canvassing</h3>
-          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Every rep on your team opens roofinder.online/agent on their phone, enters the team code, and sees their leads on a map. Tap a pin, get the homeowner details, knock the door, log the status in 3 seconds. That's it.</p>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step D · Same Day as Code</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Log In to Your<br>Owner Dashboard</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Open roofinder.online/owner on any device and enter your team code. Your entire operation is in here — your full lead zone, agent activity, pipeline stats, and storm alerts. This is your command center.</p>
           <div style="display:flex;flex-direction:column;gap:10px">
-            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Map view shows every lead — color-coded by status</span></div>
-            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Tap any pin to see owner name, home value, address</span></div>
-            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Log status with one tap — No Answer, Callback, Interested, Appointment Set</span></div>
-            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>You see everything live from your owner dashboard</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>See your zone: total leads loaded, avg home value, coverage area</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Live feed of what agents are doing right now in the field</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Pipeline summary: doors knocked, interested leads, appointments set</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Storm alerts for your zip — know when to push your team hard</span></div>
+          </div>
+        </div>
+        <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px">
+          <div style="width:100%;max-width:300px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6)">
+            <div style="background:#111;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:900">ROOF<span style="color:#4caf50">FINDER</span> <span style="font-size:9px;color:#555;font-weight:400">Owner</span></div>
+              <div style="font-size:9px;background:rgba(76,175,80,0.12);color:#4caf50;border:1px solid rgba(76,175,80,0.3);padding:2px 8px;border-radius:100px">Zone 27601</div>
+            </div>
+            <div style="padding:16px 14px">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 8px;text-align:center">
+                  <div style="font-size:18px;font-weight:900;color:#4caf50">342</div><div style="font-size:8px;color:#555;margin-top:2px">Leads</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 8px;text-align:center">
+                  <div style="font-size:18px;font-weight:900">0</div><div style="font-size:8px;color:#555;margin-top:2px">Knocked</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 8px;text-align:center">
+                  <div style="font-size:18px;font-weight:900">$318k</div><div style="font-size:8px;color:#555;margin-top:2px">Avg Value</div>
+                </div>
+              </div>
+              <div style="font-size:9px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Activity Feed</div>
+              <div style="background:rgba(76,175,80,0.05);border:1px solid rgba(76,175,80,0.15);border-radius:7px;padding:10px 12px;font-size:10px;color:#888;text-align:center;line-height:1.5">Your team's door activity will appear here once agents are in the field.</div>
+              <div style="margin-top:10px;background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:7px;padding:8px 10px;display:flex;gap:8px;align-items:center">
+                <span style="font-size:14px">⚡</span><div><div style="font-size:9px;font-weight:700;color:#f59e0b">Storm Watch — 27601</div><div style="font-size:9px;color:#666">No active alerts · Updated today</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP E: Build Routes -->
+    <div class="jstep" id="jstep-4">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
+        <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step E · Before You Deploy</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Build Your Routes &<br>Divide the Zone</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Your zone has 300–400 qualified homes. Don't send agents into the zone blind — build routes first. Divide your territory into manageable sections by neighborhood, street cluster, or time of day. Name each route and assign it to an agent.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Create as many routes as you need — no limit</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Name them by area or shift: "Morning North", "Weekend East"</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Each agent only sees their assigned route — no overlap, no wasted steps</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Reassign routes anytime from your owner dashboard</span></div>
+          </div>
+        </div>
+        <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px">
+          <div style="width:100%;max-width:300px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6)">
+            <div style="background:#111;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;font-weight:800">My Routes — Zone 27601</div>
+              <div style="font-size:10px;background:#4caf50;color:#000;font-weight:800;padding:3px 10px;border-radius:6px;cursor:pointer">+ New</div>
+            </div>
+            <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                  <div style="font-size:11px;font-weight:700">Morning — North Side</div>
+                  <div style="font-size:8px;background:rgba(76,175,80,0.12);color:#4caf50;border:1px solid rgba(76,175,80,0.3);padding:1px 6px;border-radius:100px">Ready</div>
+                </div>
+                <div style="font-size:9px;color:#555">120 homes · Unassigned</div>
+                <div style="margin-top:6px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px"><div style="width:0%;height:100%;background:#4caf50;border-radius:2px"></div></div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                  <div style="font-size:11px;font-weight:700">Afternoon — South Side</div>
+                  <div style="font-size:8px;background:rgba(76,175,80,0.12);color:#4caf50;border:1px solid rgba(76,175,80,0.3);padding:1px 6px;border-radius:100px">Ready</div>
+                </div>
+                <div style="font-size:9px;color:#555">114 homes · Unassigned</div>
+                <div style="margin-top:6px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px"><div style="width:0%;height:100%;background:#4caf50;border-radius:2px"></div></div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                  <div style="font-size:11px;font-weight:700">Weekend — East Corridor</div>
+                  <div style="font-size:8px;background:rgba(76,175,80,0.12);color:#4caf50;border:1px solid rgba(76,175,80,0.3);padding:1px 6px;border-radius:100px">Ready</div>
+                </div>
+                <div style="font-size:9px;color:#555">108 homes · Unassigned</div>
+                <div style="margin-top:6px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px"><div style="width:0%;height:100%;background:#4caf50;border-radius:2px"></div></div>
+              </div>
+              <div style="text-align:center;font-size:9px;color:#555;padding-top:2px">342 total leads · 3 routes built</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP F: Deploy Team -->
+    <div class="jstep" id="jstep-5">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
+        <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step F · Morning of Your First Day</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Send Routes &<br>Deploy Your Team</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Share the team code with every agent. They open roofinder.online/agent on their phone — no download, no account, no setup. They enter the code, type their name, and they're live in their assigned route within seconds. That's it — your team is in the field.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Works on any phone — no app store download required</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Agent sees only their route — focused, no distractions</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Add agents anytime — same code works for the whole team</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>You see every agent go active the moment they log in</span></div>
+          </div>
+        </div>
+        <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px;gap:16px">
+          <!-- Phone mockup: agent login -->
+          <div style="width:140px;background:#1a1a1a;border:2px solid #333;border-radius:26px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);padding:7px;flex-shrink:0">
+            <div style="background:#0a0a0a;border-radius:20px;overflow:hidden">
+              <div style="background:#111;padding:8px 12px;border-bottom:1px solid #1a1a1a;text-align:center">
+                <div style="font-size:10px;font-weight:800">ROOF<span style="color:#4caf50">FINDER</span></div>
+                <div style="font-size:8px;color:#555;margin-top:1px">Agent Portal</div>
+              </div>
+              <div style="padding:14px 12px">
+                <div style="font-size:8px;color:#555;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Your Name</div>
+                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:6px 8px;font-size:10px;color:#aaa;margin-bottom:10px">Mike Sullivan</div>
+                <div style="font-size:8px;color:#555;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Team Code</div>
+                <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.3);border-radius:6px;padding:6px 8px;font-size:12px;font-weight:900;color:#4caf50;text-align:center;letter-spacing:3px;margin-bottom:12px">RF-7842</div>
+                <div style="background:#4caf50;color:#000;font-size:10px;font-weight:900;padding:8px;border-radius:6px;text-align:center">Sign In →</div>
+              </div>
+            </div>
+          </div>
+          <!-- Active agents list -->
+          <div style="flex:1;min-width:0">
+            <div style="font-size:9px;font-weight:700;color:#555;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Team Active</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="background:rgba(76,175,80,0.07);border:1px solid rgba(76,175,80,0.2);border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:7px">
+                <div style="width:7px;height:7px;border-radius:50%;background:#4caf50;flex-shrink:0"></div>
+                <div><div style="font-size:10px;font-weight:700">John K.</div><div style="font-size:8px;color:#555">Morning · North</div></div>
+              </div>
+              <div style="background:rgba(76,175,80,0.07);border:1px solid rgba(76,175,80,0.2);border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:7px">
+                <div style="width:7px;height:7px;border-radius:50%;background:#4caf50;flex-shrink:0"></div>
+                <div><div style="font-size:10px;font-weight:700">Maria S.</div><div style="font-size:8px;color:#555">Afternoon · South</div></div>
+              </div>
+              <div style="background:rgba(76,175,80,0.07);border:1px solid rgba(76,175,80,0.2);border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:7px">
+                <div style="width:7px;height:7px;border-radius:50%;background:#4caf50;flex-shrink:0"></div>
+                <div><div style="font-size:10px;font-weight:700">Mike S.</div><div style="font-size:8px;color:#555">Weekend · East</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP G: Hit the Doors -->
+    <div class="jstep" id="jstep-6">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
+        <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step G · Every Day in the Field</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Hit the Doors &<br>Track Every Knock Live</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Every lead starts as a green pin — untouched, qualified, ready. Agents tap a pin to see the homeowner's name, home value, and year built. They knock, and log the outcome in one tap. The pin changes color instantly. You see it all live from your dashboard.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:#4caf50;font-weight:900;flex-shrink:0;margin-top:1px">●</span><span style="color:#ccc"><strong style="color:#4caf50">Green</strong> — untouched qualified home, ready to knock</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:#f59e0b;font-weight:900;flex-shrink:0;margin-top:1px">●</span><span style="color:#ccc"><strong style="color:#f59e0b">Yellow</strong> — no answer, come back later</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:#3b82f6;font-weight:900;flex-shrink:0;margin-top:1px">●</span><span style="color:#ccc"><strong style="color:#3b82f6">Blue</strong> — callback requested, follow up needed</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:#10b981;font-weight:900;flex-shrink:0;margin-top:1px">●</span><span style="color:#ccc"><strong style="color:#10b981">Teal</strong> — interested, warm lead</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:#a855f7;font-weight:900;flex-shrink:0;margin-top:1px">●</span><span style="color:#ccc"><strong style="color:#a855f7">Purple</strong> — appointment set, money in the pipeline</span></div>
           </div>
           <div style="margin-top:24px">
             <a href="index.html#apply" style="display:inline-block;background:#4caf50;color:#000;font-size:13px;font-weight:800;padding:12px 24px;border-radius:8px;text-decoration:none">Claim My Territory — $999 →</a>
           </div>
         </div>
         <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px">
-          <!-- Mockup: Agent app -->
           <div style="width:160px;background:#1a1a1a;border:2px solid #333;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);padding:8px">
             <div style="background:#0a0a0a;border-radius:22px;overflow:hidden">
               <div style="background:#111;padding:8px 12px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between">
                 <div style="font-size:10px;font-weight:800">ROOF<span style="color:#4caf50">FINDER</span></div>
                 <div style="font-size:8px;color:#4caf50;background:rgba(76,175,80,0.12);padding:2px 6px;border-radius:100px;border:1px solid rgba(76,175,80,0.3)">RF-7842</div>
               </div>
-              <!-- Map area -->
-              <div style="height:120px;background:#0d1117;position:relative;overflow:hidden">
-                <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(76,175,80,0.04) 0%,transparent 50%)"></div>
+              <div style="height:140px;background:#0d1117;position:relative;overflow:hidden">
                 <div style="position:absolute;top:35%;left:0;right:0;height:1px;background:rgba(255,255,255,0.05)"></div>
                 <div style="position:absolute;top:65%;left:0;right:0;height:1px;background:rgba(255,255,255,0.05)"></div>
                 <div style="position:absolute;left:30%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.05)"></div>
                 <div style="position:absolute;left:65%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.05)"></div>
-                <!-- Pins -->
-                <div style="position:absolute;top:18%;left:14%;width:8px;height:8px;border-radius:50%;background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,0.6)"></div>
-                <div style="position:absolute;top:18%;left:48%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
-                <div style="position:absolute;top:18%;left:72%;width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>
-                <div style="position:absolute;top:50%;left:18%;width:8px;height:8px;border-radius:50%;background:#ef4444"></div>
-                <div style="position:absolute;top:50%;left:44%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
-                <div style="position:absolute;top:50%;left:78%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
-                <div style="position:absolute;top:78%;left:20%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
-                <div style="position:absolute;top:78%;left:55%;width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>
-                <!-- Popup -->
-                <div style="position:absolute;top:5%;left:30%;background:#111;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:5px 7px;white-space:nowrap">
-                  <div style="font-size:8px;font-weight:700">Sarah Johnson</div>
-                  <div style="font-size:7px;color:#666">$312k · 23yr home</div>
+                <!-- All green pins (untouched) -->
+                <div style="position:absolute;top:12%;left:8%;width:8px;height:8px;border-radius:50%;background:#4caf50;box-shadow:0 0 5px rgba(76,175,80,.5)"></div>
+                <div style="position:absolute;top:12%;left:42%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:12%;left:70%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:30%;left:18%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <!-- A few knocked -->
+                <div style="position:absolute;top:30%;left:50%;width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>
+                <div style="position:absolute;top:30%;left:78%;width:8px;height:8px;border-radius:50%;background:#a855f7;box-shadow:0 0 6px rgba(168,85,247,.6)"></div>
+                <div style="position:absolute;top:55%;left:10%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:55%;left:38%;width:8px;height:8px;border-radius:50%;background:#10b981"></div>
+                <div style="position:absolute;top:55%;left:68%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:75%;left:14%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:75%;left:48%;width:8px;height:8px;border-radius:50%;background:#3b82f6"></div>
+                <div style="position:absolute;top:75%;left:74%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <!-- Appointment popup -->
+                <div style="position:absolute;top:18%;left:58%;background:#1a0e2e;border:1px solid rgba(168,85,247,0.4);border-radius:6px;padding:4px 7px;white-space:nowrap">
+                  <div style="font-size:7px;font-weight:700;color:#a855f7">Appt Set ✓</div>
+                  <div style="font-size:6px;color:#888">Mike · 847 Maple Dr</div>
                 </div>
               </div>
-              <!-- Status buttons -->
               <div style="padding:8px">
-                <div style="font-size:8px;color:#555;margin-bottom:6px;text-align:center">Log door status</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
-                  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:5px;padding:5px;text-align:center;font-size:8px;color:#888">No Answer</div>
-                  <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:5px;padding:5px;text-align:center;font-size:8px;color:#f59e0b">Callback</div>
-                  <div style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:5px;padding:5px;text-align:center;font-size:8px;color:#4caf50">Interested</div>
-                  <div style="background:rgba(76,175,80,0.2);border:1px solid rgba(76,175,80,0.5);border-radius:5px;padding:5px;text-align:center;font-size:8px;font-weight:800;color:#4caf50">Appt Set ✓</div>
+                <div style="font-size:8px;color:#555;margin-bottom:5px;text-align:center">Tap to log door outcome</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+                  <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:5px;padding:4px;text-align:center;font-size:7px;color:#f59e0b">No Answer</div>
+                  <div style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);border-radius:5px;padding:4px;text-align:center;font-size:7px;color:#3b82f6">Callback</div>
+                  <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:5px;padding:4px;text-align:center;font-size:7px;color:#10b981">Interested</div>
+                  <div style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:5px;padding:4px;text-align:center;font-size:7px;font-weight:800;color:#a855f7">Appt Set ✓</div>
                 </div>
               </div>
             </div>
@@ -449,45 +611,32 @@ footer { position: relative; overflow: hidden; }
   <!-- Nav Arrows -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
     <button id="journey-prev" onclick="journeyNav(-1)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:12px;font-weight:700;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:inherit;opacity:0.3;pointer-events:none">← Previous</button>
-    <div style="display:flex;gap:6px" id="journey-dots">
+    <div style="display:flex;gap:5px" id="journey-dots">
       <div class="jdot active" onclick="showStep(0)"></div>
       <div class="jdot" onclick="showStep(1)"></div>
       <div class="jdot" onclick="showStep(2)"></div>
       <div class="jdot" onclick="showStep(3)"></div>
+      <div class="jdot" onclick="showStep(4)"></div>
+      <div class="jdot" onclick="showStep(5)"></div>
+      <div class="jdot" onclick="showStep(6)"></div>
     </div>
     <button id="journey-next" onclick="journeyNav(1)" style="background:#4caf50;color:#000;font-size:12px;font-weight:800;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:inherit;border:none">Next Step →</button>
-  </div>
-
-  <!-- Owner Dashboard Callout -->
-  <div style="margin-top:32px;background:rgba(76,175,80,0.05);border:1px solid rgba(76,175,80,0.18);border-radius:14px;padding:28px 32px;display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap">
-    <div style="flex-shrink:0;width:44px;height:44px;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">📊</div>
-    <div style="flex:1;min-width:220px">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4caf50;margin-bottom:6px">Also Included — Owner Dashboard</div>
-      <div style="font-size:15px;font-weight:800;margin-bottom:8px">Manage everything from one place.</div>
-      <div style="font-size:13px;color:#888;line-height:1.7">Your territory comes with full access to the Owner CRM — set up your agents, view your entire lead zone, track door activity in real time, and see recent storm alerts in your area so you always know when to push hard. One login. Your whole operation.</div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;min-width:160px">
-      <div style="display:flex;gap:8px;align-items:center;font-size:12px"><span style="color:#4caf50">✓</span> Agent setup &amp; team codes</div>
-      <div style="display:flex;gap:8px;align-items:center;font-size:12px"><span style="color:#4caf50">✓</span> Full zone lead viewer</div>
-      <div style="display:flex;gap:8px;align-items:center;font-size:12px"><span style="color:#4caf50">✓</span> Live door activity feed</div>
-      <div style="display:flex;gap:8px;align-items:center;font-size:12px"><span style="color:#4caf50">✓</span> Storm alerts for your zip</div>
-      <div style="display:flex;gap:8px;align-items:center;font-size:12px"><span style="color:#4caf50">✓</span> Pipeline &amp; performance stats</div>
-    </div>
   </div>
 
 </div>
 </div>
 
 <style>
-.jtab{background:transparent;border:none;border-bottom:2px solid transparent;padding:14px 8px 12px;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;color:#555}
+.jtab{background:transparent;border:none;border-bottom:2px solid transparent;padding:12px 6px 10px;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;color:#555}
 .jtab:hover{color:#aaa}
 .jtab.active{border-bottom-color:#4caf50;color:#fff}
-.jtab-num{font-size:18px;font-weight:900;letter-spacing:-0.5px;margin-bottom:2px}
+.jtab-num{font-size:16px;font-weight:900;letter-spacing:-0.5px;margin-bottom:2px}
 .jtab.active .jtab-num{color:#4caf50}
-.jtab-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.jtab-label{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
 .jstep{display:none}
-.jstep.active{display:block}
-.jdot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.12);cursor:pointer;transition:background .2s}
+.jstep.active{display:block;animation:jfade .2s ease}
+@keyframes jfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.jdot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.12);cursor:pointer;transition:background .2s}
 .jdot.active{background:#4caf50}
 @media(max-width:700px){
   .jstep > div{grid-template-columns:1fr!important}
@@ -496,7 +645,7 @@ footer { position: relative; overflow: hidden; }
 </style>
 <script>
 var currentStep = 0;
-var totalSteps = 4;
+var totalSteps = 7;
 function showStep(n) {
   currentStep = n;
   document.querySelectorAll('.jstep').forEach(function(el,i){ el.classList.toggle('active', i===n); });

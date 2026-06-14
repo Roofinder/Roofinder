@@ -91,30 +91,22 @@ section{padding:100px 24px;border-top:1px solid var(--border)}
 .section-title{font-size:clamp(28px,4vw,48px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px}
 .section-sub{font-size:16px;color:var(--gray-light);line-height:1.6;max-width:540px}
 
-/* ── HOW IT WORKS V2 ── */
-.steps-v2{display:flex;flex-direction:column;gap:0;margin-top:60px}
-.step-v2{display:grid;grid-template-columns:72px 1fr;gap:36px;padding:40px 0;border-top:1px solid var(--border);align-items:start}
-.step-v2:first-child{border-top:none;padding-top:0}
-.step-v2-num{font-size:54px;font-weight:900;color:rgba(76,175,80,.15);line-height:1;letter-spacing:-2px;padding-top:2px;text-align:right}
-.step-v2-icon{font-size:26px;margin-bottom:12px}
-.step-v2-title{font-size:clamp(18px,2.2vw,22px);font-weight:800;letter-spacing:-.5px;margin-bottom:10px;line-height:1.2}
-.step-v2-body{font-size:15px;color:var(--gray-light);line-height:1.7;margin-bottom:20px;max-width:680px}
-.step-v2-metrics{display:flex;gap:28px;flex-wrap:wrap}
-.s-metric{display:flex;flex-direction:column;gap:1px}
-.s-metric-val{font-size:15px;font-weight:800;color:var(--green);letter-spacing:-.2px}
-.s-metric-lbl{font-size:11px;color:var(--gray);font-weight:500}
-.steps-outcome{display:grid;grid-template-columns:repeat(3,1fr);margin-top:64px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.outcome-item{padding:30px 28px;border-right:1px solid var(--border);background:var(--card-bg)}
-.outcome-item:last-child{border-right:none}
-.outcome-emoji{font-size:28px;margin-bottom:12px}
-.outcome-title{font-size:16px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
-.outcome-desc{font-size:13px;color:var(--gray);line-height:1.65}
-@media(max-width:768px){
-  .step-v2{grid-template-columns:48px 1fr;gap:16px}
-  .step-v2-num{font-size:36px}
-  .steps-outcome{grid-template-columns:1fr}
-  .outcome-item{border-right:none;border-bottom:1px solid var(--border)}
-  .outcome-item:last-child{border-bottom:none}
+/* ── HOW IT WORKS ── */
+.steps-simple{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:52px;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.step-simple{padding:32px 28px;border-right:1px solid var(--border);position:relative}
+.step-simple:last-child{border-right:none}
+.step-simple-num{font-size:42px;font-weight:900;color:rgba(76,175,80,.15);line-height:1;letter-spacing:-2px;margin-bottom:16px}
+.step-simple-title{font-size:16px;font-weight:800;letter-spacing:-.3px;margin-bottom:8px;line-height:1.2}
+.step-simple-body{font-size:13px;color:var(--gray-light);line-height:1.65}
+@media(max-width:900px){
+  .steps-simple{grid-template-columns:1fr 1fr}
+  .step-simple:nth-child(2){border-right:none}
+  .step-simple:nth-child(1),.step-simple:nth-child(2){border-bottom:1px solid var(--border)}
+}
+@media(max-width:560px){
+  .steps-simple{grid-template-columns:1fr}
+  .step-simple{border-right:none!important;border-bottom:1px solid var(--border)}
+  .step-simple:last-child{border-bottom:none}
 }
 
 /* ── MARKETS ── */
@@ -360,93 +352,34 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 <section id="how-it-works">
   <div class="section-inner">
     <div class="section-eyebrow">How It Works</div>
-    <h2 class="section-title">Territory, Team, and Pipeline —<br>Running in 48 Hours.</h2>
-    <p class="section-sub">One platform handles your exclusive zone, your agents in the field, and your full sales pipeline — from claim to canvassing in 48 hours.</p>
+    <h2 class="section-title">From Sign-Up to Canvassing<br>in 48 Hours.</h2>
+    <p class="section-sub">Claim your territory, get your leads, deploy your team, and start closing.</p>
 
-    <div class="steps-v2">
-
-      <!-- Step 01 -->
-      <div class="step-v2">
-        <div class="step-v2-num">01</div>
-        <div>
-          <div class="step-v2-icon">📍</div>
-          <div class="step-v2-title">Claim Your Exclusive Zone</div>
-          <p class="step-v2-body">Enter your zip code and we hand-build a zone of pre-qualified homeowners — aging roofs, strong home values, owner-occupied. Your zone is locked the moment you claim it. No other RooFinder contractor ever works your streets. Period.</p>
-          <div class="step-v2-metrics">
-            <div class="s-metric"><span class="s-metric-val">48 hr</span><span class="s-metric-lbl">Zone Delivered</span></div>
-            <div class="s-metric"><span class="s-metric-val">100+</span><span class="s-metric-lbl">Pre-Qualified Homes</span></div>
-            <div class="s-metric"><span class="s-metric-val">0</span><span class="s-metric-lbl">Contractors Sharing</span></div>
-          </div>
-        </div>
+    <div class="steps-simple">
+      <div class="step-simple">
+        <div class="step-simple-num">1</div>
+        <div class="step-simple-title">Claim Your Zone</div>
+        <div class="step-simple-body">Pick your zip, pay $999, and your exclusive territory is locked. 300+ pre-qualified homes built and loaded within 48 hours.</div>
       </div>
-
-      <!-- Step 02 -->
-      <div class="step-v2">
-        <div class="step-v2-num">02</div>
-        <div>
-          <div class="step-v2-icon">👥</div>
-          <div class="step-v2-title">Add Your Agents — They're in the Field Today</div>
-          <p class="step-v2-body">Add agents from the owner dashboard in 30 seconds — just a name and a phone number. They receive a login link by text. No app download, no training required. Assign each agent their route and they're knocking doors within the hour.</p>
-          <div class="step-v2-metrics">
-            <div class="s-metric"><span class="s-metric-val">30 sec</span><span class="s-metric-lbl">Agent Setup</span></div>
-            <div class="s-metric"><span class="s-metric-val">Any Phone</span><span class="s-metric-lbl">No App Store</span></div>
-            <div class="s-metric"><span class="s-metric-val">Live Map</span><span class="s-metric-lbl">Per Agent Route</span></div>
-          </div>
-        </div>
+      <div class="step-simple">
+        <div class="step-simple-num">2</div>
+        <div class="step-simple-title">Build Your Routes</div>
+        <div class="step-simple-body">Divide your zone into routes from your owner dashboard. Assign each route to an agent so your team covers every street efficiently.</div>
       </div>
-
-      <!-- Step 03 -->
-      <div class="step-v2">
-        <div class="step-v2-num">03</div>
-        <div>
-          <div class="step-v2-icon">📱</div>
-          <div class="step-v2-title">Agents Work the Doors — CRM Logs Everything</div>
-          <p class="step-v2-body">Each agent works from a full mobile CRM on their phone — color-coded map, homeowner details, one-tap status logging. Every knock is recorded instantly: No Answer, Callback, Interested, Appointment Set. Notes sync to your dashboard the second they hit Save. You see the field in real time without a single text.</p>
-          <div class="step-v2-metrics">
-            <div class="s-metric"><span class="s-metric-val">5 sec</span><span class="s-metric-lbl">Per Door Logged</span></div>
-            <div class="s-metric"><span class="s-metric-val">Real-Time</span><span class="s-metric-lbl">Dashboard Sync</span></div>
-            <div class="s-metric"><span class="s-metric-val">Built-In</span><span class="s-metric-lbl">Script & CRM</span></div>
-          </div>
-        </div>
+      <div class="step-simple">
+        <div class="step-simple-num">3</div>
+        <div class="step-simple-title">Deploy Your Team</div>
+        <div class="step-simple-body">Share your team code. Agents open the app on any phone — no download needed — enter the code and they're live in their route in seconds.</div>
       </div>
-
-      <!-- Step 04 -->
-      <div class="step-v2">
-        <div class="step-v2-num">04</div>
-        <div>
-          <div class="step-v2-icon">📊</div>
-          <div class="step-v2-title">Watch the Pipeline Fill. Close More Jobs.</div>
-          <p class="step-v2-body">Your owner dashboard shows every stage of your funnel — knocked, interested, callback, appointment set, closed — updated live as your team works. Follow up on your hottest leads, track each agent's stats on the scoreboard, and request more zones when you're ready to scale.</p>
-          <div class="step-v2-metrics">
-            <div class="s-metric"><span class="s-metric-val">Live</span><span class="s-metric-lbl">Full Pipeline View</span></div>
-            <div class="s-metric"><span class="s-metric-val">Per Agent</span><span class="s-metric-lbl">Scoreboard & Stats</span></div>
-            <div class="s-metric"><span class="s-metric-val">Scale</span><span class="s-metric-lbl">Add Zones Anytime</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Outcome bar -->
-    <div class="steps-outcome">
-      <div class="outcome-item">
-        <div class="outcome-emoji">🎯</div>
-        <div class="outcome-title">No More Wasted Doors</div>
-        <div class="outcome-desc">Every address is pre-filtered for aging roofs and strong home value. Your team knocks quality, not quantity — so every hour in the field counts.</div>
-      </div>
-      <div class="outcome-item">
-        <div class="outcome-emoji">🔒</div>
-        <div class="outcome-title">Your Territory. No Competition.</div>
-        <div class="outcome-desc">One contractor per zone — ever. No other RooFinder contractor is knocking your same doors with the same data behind them.</div>
-      </div>
-      <div class="outcome-item">
-        <div class="outcome-emoji">📡</div>
-        <div class="outcome-title">Full Visibility Without the Calls</div>
-        <div class="outcome-desc">See exactly where every lead stands — from first knock to signed contract — without texting your team for updates or waiting until end of day.</div>
+      <div class="step-simple">
+        <div class="step-simple-num">4</div>
+        <div class="step-simple-title">Hit the Doors</div>
+        <div class="step-simple-body">Every pin starts green. Agents knock, log the outcome in one tap, and the map updates live. You see everything from your dashboard in real time.</div>
       </div>
     </div>
 
     <div style="text-align:center;margin-top:48px">
-      <a href="how-it-works.html" class="btn-secondary">See the Full Platform Walkthrough →</a>
+      <a href="how-it-works.html" class="btn-g" style="display:inline-block">See the Full Walkthrough →</a>
     </div>
   </div>
 </section>
