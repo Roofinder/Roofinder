@@ -215,6 +215,292 @@ footer { position: relative; overflow: hidden; }
   </div>
 </div>
 
+<!-- CONTRACTOR JOURNEY -->
+<div class="wrap">
+<div style="max-width:960px;margin:0 auto 80px">
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:40px">
+    <div class="eyebrow" style="margin-bottom:12px">The Contractor Journey</div>
+    <h2 style="font-size:clamp(26px,4vw,40px);font-weight:900;letter-spacing:-1px;line-height:1.1;margin-bottom:12px">From Sign-Up to Canvassing<br>in 48 Hours</h2>
+    <p style="font-size:14px;color:var(--muted);max-width:480px;margin:0 auto">Here's exactly what happens from the moment you claim your territory to the moment your team hits the doors.</p>
+  </div>
+
+  <!-- Step Tabs -->
+  <div style="display:flex;gap:0;margin-bottom:0;border-bottom:1px solid rgba(255,255,255,0.08);overflow-x:auto" id="journey-tabs">
+    <button class="jtab active" onclick="showStep(0)" style="flex:1;min-width:120px">
+      <div class="jtab-num">A</div>
+      <div class="jtab-label">Claim Territory</div>
+    </button>
+    <button class="jtab" onclick="showStep(1)" style="flex:1;min-width:120px">
+      <div class="jtab-num">B</div>
+      <div class="jtab-label">We Build Zone</div>
+    </button>
+    <button class="jtab" onclick="showStep(2)" style="flex:1;min-width:120px">
+      <div class="jtab-num">C</div>
+      <div class="jtab-label">Get Your Code</div>
+    </button>
+    <button class="jtab" onclick="showStep(3)" style="flex:1;min-width:120px">
+      <div class="jtab-num">D</div>
+      <div class="jtab-label">Start Canvassing</div>
+    </button>
+  </div>
+
+  <!-- Step Panels -->
+  <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-top:none;border-radius:0 0 16px 16px;overflow:hidden">
+
+    <!-- STEP A: Claim Territory -->
+    <div class="jstep active" id="jstep-0">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
+        <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step A · 5 Minutes</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Claim Your<br>Territory</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Go to RooFinder.online, enter your target zip code, and fill out the sign-up form. Pay $999 to lock in your exclusive zone — no other contractor can claim it while you hold it.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Enter your zip code to check availability</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Submit your company name, phone, and email</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Pay $999 to lock your territory — zone is yours exclusively</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Confirmation sent immediately to your email</span></div>
+          </div>
+        </div>
+        <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px">
+          <!-- Mockup: Sign-up form -->
+          <div style="width:100%;max-width:280px;background:#0a0a0a;border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6)">
+            <div style="background:#000;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07)">
+              <div style="display:flex;gap:5px;margin-bottom:8px"><div style="width:8px;height:8px;border-radius:50%;background:#ff5555"></div><div style="width:8px;height:8px;border-radius:50%;background:#f59e0b"></div><div style="width:8px;height:8px;border-radius:50%;background:#4caf50"></div></div>
+              <div style="background:rgba(255,255,255,0.04);border-radius:4px;padding:3px 8px;font-size:9px;color:#555;font-family:monospace">roofinder.online</div>
+            </div>
+            <div style="padding:20px 18px">
+              <div style="font-size:13px;font-weight:900;margin-bottom:4px">Claim Your Zone</div>
+              <div style="font-size:10px;color:#555;margin-bottom:16px">$999 · Exclusive territory</div>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;font-size:11px;color:#888">Company name</div>
+                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;font-size:11px;color:#888">Phone number</div>
+                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:8px 10px;font-size:11px;color:#888">Email address</div>
+                <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.3);border-radius:6px;padding:8px 10px;display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#4caf50;font-weight:700">📍 27601</span><span style="font-size:10px;color:#4caf50">· Available ✓</span></div>
+              </div>
+              <div style="background:#4caf50;color:#000;font-size:11px;font-weight:900;padding:10px;border-radius:7px;text-align:center">Claim My Territory — $999 →</div>
+              <div style="text-align:center;font-size:9px;color:#333;margin-top:8px">First month $999 · Then $2,500/mo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP B: We Build Zone -->
+    <div class="jstep" id="jstep-1">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
+        <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step B · Within 48 Hours</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">We Build<br>Your Zone</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Our team pulls every qualifying homeowner in your zip — homes 18–27 years old, $250k+ value, single-family only. Pre-screened, sorted, and loaded into your agent app. No fluff, just the right doors.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Homes filtered by age, value, and property type</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Every address pre-loaded into your canvassing map</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Routes built so your team covers ground efficiently</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Ready in your app within 48 hours of payment</span></div>
+          </div>
+        </div>
+        <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px">
+          <!-- Mockup: Zone map -->
+          <div style="width:100%;max-width:280px;background:#0a0c16;border:1px solid rgba(255,255,255,0.1);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6)">
+            <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;font-weight:800">Zone 27601 — Building</div>
+              <div style="font-size:9px;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);padding:2px 8px;border-radius:100px">IN PROGRESS</div>
+            </div>
+            <div style="padding:16px 14px">
+              <div style="display:flex;gap:16px;margin-bottom:14px">
+                <div><div style="font-size:18px;font-weight:900;color:#4caf50">342</div><div style="font-size:9px;color:#555">Qualified Homes</div></div>
+                <div><div style="font-size:18px;font-weight:900">$318k</div><div style="font-size:9px;color:#555">Avg Value</div></div>
+                <div><div style="font-size:18px;font-weight:900">21yr</div><div style="font-size:9px;color:#555">Avg Age</div></div>
+              </div>
+              <!-- Fake map grid -->
+              <div style="background:#0d1117;border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px;height:100px;position:relative;overflow:hidden;margin-bottom:12px">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(76,175,80,0.03) 0%,transparent 60%)"></div>
+                <!-- Fake streets -->
+                <div style="position:absolute;top:30%;left:0;right:0;height:1px;background:rgba(255,255,255,0.06)"></div>
+                <div style="position:absolute;top:65%;left:0;right:0;height:1px;background:rgba(255,255,255,0.06)"></div>
+                <div style="position:absolute;left:25%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.06)"></div>
+                <div style="position:absolute;left:60%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.06)"></div>
+                <!-- Dots -->
+                <div style="position:absolute;top:20%;left:12%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:20%;left:35%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:20%;left:70%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:50%;left:15%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:50%;left:42%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:50%;left:75%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:78%;left:10%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:78%;left:38%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:78%;left:65%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:78%;left:82%;width:5px;height:5px;border-radius:50%;background:#4caf50"></div>
+              </div>
+              <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:6px;padding:8px 10px;font-size:10px;color:#4caf50;text-align:center">✓ Zone ready in your app within 48 hours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP C: Get Your Code -->
+    <div class="jstep" id="jstep-2">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
+        <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step C · Same Day as Zone</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Get Your<br>Access Code</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Once your zone is built, we text and email you a unique access code tied to your zip code territory. Share it with every rep on your team — it's how they log into the agent app and see their leads.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Unique code tied to your specific zip code territory</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Share with every agent on your team — no limits</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>No app download — works on any phone browser</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Code is permanent — same code your team uses every day</span></div>
+          </div>
+        </div>
+        <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px">
+          <!-- Mockup: Phone with text message -->
+          <div style="width:160px;background:#1a1a1a;border:2px solid #333;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);padding:8px">
+            <div style="background:#000;border-radius:22px;overflow:hidden">
+              <div style="background:#111;padding:8px 12px;display:flex;justify-content:center;border-bottom:1px solid #222">
+                <div style="font-size:10px;color:#888">Messages</div>
+              </div>
+              <div style="padding:12px 10px;min-height:200px">
+                <div style="text-align:center;margin-bottom:14px">
+                  <div style="font-size:9px;color:#444;margin-bottom:8px">RooFinder · Now</div>
+                </div>
+                <div style="background:#1c3a1e;border:1px solid rgba(76,175,80,0.3);border-radius:10px 10px 10px 3px;padding:10px 12px;margin-bottom:10px">
+                  <div style="font-size:9px;color:#ccc;line-height:1.5;margin-bottom:8px">Your zone is live! Here's your team access code for zip <strong style="color:#4caf50">27601</strong>:</div>
+                  <div style="font-size:22px;font-weight:900;color:#4caf50;letter-spacing:4px;text-align:center;padding:6px 0">RF-7842</div>
+                  <div style="font-size:8px;color:#666;text-align:center">Share with your reps · Works on any phone</div>
+                </div>
+                <div style="background:#1c3a1e;border:1px solid rgba(76,175,80,0.3);border-radius:10px 10px 10px 3px;padding:8px 10px">
+                  <div style="font-size:8px;color:#aaa;line-height:1.4">Log in at: <span style="color:#4caf50">roofinder.online/agent</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP D: Start Canvassing -->
+    <div class="jstep" id="jstep-3">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:380px">
+        <div style="padding:36px 40px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:14px">Step D · Day 1</div>
+          <h3 style="font-size:22px;font-weight:900;letter-spacing:-.5px;line-height:1.1;margin-bottom:12px">Open the App &<br>Start Canvassing</h3>
+          <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">Every rep on your team opens roofinder.online/agent on their phone, enters the team code, and sees their leads on a map. Tap a pin, get the homeowner details, knock the door, log the status in 3 seconds. That's it.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Map view shows every lead — color-coded by status</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Tap any pin to see owner name, home value, address</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>Log status with one tap — No Answer, Callback, Interested, Appointment Set</span></div>
+            <div style="display:flex;gap:10px;font-size:13px;align-items:flex-start"><span style="color:var(--green);font-weight:900;flex-shrink:0;margin-top:1px">✓</span><span>You see everything live from your owner dashboard</span></div>
+          </div>
+          <div style="margin-top:24px">
+            <a href="index.html#apply" style="display:inline-block;background:#4caf50;color:#000;font-size:13px;font-weight:800;padding:12px 24px;border-radius:8px;text-decoration:none">Claim My Territory — $999 →</a>
+          </div>
+        </div>
+        <div style="background:#000;border-left:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;padding:28px">
+          <!-- Mockup: Agent app -->
+          <div style="width:160px;background:#1a1a1a;border:2px solid #333;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);padding:8px">
+            <div style="background:#0a0a0a;border-radius:22px;overflow:hidden">
+              <div style="background:#111;padding:8px 12px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between">
+                <div style="font-size:10px;font-weight:800">ROOF<span style="color:#4caf50">FINDER</span></div>
+                <div style="font-size:8px;color:#4caf50;background:rgba(76,175,80,0.12);padding:2px 6px;border-radius:100px;border:1px solid rgba(76,175,80,0.3)">RF-7842</div>
+              </div>
+              <!-- Map area -->
+              <div style="height:120px;background:#0d1117;position:relative;overflow:hidden">
+                <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(76,175,80,0.04) 0%,transparent 50%)"></div>
+                <div style="position:absolute;top:35%;left:0;right:0;height:1px;background:rgba(255,255,255,0.05)"></div>
+                <div style="position:absolute;top:65%;left:0;right:0;height:1px;background:rgba(255,255,255,0.05)"></div>
+                <div style="position:absolute;left:30%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.05)"></div>
+                <div style="position:absolute;left:65%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.05)"></div>
+                <!-- Pins -->
+                <div style="position:absolute;top:18%;left:14%;width:8px;height:8px;border-radius:50%;background:#4caf50;box-shadow:0 0 6px rgba(76,175,80,0.6)"></div>
+                <div style="position:absolute;top:18%;left:48%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:18%;left:72%;width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>
+                <div style="position:absolute;top:50%;left:18%;width:8px;height:8px;border-radius:50%;background:#ef4444"></div>
+                <div style="position:absolute;top:50%;left:44%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:50%;left:78%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:78%;left:20%;width:8px;height:8px;border-radius:50%;background:#4caf50"></div>
+                <div style="position:absolute;top:78%;left:55%;width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>
+                <!-- Popup -->
+                <div style="position:absolute;top:5%;left:30%;background:#111;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:5px 7px;white-space:nowrap">
+                  <div style="font-size:8px;font-weight:700">Sarah Johnson</div>
+                  <div style="font-size:7px;color:#666">$312k · 23yr home</div>
+                </div>
+              </div>
+              <!-- Status buttons -->
+              <div style="padding:8px">
+                <div style="font-size:8px;color:#555;margin-bottom:6px;text-align:center">Log door status</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                  <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:5px;padding:5px;text-align:center;font-size:8px;color:#888">No Answer</div>
+                  <div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:5px;padding:5px;text-align:center;font-size:8px;color:#f59e0b">Callback</div>
+                  <div style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:5px;padding:5px;text-align:center;font-size:8px;color:#4caf50">Interested</div>
+                  <div style="background:rgba(76,175,80,0.2);border:1px solid rgba(76,175,80,0.5);border-radius:5px;padding:5px;text-align:center;font-size:8px;font-weight:800;color:#4caf50">Appt Set ✓</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Nav Arrows -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
+    <button id="journey-prev" onclick="journeyNav(-1)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:12px;font-weight:700;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:inherit;opacity:0.3;pointer-events:none">← Previous</button>
+    <div style="display:flex;gap:6px" id="journey-dots">
+      <div class="jdot active" onclick="showStep(0)"></div>
+      <div class="jdot" onclick="showStep(1)"></div>
+      <div class="jdot" onclick="showStep(2)"></div>
+      <div class="jdot" onclick="showStep(3)"></div>
+    </div>
+    <button id="journey-next" onclick="journeyNav(1)" style="background:#4caf50;color:#000;font-size:12px;font-weight:800;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:inherit;border:none">Next Step →</button>
+  </div>
+
+</div>
+</div>
+
+<style>
+.jtab{background:transparent;border:none;border-bottom:2px solid transparent;padding:14px 8px 12px;cursor:pointer;font-family:inherit;text-align:center;transition:all .2s;color:#555}
+.jtab:hover{color:#aaa}
+.jtab.active{border-bottom-color:#4caf50;color:#fff}
+.jtab-num{font-size:18px;font-weight:900;letter-spacing:-0.5px;margin-bottom:2px}
+.jtab.active .jtab-num{color:#4caf50}
+.jtab-label{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.jstep{display:none}
+.jstep.active{display:block}
+.jdot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.12);cursor:pointer;transition:background .2s}
+.jdot.active{background:#4caf50}
+@media(max-width:700px){
+  .jstep > div{grid-template-columns:1fr!important}
+  .jstep > div > div:last-child{border-left:none!important;border-top:1px solid rgba(255,255,255,0.07)}
+}
+</style>
+<script>
+var currentStep = 0;
+var totalSteps = 4;
+function showStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.jstep').forEach(function(el,i){ el.classList.toggle('active', i===n); });
+  document.querySelectorAll('.jtab').forEach(function(el,i){ el.classList.toggle('active', i===n); });
+  document.querySelectorAll('.jdot').forEach(function(el,i){ el.classList.toggle('active', i===n); });
+  var prev = document.getElementById('journey-prev');
+  var next = document.getElementById('journey-next');
+  prev.style.opacity = n===0 ? '0.3' : '1';
+  prev.style.pointerEvents = n===0 ? 'none' : 'auto';
+  if (n === totalSteps-1) {
+    next.textContent = 'Claim My Territory →';
+    next.onclick = function(){ window.location.href='index.html#apply'; };
+    next.style.background = '#4caf50';
+  } else {
+    next.textContent = 'Next Step →';
+    next.onclick = function(){ journeyNav(1); };
+  }
+}
+function journeyNav(dir) { showStep(Math.max(0, Math.min(totalSteps-1, currentStep+dir))); }
+</script>
+
 <!-- TABLE OF CONTENTS -->
 <div class="wrap">
   <div class="toc">
