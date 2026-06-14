@@ -1209,6 +1209,7 @@ var zbStatus       = [];   /* 'pending' | 'kept' | 'skipped' | 'sent' */
 var zbMidSession   = false;
 var zbTotalSent    = 0;
 var zbListView     = false;
+var zbCardSort     = 'street';
 var zbListSort     = 'street';
 var zbListPage     = 0;
 var zbListPageSize = 50;
@@ -1219,6 +1220,7 @@ function zbStartScreener() {
   zbScreenIdx = 0;
   zbStatus    = zbAllLeads.map(function(){ return 'pending'; });
   zbListView  = false;
+  zbCardSort  = 'street';
   zbListSort  = 'street';
   zbListPage  = 0;
 
@@ -1316,6 +1318,47 @@ function zbSkipLead() {
   zbUpdateListRow(zbScreenIdx);
   zbUpdateStats();
   zbAdvanceTo(zbScreenIdx + 1);
+}
+
+/* ── CARD SORT ── */
+function zbSetCardSortBtn(sort) {
+  ['street','addr','age','val'].forEach(function(s){
+    var btn = document.getElementById('sc-csort-'+s);
+    if (!btn) return;
+    var active = s === sort;
+    btn.style.background  = active ? 'rgba(76,175,80,0.15)' : '#0d0d0d';
+    btn.style.borderColor = active ? 'rgba(76,175,80,0.4)'  : '#1a1a1a';
+    btn.style.color       = active ? '#4caf50'               : '#555';
+    btn.style.fontWeight  = active ? '800'                   : '600';
+  });
+}
+
+function zbSetCardSort(sort) {
+  zbCardSort = sort;
+  /* Save current status by address so it survives the re-sort */
+  var statusMap = {};
+  zbAllLeads.forEach(function(lead, i){ statusMap[lead.addr] = zbStatus[i]; });
+  /* Re-sort zbAllLeads in place */
+  zbAllLeads.sort(function(a, b){
+    if (sort === 'street') {
+      var sa = (a.street||'').trim() || a.addr.replace(/^\d+\s+/,'').trim();
+      var sb = (b.street||'').trim() || b.addr.replace(/^\d+\s+/,'').trim();
+      if (sa !== sb) return sa.localeCompare(sb);
+      return (parseInt(a.addr)||0) - (parseInt(b.addr)||0);
+    }
+    if (sort === 'addr') return a.addr.localeCompare(b.addr);
+    if (sort === 'age')  return (parseInt(b.age)||0)  - (parseInt(a.age)||0);
+    if (sort === 'val') {
+      var va = parseInt((a.val||'').replace(/\D/g,''))||0;
+      var vb = parseInt((b.val||'').replace(/\D/g,''))||0;
+      return vb - va;
+    }
+    return 0;
+  });
+  /* Rebuild zbStatus in new index order */
+  zbStatus = zbAllLeads.map(function(lead){ return statusMap[lead.addr] || 'pending'; });
+  zbSetCardSortBtn(sort);
+  zbAdvanceTo(0);
 }
 
 /* ── VIEW TOGGLE ── */
@@ -1839,6 +1882,13 @@ function zbCopyCode(el) {
 
       <!-- CARD VIEW -->
       <div id="sc-card-view">
+        <!-- Sort controls -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <button id="sc-csort-street" onclick="zbSetCardSort('street')" style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.4);color:#4caf50;font-size:11px;font-weight:800;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">🏘 By Street</button>
+          <button id="sc-csort-addr"   onclick="zbSetCardSort('addr')"   style="background:#0d0d0d;border:1px solid #1a1a1a;color:#555;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">A–Z Address</button>
+          <button id="sc-csort-age"    onclick="zbSetCardSort('age')"    style="background:#0d0d0d;border:1px solid #1a1a1a;color:#555;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">🕐 Roof Age</button>
+          <button id="sc-csort-val"    onclick="zbSetCardSort('val')"    style="background:#0d0d0d;border:1px solid #1a1a1a;color:#555;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">💰 Home Value</button>
+        </div>
         <div id="sc-card-grid" style="display:grid;grid-template-columns:1fr 360px;gap:18px">
           <div style="border-radius:12px;overflow:hidden;background:#0d0d0d;border:1px solid #1a1a1a">
             <iframe id="sc-map" style="width:100%;height:360px;border:none;display:block" loading="lazy"></iframe>
@@ -1921,46 +1971,4 @@ function zbCopyCode(el) {
       </div>
 
       <div style="display:flex;gap:12px">
-        <button onclick="zbShowStep(2)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer">← Back to Screener</button>
-        <button id="zb-launch-btn" onclick="zbLaunchZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer">Launch Zone →</button>
-        <span id="zb-launch-err" style="color:#ff5555;font-size:12px;align-self:center;display:none"></span>
-      </div>
-    </div>
-
-    <!-- STEP 4: Success -->
-    <div class="zb-step" id="zb-step4">
-      <div style="text-align:center;max-width:480px;margin:60px auto 0">
-        <div style="font-size:40px;margin-bottom:20px">✅</div>
-        <div style="font-size:22px;font-weight:900;margin-bottom:8px">Zone Is Live!</div>
-        <div style="font-size:13px;color:#666;margin-bottom:32px">Routes created and loaded into the system. Share the owner code with the contractor so they can log into their dashboard.</div>
-
-        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Owner Code</div>
-        <div class="zb-success-code" id="zb-success-code" onclick="zbCopyCode(this)" title="Click to copy">—</div>
-        <div style="font-size:11px;color:#444;margin-bottom:32px">Click to copy</div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:32px">
-          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
-            <div id="zb-s-leads" style="font-size:24px;font-weight:900;color:#4caf50"></div>
-            <div style="font-size:11px;color:#555;margin-top:2px">Addresses</div>
-          </div>
-          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
-            <div id="zb-s-routes" style="font-size:24px;font-weight:900;color:#4caf50"></div>
-            <div style="font-size:11px;color:#555;margin-top:2px">Routes</div>
-          </div>
-          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
-            <div id="zb-s-zip" style="font-size:24px;font-weight:900;color:#4caf50"></div>
-            <div style="font-size:11px;color:#555;margin-top:2px">Zip Code</div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-          <button id="zb-continue-btn" onclick="zbContinueScreening()" style="display:none;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer;font-family:inherit">▶ Continue Screening</button>
-          <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">← Back to Admin</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+        <button onclick="zbShowStep(2)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:p
