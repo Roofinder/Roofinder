@@ -798,16 +798,16 @@ nav { position: sticky; top: 0; z-index: 100; background: rgba(11,13,20,0.95); b
     <div>
       <div class="three-col" style="margin-bottom:28px">
         <div class="stat-card" style="border-color:rgba(76,175,80,0.25)">
-          <div class="stat-num" style="color:var(--green)">25–60</div>
-          <div class="stat-label">Homes per pocket</div>
-        </div>
-        <div class="stat-card">
           <div class="stat-num">48hr</div>
-          <div class="stat-label">Delivery time</div>
+          <div class="stat-label">Pocket delivery time</div>
         </div>
         <div class="stat-card">
           <div class="stat-num" style="color:var(--green)">∞</div>
           <div class="stat-label">Agents included</div>
+        </div>
+        <div class="stat-card" style="border-color:rgba(59,130,246,0.25)">
+          <div class="stat-num" style="color:#3b82f6">+1</div>
+          <div class="stat-label">Add more pockets</div>
         </div>
       </div>
 
@@ -838,7 +838,7 @@ nav { position: sticky; top: 0; z-index: 100; background: rgba(11,13,20,0.95); b
       <div style="background:rgba(76,175,80,0.06);border:2px solid rgba(76,175,80,0.3);border-radius:16px;padding:28px 24px">
         <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:12px">Everything You Get</div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
-          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Custom neighborhood pocket — 25–60 pre-qualified homeowners, built in your zip code</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Custom neighborhood pocket — exclusively yours, built in your zip code</span></div>
           <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Your territory exclusively — no other contractor works your streets</span></div>
           <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Owner dashboard — full team and pipeline management</span></div>
           <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Unlimited agents — each with their own mobile app login</span></div>
@@ -848,10 +848,16 @@ nav { position: sticky; top: 0; z-index: 100; background: rgba(11,13,20,0.95); b
           <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>New pocket available when you've worked through the current one</span></div>
           <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>No contract — cancel anytime</span></div>
         </div>
+        <!-- multi-pocket callout -->
+        <div style="margin-bottom:20px;background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.25);border-radius:10px;padding:14px 16px">
+          <div style="font-size:12px;font-weight:800;color:#3b82f6;letter-spacing:.5px;margin-bottom:6px">RUNNING A LARGER TEAM?</div>
+          <div style="font-size:13px;color:var(--fg);line-height:1.5">Add a second pocket — or more — for <strong>$2,500/mo each</strong>. Every pocket is its own exclusive territory. Your agents can work multiple neighborhoods simultaneously, and each pocket has its own independent pipeline and CRM.</div>
+        </div>
+
         <div style="border-top:1px solid rgba(76,175,80,0.2);padding-top:20px">
           <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
             <div style="font-size:36px;font-weight:900;color:var(--green)">$2,500</div>
-            <div style="font-size:14px;color:var(--muted)">/month</div>
+            <div style="font-size:14px;color:var(--muted)">/month per pocket</div>
           </div>
           <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Pocket built and delivered within 48 hours of signup</div>
           <a href="search.html" style="display:block;text-align:center;background:var(--green);color:#000;font-size:14px;font-weight:800;padding:14px;border-radius:9px;text-decoration:none">Find Your Pocket →</a>
