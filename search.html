@@ -208,11 +208,12 @@ footer{position:relative;overflow:hidden}
 
 <script>
 var params = new URLSearchParams(window.location.search);
-var zip = params.get('zip') || '';
-var RADIUS = 5; // fixed 5-mile zone search area
+var zip = (params.get('zip') || '').replace(/[^0-9]/g,'').slice(0,5);
+var RADIUS = 5;
 var lat = 0, lng = 0;
-var map, circle, marker;
+var map, circle;
 
+/* ── FETCH WITH TIMEOUT ── */
 function fetchWithTimeout(url, ms) {
   var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
   var opts = controller ? { signal: controller.signal } : {};
@@ -223,22 +224,72 @@ function fetchWithTimeout(url, ms) {
   );
 }
 
+/* ── SHOW ERROR ── */
+function showError() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('error-state').style.display = 'block';
+}
+
+/* ── SHOW RESULT ── */
+function showResult(city, state) {
+  document.getElementById('loading').style.display = 'none';
+  var sc = document.getElementById('sidebar-content');
+  sc.style.display = 'flex';
+  document.getElementById('loc-name').textContent = city + ', ' + state;
+  document.getElementById('loc-meta').textContent = 'Zip ' + zip + ' · 5-mile canvassing zone';
+  var overlay = document.getElementById('map-overlay');
+  if (overlay) {
+    document.getElementById('overlay-zip').textContent = city + ', ' + state + ' (' + zip + ')';
+    document.getElementById('overlay-radius').textContent = RADIUS + ' mi';
+    overlay.style.display = 'block';
+  }
+  buildMap();
+}
+
+/* ── BUILD MAP ── */
+function buildMap() {
+  if (map) { map.remove(); map = null; }
+  map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([lat, lng], 12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19
+  }).addTo(map);
+  var radiusMiles = RADIUS;
+  var radiusMeters = radiusMiles * 1609.34;
+  circle = L.circle([lat, lng], {
+    radius: radiusMeters,
+    color: '#4caf50',
+    fillColor: '#4caf50',
+    fillOpacity: 0.07,
+    weight: 2,
+    dashArray: '6 4'
+  }).addTo(map);
+  L.circleMarker([lat, lng], {
+    radius: 8,
+    color: '#4caf50',
+    fillColor: '#4caf50',
+    fillOpacity: 1,
+    weight: 2
+  }).addTo(map);
+  map.fitBounds(circle.getBounds(), { padding: [40, 40] });
+}
+
+/* ── INIT ── */
 function init() {
   if (!/^\d{5}$/.test(zip)) { showError(); return; }
-  fetchWithTimeout('https://api.zippopotam.us/us/' + zip, 5000)
+
+  fetchWithTimeout('https://api.zippopotam.us/us/' + zip, 6000)
     .then(function(r) { if (!r.ok) throw new Error('not found'); return r.json(); })
     .then(function(data) {
       lat = parseFloat(data.places[0].latitude);
       lng = parseFloat(data.places[0].longitude);
-      var city = data.places[0]['place name'];
-      var state = data.places[0]['state abbreviation'];
-      showResult(city, state);
+      showResult(data.places[0]['place name'], data.places[0]['state abbreviation']);
     })
     .catch(function() {
-      // Fallback: OpenStreetMap Nominatim
+      /* Fallback: Nominatim */
       return fetchWithTimeout(
         'https://nominatim.openstreetmap.org/search?postalcode=' + zip + '&country=US&format=json&limit=1&addressdetails=1',
-        8000
+        9000
       )
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -247,30 +298,32 @@ function init() {
           lng = parseFloat(data[0].lon);
           var addr = data[0].address || {};
           var city = addr.city || addr.town || addr.village || addr.county || zip;
-          var state = addr.state_code || '';
+          var state = addr.state_code || addr.state || '';
           showResult(city, state);
         })
         .catch(function() { showError(); });
     });
 }
 
-function showError() {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('error-state').style.display = 'block';
-}
+document.addEventListener('DOMContentLoaded', init);
+</script>
 
-function showResult(city, state) {
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('sidebar-content').style.display = 'flex';
-  document.getElementById('loc-name').textContent = city + ', ' + state;
-  document.getElementById('loc-meta').textContent = 'Zip ' + zip + ' · 5-mile zone area';
-  buildMap(city, state);
-}
+<!-- FOOTER -->
+<footer style="padding:32px 24px;border-top:1px solid var(--border)">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:15px;font-weight:800;letter-spacing:-.3px">Roo<span style="color:var(--green)">Finder</span></div>
+      <div style="font-size:12px;color:#444;margin-top:4px">Exclusive neighborhood zones · Available nationwide</div>
+      <div style="font-size:11px;font-weight:300;letter-spacing:.07em;color:rgba(255,255,255,0.50);margin-top:4px">"Jesus answered, 'I am the way and the truth and the life. No one comes to the Father except through me.'" — John 14:6 NIV</div>
+    </div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap">
+      <a href="index.html" style="font-size:12px;color:var(--green);font-weight:500">Home</a>
+      <a href="how-it-works.html" style="font-size:12px;color:var(--green);font-weight:500">How It Works</a>
+      <a href="privacy.html" style="font-size:12px;color:var(--green);font-weight:500">Privacy</a>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#333;margin-top:16px;text-align:center">© 2026 RooFinder. All rights reserved.</div>
+</footer>
 
-function buildMap(city, state) {
-  map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([lat, lng], 12);
-
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO',
-    maxZoom: 18
-  }).addTo(
+</body>
+</html>
