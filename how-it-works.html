@@ -3,553 +3,874 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>How RooFinder Works — Full System Walkthrough</title>
+<title>How RooFinder Works — Full Platform Info Sheet</title>
 <style>
 :root {
   --bg: #0b0d14;
   --card: #0f1120;
+  --card2: #111420;
   --border: rgba(255,255,255,0.07);
   --green: #4caf50;
-  --green-dim: rgba(76,175,80,0.15);
   --white: #e0e4f0;
   --gray: #555;
   --muted: #888;
-  --prime: #4caf50;
+  --amber: #f59e0b;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --red: #ef4444;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--white); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; }
 
-/* ── NAV ── */
-nav { position: sticky; top: 0; z-index: 100; background: rgba(11,13,20,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; }
-.nav-logo { display: flex; align-items: center; gap: 7px; font-size: 17px; font-weight: 900; color: var(--white); text-decoration: none; letter-spacing: -.3px; }
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; background: rgba(11,13,20,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 28px; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.nav-logo { font-size: 17px; font-weight: 900; color: var(--white); text-decoration: none; letter-spacing: -.3px; }
 .nav-logo span { color: var(--green); }
-.nav-links { display: flex; gap: 24px; }
-.nav-links a { color: var(--muted); font-size: 13px; font-weight: 500; text-decoration: none; transition: color .15s; }
-.nav-links a:hover { color: var(--white); }
-.nav-cta { background: var(--green); color: #000; font-size: 12px; font-weight: 800; padding: 8px 18px; border-radius: 6px; text-decoration: none; letter-spacing: .3px; }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-right a { color: var(--muted); font-size: 13px; text-decoration: none; }
+.nav-cta { background: var(--green) !important; color: #000 !important; font-weight: 800; padding: 8px 18px; border-radius: 6px; }
 
-/* ── HERO ── */
-.hero { text-align: center; padding: 100px 24px 60px; max-width: 760px; margin: 0 auto; }
-.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); margin-bottom: 20px; }
-.hero h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 20px; }
-.hero p { font-size: 17px; color: var(--muted); max-width: 520px; margin: 0 auto; }
+/* HERO */
+.hero { text-align: center; padding: 80px 24px 0; max-width: 800px; margin: 0 auto; }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--green); margin-bottom: 18px; }
+.hero h1 { font-size: clamp(30px, 5vw, 52px); font-weight: 900; letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 18px; }
+.hero-sub { font-size: 16px; color: var(--muted); max-width: 560px; margin: 0 auto 16px; }
+.hero-price-note { display: inline-block; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3); border-radius: 20px; padding: 8px 20px; font-size: 13px; color: var(--green); font-weight: 700; margin-bottom: 60px; }
 
-/* ── STEP LAYOUT ── */
-.steps { max-width: 1060px; margin: 0 auto; padding: 0 24px 120px; }
-.step { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: start; padding: 80px 0; border-bottom: 1px solid var(--border); }
-.step:last-child { border-bottom: none; }
-.step.flip { direction: rtl; }
-.step.flip > * { direction: ltr; }
-.step-text { }
-.step-num { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
-.step-num::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-.step h2 { font-size: clamp(22px, 3vw, 30px); font-weight: 900; letter-spacing: -.5px; line-height: 1.15; margin-bottom: 16px; }
-.step p { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
-.step ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
-.step ul li { font-size: 13px; color: var(--muted); padding-left: 18px; position: relative; line-height: 1.5; }
-.step ul li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 800; font-size: 11px; top: 1px; }
+/* TABLE OF CONTENTS */
+.toc { max-width: 700px; margin: 0 auto 80px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px 32px; }
+.toc-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.toc-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.toc-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--white); font-size: 13px; font-weight: 600; transition: background .15s; }
+.toc-item:hover { background: rgba(255,255,255,.04); }
+.toc-num { font-size: 10px; font-weight: 700; color: var(--green); min-width: 22px; }
 
-/* ── MOCKUPS ── */
-.mockup { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; font-size: 12px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
-.mock-bar { background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); padding: 10px 14px; display: flex; align-items: center; gap: 8px; }
-.mock-dot { width: 8px; height: 8px; border-radius: 50%; }
-.mock-title { font-size: 11px; color: var(--gray); font-weight: 600; margin-left: 4px; flex: 1; text-align: center; }
+/* SECTION WRAPPER */
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 28px; }
 
-/* Phone wrapper */
-.phone-wrap { display: flex; justify-content: center; }
-.phone { background: #111318; border: 1px solid var(--border); border-radius: 28px; width: 260px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
-.phone-notch { height: 28px; background: #111318; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: center; }
-.phone-inner { overflow: hidden; }
+/* SECTION */
+.info-section { padding: 80px 0; border-top: 1px solid var(--border); }
+.info-section:first-child { border-top: none; }
+.section-header { max-width: 700px; margin-bottom: 48px; }
+.section-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
+.section-header h2 { font-size: clamp(24px, 3.5vw, 36px); font-weight: 900; letter-spacing: -.8px; line-height: 1.1; margin-bottom: 14px; }
+.section-header p { font-size: 14px; color: var(--muted); line-height: 1.75; }
 
-/* ── STAT CHIPS ── */
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
-.chip { background: rgba(76,175,80,0.08); border: 1px solid rgba(76,175,80,0.2); border-radius: 20px; padding: 6px 14px; font-size: 12px; color: var(--green); font-weight: 700; }
+/* TWO-COLUMN LAYOUT */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } .three-col { grid-template-columns: 1fr; } .toc-list { grid-template-columns: 1fr; } }
 
-/* ── STATUS BADGES ── */
-.badge { display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: .5px; }
-.badge-green { background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.25); }
-.badge-amber { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
-.badge-blue { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); }
-.badge-purple { background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
-.badge-red { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
-.badge-gray { background: rgba(75,85,99,0.3); color: #9ca3af; border: 1px solid rgba(75,85,99,0.3); }
+/* FEATURE LIST */
+.feature-list { display: flex; flex-direction: column; gap: 14px; }
+.feature-item { display: flex; gap: 12px; align-items: flex-start; }
+.feature-icon { width: 28px; height: 28px; background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.2); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+.feature-text { }
+.feature-title { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.feature-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-/* ── CTA BAND ── */
-.cta-band { text-align: center; padding: 100px 24px; background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(76,175,80,0.07) 0%, transparent 70%); border-top: 1px solid var(--border); }
-.cta-band h2 { font-size: clamp(28px, 4vw, 44px); font-weight: 900; letter-spacing: -1px; margin-bottom: 16px; }
-.cta-band p { font-size: 15px; color: var(--muted); margin-bottom: 32px; }
-.btn-green { background: var(--green); color: #000; font-size: 14px; font-weight: 800; padding: 16px 32px; border-radius: 8px; text-decoration: none; display: inline-block; }
-.btn-ghost { color: var(--muted); font-size: 13px; text-decoration: none; margin-left: 20px; }
+/* PLATFORM MOCKUP CARD */
+.platform-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.5); }
+.platform-bar { background: #0a0c16; border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+.pbar-dot { width: 10px; height: 10px; border-radius: 50%; }
+.pbar-url { flex: 1; background: rgba(255,255,255,0.04); border-radius: 6px; padding: 4px 12px; font-size: 11px; color: var(--muted); margin-left: 8px; font-family: monospace; }
+.platform-nav { background: #0c0e1a; border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+.platform-nav-title { font-size: 13px; font-weight: 900; letter-spacing: -.2px; }
+.platform-nav-sub { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.platform-body { padding: 16px; }
 
-@media (max-width: 768px) {
-  .step { grid-template-columns: 1fr; gap: 32px; padding: 56px 0; }
-  .step.flip { direction: ltr; }
-  .nav-links { display: none; }
-}
+/* PHONE */
+.phone-outer { display: flex; justify-content: center; }
+.phone { background: #0f1120; border: 2px solid rgba(255,255,255,0.1); border-radius: 32px; width: 280px; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+.phone-pill { height: 30px; background: #0a0c16; display: flex; align-items: center; justify-content: center; }
+.phone-pill-inner { width: 70px; height: 10px; background: rgba(255,255,255,0.07); border-radius: 5px; }
 
-/* Table styles */
-.mini-table { width: 100%; border-collapse: collapse; }
-.mini-table th { text-align: left; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); padding: 8px 12px; border-bottom: 1px solid var(--border); }
-.mini-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 11px; color: #aaa; }
-.mini-table td.addr { color: var(--white); font-weight: 600; }
-.mini-table tr:last-child td { border-bottom: none; }
+/* STAT CARD */
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.stat-num { font-size: 28px; font-weight: 900; margin-bottom: 2px; }
+.stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); }
 
-/* Row highlight */
-.row-hi td { background: rgba(76,175,80,0.04); }
+/* BADGE */
+.badge { display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 4px; letter-spacing: .5px; }
+.bg { background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.25); }
+.ba { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+.bb { background: rgba(59,130,246,0.15); color: #3b82f6; border: 1px solid rgba(59,130,246,0.25); }
+.bp { background: rgba(168,85,247,0.15); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+.br { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+.bgr { background: rgba(75,85,99,0.3); color: #9ca3af; border: 1px solid rgba(75,85,99,0.3); }
+
+/* TABLE */
+.mini-t { width: 100%; border-collapse: collapse; font-size: 11px; }
+.mini-t th { text-align: left; font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.mini-t td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); color: #aaa; }
+.mini-t td.w { color: var(--white); font-weight: 600; }
+.mini-t tr:last-child td { border-bottom: none; }
+.hi td { background: rgba(76,175,80,0.03); }
+
+/* PIPELINE BAR */
+.pipeline { display: flex; gap: 6px; margin: 14px 0; }
+.pipe-stage { flex: 1; background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 8px; padding: 10px 8px; text-align: center; }
+.pipe-count { font-size: 18px; font-weight: 900; }
+.pipe-label { font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-top: 2px; }
+
+/* AGENT ROW */
+.agent-row { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; }
+.agent-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #000; flex-shrink: 0; }
+.agent-name { font-size: 12px; font-weight: 700; }
+.agent-route { font-size: 10px; color: var(--muted); }
+.agent-stats { margin-left: auto; text-align: right; }
+.agent-stat-main { font-size: 12px; font-weight: 700; color: var(--green); }
+.agent-stat-sub { font-size: 9px; color: var(--muted); }
+.agent-bar { height: 3px; background: rgba(76,175,80,0.15); border-radius: 2px; margin-top: 3px; overflow: hidden; }
+.agent-bar-fill { height: 100%; background: var(--green); border-radius: 2px; }
+
+/* STATUS DOT */
+.sdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+
+/* MAP MOCK */
+.map-mock { height: 210px; background: #1a1d2e; position: relative; overflow: hidden; border-radius: 10px; }
+.map-grid { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg,transparent,transparent 36px,rgba(255,255,255,.025) 36px,rgba(255,255,255,.025) 37px),repeating-linear-gradient(90deg,transparent,transparent 56px,rgba(255,255,255,.025) 56px,rgba(255,255,255,.025) 57px); }
+.map-road-h { position: absolute; left: 0; right: 0; height: 4px; background: rgba(255,255,255,.06); }
+.map-road-v { position: absolute; top: 0; bottom: 0; width: 4px; background: rgba(255,255,255,.06); }
+
+/* SCROLLABLE MOCKUP WRAPPER */
+.mock-scroll { overflow-y: auto; max-height: 420px; }
+
+/* STEP TIMELINE */
+.timeline { position: relative; padding-left: 40px; }
+.timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+.tl-step { position: relative; margin-bottom: 28px; }
+.tl-step:last-child { margin-bottom: 0; }
+.tl-dot { position: absolute; left: -33px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; color: #000; z-index: 1; }
+.tl-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.tl-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+/* CALLOUT BOX */
+.callout { background: rgba(76,175,80,0.06); border: 1px solid rgba(76,175,80,0.2); border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+.callout-title { font-size: 13px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+.callout-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+/* PRICING TABLE */
+.price-compare { width: 100%; border-collapse: collapse; font-size: 13px; }
+.price-compare th { text-align: left; padding: 12px 16px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+.price-compare td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,.04); }
+.price-compare tr:last-child td { border-bottom: none; }
+.price-compare .check { color: var(--green); font-weight: 900; font-size: 14px; }
+.price-compare .cross { color: #444; font-size: 14px; }
+
+/* CTA */
+.cta-band { text-align: center; padding: 100px 24px; background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(76,175,80,0.07) 0%, transparent 70%); border-top: 1px solid var(--border); }
+.cta-band h2 { font-size: clamp(26px,4vw,42px); font-weight: 900; letter-spacing: -1px; margin-bottom: 14px; }
+.cta-band p { font-size: 14px; color: var(--muted); margin-bottom: 30px; }
+.btn-g { background: var(--green); color: #000; font-size: 14px; font-weight: 800; padding: 16px 32px; border-radius: 8px; text-decoration: none; display: inline-block; margin: 6px; }
+.btn-ghost { color: var(--muted); font-size: 13px; text-decoration: none; display: inline-block; margin: 6px; }
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">Roo<span>Finder</span></a>
-  <div class="nav-links">
-    <a href="index.html#how-it-works">How It Works</a>
+  <div class="nav-right">
+    <a href="index.html">Home</a>
     <a href="index.html#territory">Pricing</a>
-    <a href="index.html#cta">Get Access</a>
+    <a href="search.html" class="nav-cta">Find Your Pocket →</a>
   </div>
-  <a href="search.html" class="nav-cta">Find Your Pocket →</a>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="eyebrow">Full System Walkthrough</div>
-  <h1>Exactly What You Get — From Day One</h1>
-  <p>From the moment you sign up to your agents closing doors in the field. Here's the complete picture.</p>
+  <div class="eyebrow">Info Sheet · Full Platform Walkthrough</div>
+  <h1>Everything You Need to Know<br>About RooFinder</h1>
+  <p class="hero-sub">From signing up to your agents closing jobs in the field — the complete breakdown of what you get, how it works, and what the platform looks like.</p>
+  <div class="hero-price-note">$2,500/month · Everything Included · Cancel Anytime</div>
 </div>
 
-<div class="steps">
+<!-- TABLE OF CONTENTS -->
+<div class="wrap">
+  <div class="toc">
+    <div class="toc-title">Jump to a Section</div>
+    <div class="toc-list">
+      <a href="#pocket" class="toc-item"><span class="toc-num">01</span> Your Neighborhood Pocket</a>
+      <a href="#owner" class="toc-item"><span class="toc-num">02</span> The Owner Dashboard</a>
+      <a href="#crm" class="toc-item"><span class="toc-num">03</span> Built-In CRM</a>
+      <a href="#routes" class="toc-item"><span class="toc-num">04</span> Routes & Agent App</a>
+      <a href="#tracking" class="toc-item"><span class="toc-num">05</span> Tracking & Scoreboard</a>
+      <a href="#pricing" class="toc-item"><span class="toc-num">06</span> What's Included</a>
+    </div>
+  </div>
+</div>
 
-  <!-- STEP 1: PURCHASE A POCKET -->
-  <div class="step">
-    <div class="step-text">
-      <div class="step-num">Step 01</div>
-      <h2>You Enter a Zip.<br>We Build Your Pocket.</h2>
-      <p>Tell us where you want to work. We identify every homeowner in that area who matches our criteria — aging roof, strong home value, owner-occupied — and package them into your exclusive neighborhood pocket.</p>
-      <p>Within 48 hours you have a curated list of real addresses, real owners, and real data. No one else can buy this pocket while you have it.</p>
-      <ul>
-        <li>Any zip code, anywhere in the US</li>
-        <li>One contractor per pocket — exclusively yours</li>
-        <li>Built and delivered within 48 hours</li>
-        <li>Request a new pocket when you've worked it through</li>
-      </ul>
-      <div class="chips">
-        <span class="chip">25–60 homes per pocket</span>
-        <span class="chip">Avg roof age 18–22 yrs</span>
-        <span class="chip">Avg value $500K+</span>
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 01 — YOUR POCKET -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="wrap">
+<section class="info-section" id="pocket">
+  <div class="section-header">
+    <div class="section-label">01 — Your Neighborhood Pocket</div>
+    <h2>A Hand-Built List of the Best<br>Doors in Your Territory</h2>
+    <p>Enter your zip code and we build a custom pocket within that area — every homeowner pre-screened for roof age, home value, and ownership status. Delivered within 48 hours. Yours exclusively — no other RooFinder contractor can work your streets.</p>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">📍</div>
+          <div class="feature-text">
+            <div class="feature-title">Any Zip Code in the US</div>
+            <div class="feature-desc">Enter your zip and we build within that area. Work suburban neighborhoods, rural towns, or dense metros — wherever roofs need replacing.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text">
+            <div class="feature-title">One Contractor Per Pocket — Ever</div>
+            <div class="feature-desc">Once you claim a pocket, no other RooFinder contractor works those streets while you hold it. Your territory is locked.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🏠</div>
+          <div class="feature-text">
+            <div class="feature-title">Pre-Qualified Homeowners Only</div>
+            <div class="feature-desc">Every address is filtered for aging roofs, strong home value, and owner-occupied status. No rentals, no new builds, no wasted doors.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Delivered in 48 Hours</div>
+            <div class="feature-desc">Sign up, enter your zip, and your full lead list is built and pushed to your owner dashboard within two business days.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-text">
+            <div class="feature-title">Request the Next One Anytime</div>
+            <div class="feature-desc">Once your agents have knocked every door, request a new pocket — same area or a different zip. No downtime, no wait.</div>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- POCKET CARD MOCKUP -->
     <div>
-      <!-- MOCKUP: Pocket delivery card -->
-      <div class="mockup">
-        <div class="mock-bar">
-          <div class="mock-dot" style="background:#ef4444"></div>
-          <div class="mock-dot" style="background:#f59e0b"></div>
-          <div class="mock-dot" style="background:#4caf50"></div>
-          <div class="mock-title">roofinder.online — Owner Dashboard</div>
+      <div class="platform-card">
+        <div class="platform-bar">
+          <div class="pbar-dot" style="background:#ef4444"></div>
+          <div class="pbar-dot" style="background:#f59e0b"></div>
+          <div class="pbar-dot" style="background:#4caf50"></div>
+          <div class="pbar-url">roofinder.online/owner</div>
         </div>
-        <div style="padding:16px">
-          <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:8px">● Pocket Delivered · 48 hrs after signup</div>
-          <div style="font-size:16px;font-weight:900;margin-bottom:3px">Cary Pocket 82</div>
-          <div style="font-size:10px;color:var(--gray);margin-bottom:14px">West Cary, NC · 27519</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">
-            <div style="background:var(--card);padding:10px;text-align:center">
-              <div style="font-size:18px;font-weight:900;color:var(--green)">25</div>
-              <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px">Homes</div>
+        <div class="platform-nav">
+          <div>
+            <div class="platform-nav-title">Cary Pocket 82</div>
+            <div class="platform-nav-sub">Delivered June 13 · West Cary, NC 27519</div>
+          </div>
+          <span class="badge bg">● Active</span>
+        </div>
+        <div class="platform-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+            <div style="text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 6px">
+              <div style="font-size:20px;font-weight:900;color:var(--green)">25</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">Homes</div>
             </div>
-            <div style="background:var(--card);padding:10px;text-align:center">
-              <div style="font-size:18px;font-weight:900">$668K</div>
-              <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px">Avg Value</div>
+            <div style="text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 6px">
+              <div style="font-size:20px;font-weight:900">$668K</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">Avg Value</div>
             </div>
-            <div style="background:var(--card);padding:10px;text-align:center">
-              <div style="font-size:18px;font-weight:900">20yr</div>
-              <div style="font-size:9px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px">Avg Roof</div>
+            <div style="text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 6px">
+              <div style="font-size:20px;font-weight:900">20yr</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">Avg Roof</div>
+            </div>
+            <div style="text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 6px">
+              <div style="font-size:20px;font-weight:900;color:var(--amber)">0</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">Shared</div>
             </div>
           </div>
-          <table class="mini-table">
-            <thead><tr><th>Address</th><th>Roof</th><th>Value</th><th>Tier</th></tr></thead>
+          <table class="mini-t">
+            <thead><tr><th>#</th><th>Address</th><th>Owner</th><th>Roof</th><th>Value</th><th>Tier</th></tr></thead>
             <tbody>
-              <tr class="row-hi"><td class="addr">510 Emerald Downs Rd</td><td>20yr</td><td>$579K</td><td><span class="badge badge-green">PRIME</span></td></tr>
-              <tr><td class="addr">514 Emerald Downs Rd</td><td>20yr</td><td>$667K</td><td><span class="badge badge-green">PRIME</span></td></tr>
-              <tr><td class="addr">304 Frontgate Dr</td><td>22yr</td><td>$625K</td><td><span class="badge badge-amber">HOT</span></td></tr>
-              <tr style="opacity:.3;filter:blur(2px)"><td class="addr">518 Emerald Downs Rd</td><td>20yr</td><td>••••</td><td><span class="badge badge-green">PRIME</span></td></tr>
+              <tr class="hi"><td style="color:var(--muted)">1</td><td class="w">510 Emerald Downs</td><td>Chen, Zhongmin</td><td>20yr</td><td>$579K</td><td><span class="badge bg">PRIME</span></td></tr>
+              <tr><td style="color:var(--muted)">2</td><td class="w">514 Emerald Downs</td><td>Patel, Chetan</td><td>20yr</td><td>$667K</td><td><span class="badge bg">PRIME</span></td></tr>
+              <tr><td style="color:var(--muted)">3</td><td class="w">304 Frontgate Dr</td><td>Fields, Timothy</td><td>22yr</td><td>$625K</td><td><span class="badge ba">HOT</span></td></tr>
+              <tr><td style="color:var(--muted)">4</td><td class="w">518 Emerald Downs</td><td>Williams, Dana</td><td>20yr</td><td>$598K</td><td><span class="badge bg">PRIME</span></td></tr>
+              <tr style="opacity:.35;filter:blur(2px)"><td>5</td><td>710 Dennison Ln</td><td>••••••</td><td>21yr</td><td>••••</td><td>—</td></tr>
             </tbody>
           </table>
-          <div style="font-size:10px;color:var(--gray);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">+21 more homes · full list unlocked</div>
+          <div style="font-size:10px;color:var(--muted);padding-top:10px;border-top:1px solid var(--border);margin-top:10px">+ 20 more homes · fully unlocked in your dashboard</div>
         </div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- STEP 2: OWNER DASHBOARD -->
-  <div class="step flip">
-    <div class="step-text">
-      <div class="step-num">Step 02</div>
-      <h2>Your Dashboard.<br>Full Team Visibility.</h2>
-      <p>The owner dashboard is your command center. See every agent, every door they've knocked, every deal in your pipeline — all in one place, in real time.</p>
-      <p>Add agents in seconds. Each agent gets their own login to the mobile app. You see their progress as it happens — no check-ins, no spreadsheets, no guessing.</p>
-      <ul>
-        <li>Add unlimited agents — each gets a mobile login</li>
-        <li>See every agent's daily knock count and status</li>
-        <li>Full pipeline view: pending → interested → appointment → sold</li>
-        <li>Assign pockets and routes to specific agents</li>
-        <li>Real-time CRM — every homeowner interaction logged</li>
-      </ul>
-    </div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 02 — OWNER DASHBOARD -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="info-section" id="owner">
+  <div class="section-header">
+    <div class="section-label">02 — The Owner Dashboard</div>
+    <h2>Your Entire Operation<br>From One Screen</h2>
+    <p>The owner dashboard is your command center. Manage your pocket, add and remove agents, assign routes, and watch your team's progress in real time — without having to text anyone for an update.</p>
+  </div>
+
+  <div class="two-col">
+    <!-- DASHBOARD MOCKUP -->
     <div>
-      <!-- MOCKUP: Owner dashboard -->
-      <div class="mockup">
-        <div class="mock-bar">
-          <div class="mock-dot" style="background:#ef4444"></div>
-          <div class="mock-dot" style="background:#f59e0b"></div>
-          <div class="mock-dot" style="background:#4caf50"></div>
-          <div class="mock-title">Owner Dashboard — Dalton's Roofing</div>
+      <div class="platform-card">
+        <div class="platform-bar">
+          <div class="pbar-dot" style="background:#ef4444"></div>
+          <div class="pbar-dot" style="background:#f59e0b"></div>
+          <div class="pbar-dot" style="background:#4caf50"></div>
+          <div class="pbar-url">roofinder.online/owner</div>
         </div>
-        <div style="padding:14px">
-          <!-- Pipeline stats -->
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
-            <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:8px;padding:8px;text-align:center">
-              <div style="font-size:16px;font-weight:900;color:var(--green)">8</div>
-              <div style="font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.3px">Interested</div>
-            </div>
-            <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:8px;text-align:center">
-              <div style="font-size:16px;font-weight:900;color:#3b82f6">4</div>
-              <div style="font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.3px">Callback</div>
-            </div>
-            <div style="background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:8px;text-align:center">
-              <div style="font-size:16px;font-weight:900;color:#a855f7">3</div>
-              <div style="font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.3px">Appt Set</div>
-            </div>
-            <div style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.35);border-radius:8px;padding:8px;text-align:center">
-              <div style="font-size:16px;font-weight:900;color:var(--green)">2</div>
-              <div style="font-size:8px;color:var(--gray);text-transform:uppercase;letter-spacing:.3px">Sold</div>
+        <div style="display:flex;height:340px">
+          <!-- Sidebar -->
+          <div style="width:130px;background:#0a0c16;border-right:1px solid var(--border);padding:14px 10px;flex-shrink:0">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px">Owner Panel</div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div style="background:rgba(76,175,80,0.12);border-radius:6px;padding:7px 9px;font-size:10px;font-weight:700;color:var(--green)">📊 Dashboard</div>
+              <div style="padding:7px 9px;font-size:10px;color:var(--muted)">👥 My Agents</div>
+              <div style="padding:7px 9px;font-size:10px;color:var(--muted)">📍 My Pocket</div>
+              <div style="padding:7px 9px;font-size:10px;color:var(--muted)">🗺 Routes</div>
+              <div style="padding:7px 9px;font-size:10px;color:var(--muted)">📋 CRM</div>
+              <div style="padding:7px 9px;font-size:10px;color:var(--muted)">📈 Scoreboard</div>
+              <div style="padding:7px 9px;font-size:10px;color:var(--muted)">⚙️ Settings</div>
             </div>
           </div>
-          <!-- Agent list -->
-          <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:8px">Your Agents</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between">
+          <!-- Main content -->
+          <div style="flex:1;padding:14px;overflow:hidden">
+            <div style="font-size:12px;font-weight:900;margin-bottom:3px">Dalton's Roofing</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:12px">Cary Pocket 82 · 3 agents active</div>
+            <!-- Pipeline -->
+            <div class="pipeline">
+              <div class="pipe-stage"><div class="pipe-count" style="color:var(--muted)">14</div><div class="pipe-label">Pending</div></div>
+              <div class="pipe-stage"><div class="pipe-count" style="color:var(--amber)">6</div><div class="pipe-label">No Ans.</div></div>
+              <div class="pipe-stage"><div class="pipe-count" style="color:var(--green)">8</div><div class="pipe-label">Interested</div></div>
+              <div class="pipe-stage"><div class="pipe-count" style="color:var(--blue)">4</div><div class="pipe-label">Callback</div></div>
+              <div class="pipe-stage"><div class="pipe-count" style="color:var(--purple)">3</div><div class="pipe-label">Appt</div></div>
+              <div class="pipe-stage"><div class="pipe-count" style="color:var(--green)">2</div><div class="pipe-label" style="color:var(--green)">Sold</div></div>
+            </div>
+            <!-- Agents -->
+            <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Live Agent Activity</div>
+            <div class="agent-row">
+              <div class="agent-avatar">M</div>
               <div>
-                <div style="font-size:12px;font-weight:700">Marcus R.</div>
-                <div style="font-size:10px;color:var(--gray)">Cary Pocket 82</div>
+                <div class="agent-name">Marcus R.</div>
+                <div class="agent-route">Emerald Downs block</div>
+                <div class="agent-bar"><div class="agent-bar-fill" style="width:72%"></div></div>
               </div>
-              <div style="text-align:right">
-                <div style="font-size:11px;font-weight:700;color:var(--green)">14 knocked</div>
-                <div style="font-size:9px;color:var(--gray)">3 interested · 1 appt</div>
+              <div class="agent-stats">
+                <div class="agent-stat-main">14 knocked</div>
+                <div class="agent-stat-sub">3 interested · 1 appt</div>
               </div>
             </div>
-            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between">
+            <div class="agent-row">
+              <div class="agent-avatar" style="background:#3b82f6">J</div>
               <div>
-                <div style="font-size:12px;font-weight:700">Jordan T.</div>
-                <div style="font-size:10px;color:var(--gray)">Cary Pocket 82</div>
+                <div class="agent-name">Jordan T.</div>
+                <div class="agent-route">Frontgate Dr block</div>
+                <div class="agent-bar"><div class="agent-bar-fill" style="width:44%"></div></div>
               </div>
-              <div style="text-align:right">
-                <div style="font-size:11px;font-weight:700;color:var(--green)">9 knocked</div>
-                <div style="font-size:9px;color:var(--gray)">2 interested · 0 appt</div>
+              <div class="agent-stats">
+                <div class="agent-stat-main">9 knocked</div>
+                <div class="agent-stat-sub">2 interested · 0 appt</div>
               </div>
-            </div>
-            <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:9px 11px;display:flex;align-items:center;justify-content:space-between">
-              <div>
-                <div style="font-size:12px;font-weight:700">Alex K.</div>
-                <div style="font-size:10px;color:var(--gray)">West Raleigh Pocket</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-size:11px;font-weight:700;color:#f59e0b)">6 knocked</div>
-                <div style="font-size:9px;color:var(--gray)">1 interested · 2 appt</div>
-              </div>
-            </div>
-            <div style="border:1px dashed rgba(76,175,80,0.3);border-radius:8px;padding:9px 11px;text-align:center;cursor:pointer">
-              <span style="font-size:11px;color:var(--green);font-weight:700">+ Add Agent</span>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <div>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div class="feature-text">
+            <div class="feature-title">Live Pipeline View</div>
+            <div class="feature-desc">See exactly how many doors are pending, interested, scheduled for an appointment, and sold — updated the second your agents log a status change.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">👥</div>
+          <div class="feature-text">
+            <div class="feature-title">Add Agents in Seconds</div>
+            <div class="feature-desc">Enter a name and phone number. They receive a login link via text. No app download, no IT setup — they're in the field in minutes.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🗺</div>
+          <div class="feature-text">
+            <div class="feature-title">Assign Routes Per Agent</div>
+            <div class="feature-desc">Assign each agent a specific block, street, or section of the pocket so they never overlap. Each agent only sees their assigned doors.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📈</div>
+          <div class="feature-text">
+            <div class="feature-title">Real-Time Progress Tracking</div>
+            <div class="feature-desc">Watch your team's knock count climb throughout the day. See who's moving and who's stalled — without making a single call.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⚙️</div>
+          <div class="feature-text">
+            <div class="feature-title">Remove or Reassign Anytime</div>
+            <div class="feature-desc">Deactivate an agent, swap their route, or reassign a block to someone else — all from the settings panel in seconds.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 03 — CRM -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="info-section" id="crm">
+  <div class="section-header">
+    <div class="section-label">03 — Built-In CRM</div>
+    <h2>Every Homeowner Interaction.<br>Logged Automatically.</h2>
+    <p>Every time an agent knocks a door and logs a status, it's recorded in the CRM. You get a full history of every contact — who knocked, when, what the outcome was, and any notes. No separate software. No spreadsheets. It's all inside RooFinder.</p>
   </div>
 
-  <!-- STEP 3: AGENT MOBILE APP -->
-  <div class="step">
-    <div class="step-text">
-      <div class="step-num">Step 03</div>
-      <h2>Agents Work From<br>the Mobile App.</h2>
-      <p>Your agents log in on their phone. They see their assigned pocket as a map with every home pinned. Knock a door, tap the dot, log the status — no paper, no calls back to the office.</p>
-      <p>The map updates in real time. You see every status change on your owner dashboard the moment it happens.</p>
-      <ul>
-        <li>Map view — see every home as a pin, color-coded by status</li>
-        <li>Tap any pin to open the homeowner details</li>
-        <li>Log status in one tap: no-answer, interested, callback, appointment</li>
-        <li>List view for agents who prefer scrolling over the map</li>
-        <li>Works on any smartphone — no app install needed</li>
-      </ul>
+  <div class="two-col">
+    <div>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">📝</div>
+          <div class="feature-text">
+            <div class="feature-title">Complete Contact History</div>
+            <div class="feature-desc">Every homeowner has a timeline — first knock date, who knocked, every status update, and any notes your agent left. Never lose track of a lead.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔔</div>
+          <div class="feature-text">
+            <div class="feature-title">Callback Reminders</div>
+            <div class="feature-desc">When a homeowner asks to be called back, it gets flagged. Your team knows exactly who to follow up with and when.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🗓</div>
+          <div class="feature-text">
+            <div class="feature-title">Appointment Tracking</div>
+            <div class="feature-desc">Appointments set in the field show immediately in the owner dashboard. You see who's coming in before your agent even gets back to the truck.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">💰</div>
+          <div class="feature-text">
+            <div class="feature-title">Mark Jobs as Sold</div>
+            <div class="feature-desc">When a deal closes, mark it sold with the job value. It flows into the scoreboard instantly and updates each agent's close rate and revenue total.</div>
+          </div>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-title">No Third-Party CRM Needed</div>
+        <div class="callout-text">Most roofing companies pay $800+/month for a separate CRM. RooFinder's CRM is built in — same login, same dashboard, no extra cost.</div>
+      </div>
     </div>
-    <div class="phone-wrap">
-      <!-- MOCKUP: Agent mobile app -->
+
+    <!-- CRM RECORD MOCKUP -->
+    <div>
+      <div class="platform-card">
+        <div class="platform-bar">
+          <div class="pbar-dot" style="background:#ef4444"></div>
+          <div class="pbar-dot" style="background:#f59e0b"></div>
+          <div class="pbar-dot" style="background:#4caf50"></div>
+          <div class="pbar-url">roofinder.online/owner — CRM</div>
+        </div>
+        <div class="platform-body">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
+            <div>
+              <div style="font-size:14px;font-weight:900">510 Emerald Downs Rd</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Chen, Zhongmin / Du, Xiaoli · 20yr roof · $579K</div>
+            </div>
+            <span class="badge bp">APPOINTMENT SET</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
+            <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:7px;padding:8px 10px">
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Knocked</div>
+              <div style="font-size:11px;font-weight:700">3 times</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:7px;padding:8px 10px">
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Agent</div>
+              <div style="font-size:11px;font-weight:700">Marcus R.</div>
+            </div>
+            <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:7px;padding:8px 10px">
+              <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Appt Date</div>
+              <div style="font-size:11px;font-weight:700;color:var(--purple)">Jun 15, 2pm</div>
+            </div>
+          </div>
+          <!-- Activity timeline -->
+          <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Contact History</div>
+          <div class="timeline">
+            <div class="tl-step">
+              <div class="tl-dot">✓</div>
+              <div class="tl-title">Appointment Set <span style="font-weight:400;color:var(--muted)">· Jun 13 · Marcus R.</span></div>
+              <div class="tl-desc">"Homeowner very interested. Husband home Saturday. Confirmed 2pm appointment for roof inspection."</div>
+            </div>
+            <div class="tl-step">
+              <div class="tl-dot" style="background:var(--blue)">↩</div>
+              <div class="tl-title">Callback Requested <span style="font-weight:400;color:var(--muted)">· Jun 11 · Marcus R.</span></div>
+              <div class="tl-desc">"Answered door, needs to speak with husband first. Asked us to come back Saturday."</div>
+            </div>
+            <div class="tl-step">
+              <div class="tl-dot" style="background:var(--amber)">—</div>
+              <div class="tl-title">No Answer <span style="font-weight:400;color:var(--muted)">· Jun 10 · Marcus R.</span></div>
+              <div class="tl-desc">Door knocked, no one home.</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:10px 12px;background:rgba(76,175,80,0.06);border:1px solid rgba(76,175,80,0.2);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--green);font-weight:700">Ready to close?</span>
+            <button style="background:var(--green);border:none;color:#000;font-size:10px;font-weight:800;padding:5px 12px;border-radius:5px;font-family:inherit;cursor:pointer">Mark as Sold</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 04 — ROUTES + AGENT APP -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="info-section" id="routes">
+  <div class="section-label">04 — Routes &amp; the Agent App</div>
+  <div class="two-col" style="margin-top:0;align-items:start">
+    <div>
+      <h2 style="font-size:clamp(22px,3vw,32px);font-weight:900;letter-spacing:-.8px;line-height:1.1;margin-bottom:14px;margin-top:12px">The App Your Agents<br>Work From in the Field</h2>
+      <p style="font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:24px">Agents log in on their phone — no app store required. They see their assigned route as a live map with every home pinned. Tap a dot, see the homeowner details, log the outcome. The map updates as they work. You see it all from your dashboard.</p>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">🗺</div>
+          <div class="feature-text">
+            <div class="feature-title">Map View — Color-Coded by Status</div>
+            <div class="feature-desc">Every home shows as a colored pin: gray (pending), yellow (no answer), green (interested), blue (callback), purple (appointment), gold (sold). Your agent always knows what's been worked.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">☰</div>
+          <div class="feature-text">
+            <div class="feature-title">List View for Scrollers</div>
+            <div class="feature-desc">Toggle to a full list of every door — sorted by address — with current status and homeowner details. Tap any row to log an update.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">👆</div>
+          <div class="feature-text">
+            <div class="feature-title">One-Tap Status Logging</div>
+            <div class="feature-desc">After every knock, agents log the result with one tap: No Answer, Interested, Callback, Appointment Set. Add a note if needed. Done in five seconds.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🔄</div>
+          <div class="feature-text">
+            <div class="feature-title">Syncs to Owner Dashboard Instantly</div>
+            <div class="feature-desc">Every status update hits the owner dashboard in real time. No check-ins, no calls back to the office — you see the field as it happens.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHONE MOCKUP -->
+    <div class="phone-outer">
       <div class="phone">
-        <div class="phone-notch">
-          <div style="width:60px;height:10px;background:#1a1d2e;border-radius:5px"></div>
+        <div class="phone-pill"><div class="phone-pill-inner"></div></div>
+        <!-- Topbar -->
+        <div style="background:#0f1120;padding:10px 14px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div>
+              <div style="font-size:11px;font-weight:900">Cary Pocket 82</div>
+              <div style="font-size:9px;color:var(--muted)">Marcus R. · 14 knocked today</div>
+            </div>
+            <span class="badge bg" style="font-size:8px">● Live</span>
+          </div>
+          <!-- Progress bar -->
+          <div style="height:3px;background:rgba(76,175,80,0.15);border-radius:2px;margin-bottom:10px">
+            <div style="width:56%;height:100%;background:var(--green);border-radius:2px"></div>
+          </div>
+          <!-- Toggle -->
+          <div style="display:flex;gap:4px;margin-bottom:0">
+            <button style="flex:1;padding:6px;background:#4caf50;border:none;border-radius:6px 6px 0 0;color:#000;font-size:9px;font-weight:800;font-family:inherit">🗺 Map</button>
+            <button style="flex:1;padding:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;color:#666;font-size:9px;font-family:inherit">☰ List</button>
+          </div>
         </div>
-        <div class="phone-inner">
-          <!-- Topbar -->
-          <div style="background:#0f1120;padding:10px 12px 8px;border-bottom:1px solid var(--border)">
-            <div style="font-size:11px;font-weight:900;letter-spacing:-.2px;margin-bottom:2px">Cary Pocket 82</div>
-            <div style="font-size:9px;color:var(--gray)">Marcus R. · 14 knocked today</div>
-            <div style="display:flex;gap:4px;margin-top:8px">
-              <button style="flex:1;padding:5px;background:#4caf50;border:none;border-radius:5px;color:#000;font-size:9px;font-weight:800;font-family:inherit">🗺 Map</button>
-              <button style="flex:1;padding:5px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;color:#666;font-size:9px;font-weight:700;font-family:inherit">☰ List</button>
-            </div>
+        <!-- Map -->
+        <div class="map-mock">
+          <div class="map-grid"></div>
+          <div class="map-road-h" style="top:70px"></div>
+          <div class="map-road-h" style="top:130px"></div>
+          <div class="map-road-v" style="left:90px"></div>
+          <div class="map-road-v" style="left:180px"></div>
+          <!-- Dots -->
+          <div style="position:absolute;top:50px;left:40px;width:14px;height:14px;border-radius:50%;background:#4caf50;border:2px solid #000;box-shadow:0 0 8px rgba(76,175,80,0.9)"></div>
+          <div style="position:absolute;top:58px;left:110px;width:14px;height:14px;border-radius:50%;background:#4caf50;border:2px solid #000"></div>
+          <div style="position:absolute;top:44px;left:155px;width:14px;height:14px;border-radius:50%;background:#3b82f6;border:2px solid #000"></div>
+          <div style="position:absolute;top:90px;left:55px;width:14px;height:14px;border-radius:50%;background:#a855f7;border:2px solid #000;box-shadow:0 0 8px rgba(168,85,247,0.9)"></div>
+          <div style="position:absolute;top:96px;left:130px;width:14px;height:14px;border-radius:50%;background:#f59e0b;border:2px solid #000"></div>
+          <div style="position:absolute;top:145px;left:45px;width:14px;height:14px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
+          <div style="position:absolute;top:150px;left:100px;width:14px;height:14px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
+          <div style="position:absolute;top:140px;left:165px;width:14px;height:14px;border-radius:50%;background:#4caf50;border:2px solid #000"></div>
+          <div style="position:absolute;top:80px;left:200px;width:14px;height:14px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
+          <div style="position:absolute;top:55px;left:215px;width:14px;height:14px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
+          <!-- Legend -->
+          <div style="position:absolute;bottom:6px;left:6px;background:rgba(11,13,20,0.93);border:1px solid var(--border);border-radius:6px;padding:4px 8px;display:flex;gap:8px;flex-wrap:wrap">
+            <span style="font-size:7px;color:#4caf50;font-weight:700">● Int.</span>
+            <span style="font-size:7px;color:#3b82f6;font-weight:700">● CB</span>
+            <span style="font-size:7px;color:#a855f7;font-weight:700">● Appt</span>
+            <span style="font-size:7px;color:#4b5563;font-weight:700">● Pending</span>
           </div>
-          <!-- Mini map simulation -->
-          <div style="height:200px;background:#1a1d2e;position:relative;overflow:hidden">
-            <!-- Fake street grid -->
-            <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 38px,rgba(255,255,255,.03) 38px,rgba(255,255,255,.03) 39px),repeating-linear-gradient(90deg,transparent,transparent 58px,rgba(255,255,255,.03) 58px,rgba(255,255,255,.03) 59px)"></div>
-            <!-- Fake road -->
-            <div style="position:absolute;top:80px;left:0;right:0;height:5px;background:rgba(255,255,255,.06)"></div>
-            <div style="position:absolute;top:120px;left:0;right:0;height:3px;background:rgba(255,255,255,.04)"></div>
-            <div style="position:absolute;left:80px;top:0;bottom:0;width:5px;background:rgba(255,255,255,.06)"></div>
-            <!-- Dots -->
-            <div style="position:absolute;top:60px;left:40px;width:12px;height:12px;border-radius:50%;background:#4caf50;border:2px solid #000;box-shadow:0 0 6px rgba(76,175,80,0.8)"></div>
-            <div style="position:absolute;top:72px;left:72px;width:12px;height:12px;border-radius:50%;background:#4caf50;border:2px solid #000"></div>
-            <div style="position:absolute;top:55px;left:105px;width:12px;height:12px;border-radius:50%;background:#3b82f6;border:2px solid #000"></div>
-            <div style="position:absolute;top:100px;left:130px;width:12px;height:12px;border-radius:50%;background:#a855f7;border:2px solid #000;box-shadow:0 0 6px rgba(168,85,247,0.8)"></div>
-            <div style="position:absolute;top:140px;left:50px;width:12px;height:12px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
-            <div style="position:absolute;top:135px;left:90px;width:12px;height:12px;border-radius:50%;background:#f59e0b;border:2px solid #000"></div>
-            <div style="position:absolute;top:148px;left:160px;width:12px;height:12px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
-            <div style="position:absolute;top:68px;left:155px;width:12px;height:12px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
-            <div style="position:absolute;top:90px;left:200px;width:12px;height:12px;border-radius:50%;background:#4caf50;border:2px solid #000"></div>
-            <div style="position:absolute;top:115px;left:195px;width:12px;height:12px;border-radius:50%;background:#4b5563;border:2px solid #000"></div>
-            <!-- Legend -->
-            <div style="position:absolute;bottom:6px;left:6px;background:rgba(11,13,20,0.92);border:1px solid var(--border);border-radius:6px;padding:4px 8px;display:flex;gap:8px">
-              <span style="font-size:8px;color:#4caf50;font-weight:700">● Interested</span>
-              <span style="font-size:8px;color:#3b82f6;font-weight:700">● Callback</span>
-              <span style="font-size:8px;color:#a855f7;font-weight:700">● Appt</span>
-            </div>
+        </div>
+        <!-- Next door card -->
+        <div style="background:#0f1120;padding:10px 14px;border-top:1px solid var(--border)">
+          <div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Next Door</div>
+          <div style="font-size:12px;font-weight:800;margin-bottom:1px">518 Emerald Downs Rd</div>
+          <div style="font-size:9px;color:var(--muted);margin-bottom:8px">Williams, Dana · 20yr · $598K</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:6px">
+            <button style="padding:7px 3px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:6px;color:#f59e0b;font-size:8px;font-weight:800;font-family:inherit">No Answer</button>
+            <button style="padding:7px 3px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:6px;color:#4caf50;font-size:8px;font-weight:800;font-family:inherit">Interested ✓</button>
+            <button style="padding:7px 3px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:6px;color:#a855f7;font-size:8px;font-weight:800;font-family:inherit">Set Appt</button>
           </div>
-          <!-- Next door card -->
-          <div style="background:#0f1120;padding:10px 12px;border-top:1px solid var(--border)">
-            <div style="font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:5px">Next Door</div>
-            <div style="font-size:12px;font-weight:700;margin-bottom:2px">518 Emerald Downs Rd</div>
-            <div style="font-size:10px;color:var(--gray);margin-bottom:8px">Chen, Wei · 20yr roof · $615K</div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px">
-              <button style="padding:6px 3px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:6px;color:#f59e0b;font-size:8px;font-weight:800;font-family:inherit;cursor:pointer">No Answer</button>
-              <button style="padding:6px 3px;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);border-radius:6px;color:#4caf50;font-size:8px;font-weight:800;font-family:inherit;cursor:pointer">Interested</button>
-              <button style="padding:6px 3px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);border-radius:6px;color:#a855f7;font-size:8px;font-weight:800;font-family:inherit;cursor:pointer">Set Appt</button>
-            </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <button style="padding:6px 3px;background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.3);border-radius:6px;color:#3b82f6;font-size:8px;font-weight:800;font-family:inherit">Callback</button>
+            <button style="padding:6px 3px;background:rgba(100,116,139,0.1);border:1px solid rgba(100,116,139,0.3);border-radius:6px;color:#64748b;font-size:8px;font-weight:800;font-family:inherit">Not Interested</button>
           </div>
         </div>
       </div>
     </div>
   </div>
+</section>
 
-  <!-- STEP 4: ADDING AGENTS -->
-  <div class="step flip">
-    <div class="step-text">
-      <div class="step-num">Step 04</div>
-      <h2>Add an Agent in<br>Under a Minute.</h2>
-      <p>No IT setup. No app installs. Add an agent from your dashboard — give them a name and phone number — and they get a login link. They're in the field and working within minutes.</p>
-      <p>Each agent only sees their assigned route. You see everything. Remove agents, reassign routes, and manage your whole team from the same screen.</p>
-      <ul>
-        <li>Add agents from the owner dashboard — name + number</li>
-        <li>Agents receive a link — no app download required</li>
-        <li>Assign which pocket and route each agent works</li>
-        <li>Remove or deactivate agents instantly</li>
-        <li>Multiple agents can work the same pocket simultaneously</li>
-      </ul>
-    </div>
-    <div>
-      <!-- MOCKUP: Add agent flow -->
-      <div class="mockup">
-        <div class="mock-bar">
-          <div class="mock-dot" style="background:#ef4444"></div>
-          <div class="mock-dot" style="background:#f59e0b"></div>
-          <div class="mock-dot" style="background:#4caf50"></div>
-          <div class="mock-title">Add Agent — Owner Dashboard</div>
-        </div>
-        <div style="padding:16px">
-          <div style="font-size:13px;font-weight:800;margin-bottom:12px">Add New Agent</div>
-          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-            <div>
-              <div style="font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Agent Name</div>
-              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(76,175,80,0.4);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--white)">Jordan Torres</div>
-            </div>
-            <div>
-              <div style="font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Phone Number</div>
-              <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:#666">(919) 555-0142</div>
-            </div>
-            <div>
-              <div style="font-size:9px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Assign Route</div>
-              <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--white);display:flex;justify-content:space-between;align-items:center">Cary Pocket 82 <span style="color:var(--gray)">▾</span></div>
-            </div>
-          </div>
-          <button style="width:100%;padding:11px;background:var(--green);border:none;border-radius:7px;color:#000;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;margin-bottom:12px">Send Login Link →</button>
-          <div style="background:rgba(76,175,80,0.06);border:1px solid rgba(76,175,80,0.2);border-radius:8px;padding:10px 12px">
-            <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:3px">✓ Agent added. Login link sent.</div>
-            <div style="font-size:10px;color:var(--gray)">Jordan Torres will receive a text with their login link. They'll be live and knocking in minutes.</div>
-          </div>
-        </div>
-      </div>
-    </div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 05 — TRACKING + SCOREBOARD -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="info-section" id="tracking">
+  <div class="section-header">
+    <div class="section-label">05 — Tracking &amp; Scoreboard</div>
+    <h2>Know Exactly Who's Performing<br>and Who's Not</h2>
+    <p>The scoreboard shows every agent's stats side by side — doors knocked, appointments set, and jobs sold. You always know who's earning their keep and who needs a conversation. No spreadsheets, no guessing, no end-of-week reports.</p>
   </div>
 
-  <!-- STEP 5: SCOREBOARD + DEALS -->
-  <div class="step">
-    <div class="step-text">
-      <div class="step-num">Step 05</div>
-      <h2>Track Every Deal.<br>Score Every Agent.</h2>
-      <p>Every status update from every agent flows into your owner dashboard in real time. You see who's knocking, who's slacking, and who's closing — without asking anyone.</p>
-      <p>When an agent sets an appointment that turns into a signed contract, log it as a sold job. The scoreboard updates instantly. Know exactly who's earning their keep.</p>
-      <ul>
-        <li>Real-time scoreboard — doors knocked, appointments set, jobs sold</li>
-        <li>Full homeowner history — every knock, call, and follow-up logged</li>
-        <li>Pipeline at a glance: see exactly where every lead is in the process</li>
-        <li>Mark jobs as sold and track each agent's close rate</li>
-        <li>Export pipeline data anytime</li>
-      </ul>
-    </div>
+  <div class="two-col">
+    <!-- SCOREBOARD MOCKUP -->
     <div>
-      <!-- MOCKUP: Scoreboard -->
-      <div class="mockup">
-        <div class="mock-bar">
-          <div class="mock-dot" style="background:#ef4444"></div>
-          <div class="mock-dot" style="background:#f59e0b"></div>
-          <div class="mock-dot" style="background:#4caf50"></div>
-          <div class="mock-title">Team Scoreboard — This Month</div>
+      <div class="platform-card">
+        <div class="platform-bar">
+          <div class="pbar-dot" style="background:#ef4444"></div>
+          <div class="pbar-dot" style="background:#f59e0b"></div>
+          <div class="pbar-dot" style="background:#4caf50"></div>
+          <div class="pbar-url">roofinder.online/owner — Scoreboard</div>
         </div>
-        <div style="padding:14px">
-          <!-- Scoreboard table -->
-          <table class="mini-table" style="margin-bottom:14px">
+        <div class="platform-body">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div style="font-size:12px;font-weight:900">Team Scoreboard</div>
+            <div style="display:flex;gap:4px">
+              <button style="padding:4px 10px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:5px;color:var(--green);font-size:9px;font-weight:700;font-family:inherit">This Month</button>
+              <button style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:9px;font-family:inherit">All Time</button>
+            </div>
+          </div>
+          <!-- Total stats row -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+            <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:18px;font-weight:900">160</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:1px">Total Doors</div>
+            </div>
+            <div style="background:rgba(76,175,80,0.06);border:1px solid rgba(76,175,80,0.2);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:18px;font-weight:900;color:var(--green)">22</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:1px">Interested</div>
+            </div>
+            <div style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:18px;font-weight:900;color:var(--purple)">14</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:1px">Appointments</div>
+            </div>
+            <div style="background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.35);border-radius:8px;padding:10px;text-align:center">
+              <div style="font-size:18px;font-weight:900;color:var(--green)">5</div>
+              <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:1px">Jobs Sold</div>
+            </div>
+          </div>
+          <!-- Agent table -->
+          <table class="mini-t">
             <thead>
-              <tr>
-                <th>#</th>
-                <th>Agent</th>
-                <th>Knocked</th>
-                <th>Appts</th>
-                <th>Sold</th>
-                <th>Revenue</th>
-              </tr>
+              <tr><th>Rank</th><th>Agent</th><th>Knocked</th><th>Appts</th><th>Sold</th><th>Revenue</th><th>Close %</th></tr>
             </thead>
             <tbody>
-              <tr class="row-hi">
-                <td style="color:var(--green);font-weight:900">1</td>
-                <td class="addr">Marcus R.</td>
+              <tr class="hi">
+                <td><span style="color:var(--green);font-weight:900">🥇 1</span></td>
+                <td class="w">Marcus R.</td>
                 <td>87</td>
-                <td style="color:#a855f7;font-weight:700">11</td>
-                <td style="color:var(--green);font-weight:900">4</td>
-                <td style="color:var(--green);font-weight:800">$38K</td>
+                <td style="color:var(--purple);font-weight:700">9</td>
+                <td style="color:var(--green);font-weight:900">3</td>
+                <td style="color:var(--green);font-weight:800">$31K</td>
+                <td style="color:var(--green);font-weight:700">33%</td>
               </tr>
               <tr>
-                <td style="color:#f59e0b;font-weight:900">2</td>
-                <td class="addr">Jordan T.</td>
+                <td><span style="color:var(--amber);font-weight:900">🥈 2</span></td>
+                <td class="w">Jordan T.</td>
                 <td>64</td>
-                <td style="color:#a855f7;font-weight:700">7</td>
+                <td style="color:var(--purple);font-weight:700">4</td>
                 <td style="color:var(--green);font-weight:900">2</td>
-                <td style="color:var(--green);font-weight:800">$19K</td>
+                <td style="color:var(--green);font-weight:800">$18K</td>
+                <td style="color:var(--green);font-weight:700">50%</td>
               </tr>
               <tr>
-                <td style="color:#555;font-weight:900">3</td>
-                <td class="addr">Alex K.</td>
-                <td>41</td>
-                <td style="color:#a855f7;font-weight:700">4</td>
-                <td style="color:var(--green);font-weight:900">1</td>
-                <td style="color:var(--green);font-weight:800">$12K</td>
+                <td><span style="color:var(--muted);font-weight:900">🥉 3</span></td>
+                <td class="w">Alex K.</td>
+                <td>9</td>
+                <td style="color:var(--purple);font-weight:700">1</td>
+                <td style="font-weight:900">0</td>
+                <td style="color:var(--muted)">—</td>
+                <td style="color:var(--red)">0%</td>
               </tr>
             </tbody>
           </table>
-          <!-- Recent activity feed -->
-          <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray);margin-bottom:8px">Recent Activity</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <div style="display:flex;align-items:center;gap:8px;font-size:10px">
-              <span class="badge badge-green">SOLD</span>
-              <span style="color:var(--white)">Marcus R.</span>
-              <span style="color:var(--gray)">510 Emerald Downs Rd · $9,800</span>
-              <span style="color:var(--gray);margin-left:auto">2h ago</span>
+          <!-- Recent activity -->
+          <div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px">Recent Activity</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div style="display:flex;align-items:center;gap:7px;font-size:10px">
+              <span class="badge bg">SOLD</span><span class="w">Marcus</span><span style="color:var(--muted)">510 Emerald Downs · $9,800</span><span style="color:var(--muted);margin-left:auto">2h ago</span>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:10px">
-              <span class="badge badge-purple">APPT</span>
-              <span style="color:var(--white)">Jordan T.</span>
-              <span style="color:var(--gray)">304 Frontgate Dr</span>
-              <span style="color:var(--gray);margin-left:auto">3h ago</span>
+            <div style="display:flex;align-items:center;gap:7px;font-size:10px">
+              <span class="badge bp">APPT</span><span class="w">Jordan</span><span style="color:var(--muted)">304 Frontgate Dr · Fri 2pm</span><span style="color:var(--muted);margin-left:auto">4h ago</span>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:10px">
-              <span class="badge badge-blue">CALLBACK</span>
-              <span style="color:var(--white)">Marcus R.</span>
-              <span style="color:var(--gray)">714 Dennison Ln</span>
-              <span style="color:var(--gray);margin-left:auto">4h ago</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:10px">
-              <span class="badge badge-green">SOLD</span>
-              <span style="color:var(--white)">Alex K.</span>
-              <span style="color:var(--gray)">202 Crestview Ct · $12,400</span>
-              <span style="color:var(--gray);margin-left:auto">Yesterday</span>
+            <div style="display:flex;align-items:center;gap:7px;font-size:10px">
+              <span class="badge bb">CALLBACK</span><span class="w">Marcus</span><span style="color:var(--muted)">714 Dennison Ln · Sat morning</span><span style="color:var(--muted);margin-left:auto">5h ago</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- STEP 6: NEW POCKET -->
-  <div class="step flip">
-    <div class="step-text">
-      <div class="step-num">Step 06</div>
-      <h2>Work It Through.<br>Request the Next One.</h2>
-      <p>Once your agents have knocked every door in the pocket, request a new one. We'll build you the next neighborhood — same zip or a new one — and you keep the momentum going.</p>
-      <p>No long-term contracts. No seat minimums. Cancel anytime. But most contractors don't — because a steady pocket means a steady pipeline.</p>
-      <ul>
-        <li>Request your next pocket from the owner dashboard</li>
-        <li>New pocket built and delivered within 48 hours</li>
-        <li>Scale up — run multiple pockets with multiple agents simultaneously</li>
-        <li>No lock-in — cancel anytime, no questions asked</li>
-      </ul>
-      <div style="margin-top:24px;padding:16px 20px;background:rgba(76,175,80,0.06);border:1px solid rgba(76,175,80,0.2);border-radius:10px">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px">$2,500 / month</div>
-        <div style="font-size:12px;color:var(--gray);line-height:1.6">Pocket + CRM + Routes + Mobile App + Owner Dashboard. Everything. One price.</div>
-      </div>
-    </div>
     <div>
-      <!-- MOCKUP: Request next pocket -->
-      <div class="mockup">
-        <div class="mock-bar">
-          <div class="mock-dot" style="background:#ef4444"></div>
-          <div class="mock-dot" style="background:#f59e0b"></div>
-          <div class="mock-dot" style="background:#4caf50"></div>
-          <div class="mock-title">Request Next Pocket</div>
+      <div class="feature-list">
+        <div class="feature-item">
+          <div class="feature-icon">🏆</div>
+          <div class="feature-text">
+            <div class="feature-title">Live Leaderboard</div>
+            <div class="feature-desc">Ranked by doors knocked, appointments set, and jobs sold. Updates in real time as your team works. Friendly competition drives performance.</div>
+          </div>
         </div>
-        <div style="padding:16px">
-          <!-- Current pocket status -->
-          <div style="background:rgba(76,175,80,0.05);border:1px solid rgba(76,175,80,0.15);border-radius:8px;padding:10px 12px;margin-bottom:14px">
-            <div style="font-size:9px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Cary Pocket 82 — Complete</div>
-            <div style="display:flex;gap:16px">
-              <div><div style="font-size:13px;font-weight:900">25/25</div><div style="font-size:9px;color:var(--gray)">Doors Knocked</div></div>
-              <div><div style="font-size:13px;font-weight:900;color:#a855f7">14</div><div style="font-size:9px;color:var(--gray)">Appointments</div></div>
-              <div><div style="font-size:13px;font-weight:900;color:var(--green)">5</div><div style="font-size:9px;color:var(--gray)">Jobs Sold</div></div>
-            </div>
+        <div class="feature-item">
+          <div class="feature-icon">📊</div>
+          <div class="feature-text">
+            <div class="feature-title">Close Rate Per Agent</div>
+            <div class="feature-desc">See each agent's appointment-to-close rate so you know who's strongest in the field and who needs coaching at the door.</div>
           </div>
-          <div style="font-size:11px;font-weight:700;margin-bottom:10px">Where do you want to work next?</div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
-            <div style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.3);border-radius:7px;padding:10px 12px">
-              <div style="font-size:11px;font-weight:700;color:var(--green)">● Same Area — New Streets</div>
-              <div style="font-size:10px;color:var(--gray);margin-top:2px">Stay in 27519 · adjacent block set</div>
-            </div>
-            <div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:7px;padding:10px 12px">
-              <div style="font-size:11px;font-weight:700">New Zip Code</div>
-              <div style="font-size:10px;color:var(--gray);margin-top:2px">Enter a different zip to expand your territory</div>
-            </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">💰</div>
+          <div class="feature-text">
+            <div class="feature-title">Revenue Tracking</div>
+            <div class="feature-desc">Log job value when you mark a deal sold. See each agent's total revenue generated for the month so you can comp your team accurately.</div>
           </div>
-          <button style="width:100%;padding:11px;background:var(--green);border:none;border-radius:7px;color:#000;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer">Request Next Pocket →</button>
-          <div style="text-align:center;font-size:10px;color:var(--gray);margin-top:10px">Built and delivered within 48 hours</div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <div class="feature-title">Activity Feed</div>
+            <div class="feature-desc">A live stream of every status update from the field — every interested homeowner, every appointment set, every no-answer — timestamped as they happen.</div>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📅</div>
+          <div class="feature-text">
+            <div class="feature-title">Monthly &amp; All-Time Views</div>
+            <div class="feature-desc">Toggle between this month's numbers and all-time totals per agent. See who's been consistently strong and track your team's cumulative progress.</div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</section>
 
-</div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- 06 — PRICING / WHAT'S INCLUDED -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="info-section" id="pricing">
+  <div class="section-header">
+    <div class="section-label">06 — What's Included</div>
+    <h2>$2,500/Month.<br>Everything Included.</h2>
+    <p>One price. No hidden fees. No per-seat charges. No upsells. Everything below is included from day one.</p>
+  </div>
 
-<!-- CTA -->
+  <div class="two-col">
+    <div>
+      <div class="three-col" style="margin-bottom:28px">
+        <div class="stat-card" style="border-color:rgba(76,175,80,0.25)">
+          <div class="stat-num" style="color:var(--green)">25–60</div>
+          <div class="stat-label">Homes per pocket</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">48hr</div>
+          <div class="stat-label">Delivery time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" style="color:var(--green)">∞</div>
+          <div class="stat-label">Agents included</div>
+        </div>
+      </div>
+
+      <table class="price-compare">
+        <thead>
+          <tr><th>Feature</th><th>RooFinder</th><th>Everywhere Else</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Neighborhood pocket (exclusive leads)</td><td class="check">✓ Included</td><td style="color:var(--muted)">$1,200+/mo</td></tr>
+          <tr><td>Built-in CRM</td><td class="check">✓ Included</td><td style="color:var(--muted)">$800+/mo</td></tr>
+          <tr><td>Door-knocking routes</td><td class="check">✓ Included</td><td style="color:var(--muted)">$200+/mo</td></tr>
+          <tr><td>Mobile agent app</td><td class="check">✓ Included</td><td style="color:var(--muted)">$150+/mo per seat</td></tr>
+          <tr><td>Owner dashboard</td><td class="check">✓ Included</td><td style="color:var(--muted)">Not available</td></tr>
+          <tr><td>Team scoreboard</td><td class="check">✓ Included</td><td style="color:var(--muted)">Not available</td></tr>
+          <tr><td>Real-time pipeline tracking</td><td class="check">✓ Included</td><td style="color:var(--muted)">Not available</td></tr>
+          <tr><td>Exclusive territory (no sharing)</td><td class="check">✓ Always</td><td class="cross">✗ Rarely</td></tr>
+          <tr><td>Contract required</td><td class="check">✓ None</td><td style="color:var(--muted)">Often 12–24 mo</td></tr>
+          <tr style="font-weight:700">
+            <td style="color:var(--white)">Total monthly cost</td>
+            <td style="color:var(--green);font-size:14px;font-weight:900">$2,500</td>
+            <td style="color:var(--muted)">$2,500–$4,000+</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <div style="background:rgba(76,175,80,0.06);border:2px solid rgba(76,175,80,0.3);border-radius:16px;padding:28px 24px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:12px">Everything You Get</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Custom neighborhood pocket — 25–60 pre-qualified homeowners, built in your zip code</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Your territory exclusively — no other contractor works your streets</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Owner dashboard — full team and pipeline management</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Unlimited agents — each with their own mobile app login</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Organized door-knocking routes with live map</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Built-in CRM — every homeowner, every interaction, full history</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>Scoreboard — live rankings, close rates, revenue per agent</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>New pocket available when you've worked through the current one</span></div>
+          <div style="display:flex;gap:10px;font-size:13px"><span style="color:var(--green);font-weight:900;flex-shrink:0">✓</span><span>No contract — cancel anytime</span></div>
+        </div>
+        <div style="border-top:1px solid rgba(76,175,80,0.2);padding-top:20px">
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
+            <div style="font-size:36px;font-weight:900;color:var(--green)">$2,500</div>
+            <div style="font-size:14px;color:var(--muted)">/month</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Pocket built and delivered within 48 hours of signup</div>
+          <a href="search.html" style="display:block;text-align:center;background:var(--green);color:#000;font-size:14px;font-weight:800;padding:14px;border-radius:9px;text-decoration:none">Find Your Pocket →</a>
+          <div style="text-align:center;margin-top:10px;font-size:12px;color:var(--muted)">Or text us at <a href="tel:9194808884" style="color:var(--green);text-decoration:none;font-weight:700">(919) 480-8884</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- end .wrap -->
+
+<!-- CTA BAND -->
 <div class="cta-band">
-  <div class="eyebrow" style="margin-bottom:16px">Ready to Start?</div>
-  <h2>Your First Pocket.<br>Your First Door. This Week.</h2>
-  <p>Search your zip code and we'll tell you exactly what's available in your market — same day.</p>
-  <a href="search.html" class="btn-green">Find Your Pocket →</a>
-  <a href="index.html#cta" class="btn-ghost">Have questions? Text us →</a>
+  <div class="eyebrow" style="margin-bottom:16px">Ready to Get Started?</div>
+  <h2>Enter Your Zip.<br>See What's Available.</h2>
+  <p>Search your zip code and we'll tell you exactly what pockets are available in your market — same day.</p>
+  <a href="search.html" class="btn-g">Search My Zip Code →</a>
+  <a href="tel:9194808884" class="btn-ghost">Or text (919) 480-8884</a>
 </div>
 
 </body>

@@ -273,6 +273,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
       <a href="#markets">Markets</a>
       <a href="#territory">Pricing</a>
       <a href="#cta">Contact</a>
+      <a href="how-it-works.html" style="background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);color:var(--green);padding:5px 12px;border-radius:6px;font-weight:700">Info Sheet</a>
       <a href="owner.html" style="color:var(--green)">Owner Login</a>
     </div>
     <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Get Access →</a>
@@ -353,7 +354,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           </svg>
         </div>
         <div class="step-title">Buy Your Pocket</div>
-        <div class="step-body">Choose a zone across the greater Raleigh area. One contractor per pocket — once it's yours, no other RooFinder contractor works your streets. Hold it for $99/mo &middot; Exclusive Rights — no commitment required.</div>
+        <div class="step-body">Enter your zip code and we build your pocket within that area — any zip in the US. One contractor per pocket. Once it's yours, no other RooFinder contractor works your streets. $2,500/mo covers everything — leads, CRM, routes, and the agent app.</div>
       </div>
       <div class="step">
         <div class="step-num">STEP 02</div>
@@ -367,7 +368,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           </svg>
         </div>
         <div class="step-title">Get the List</div>
-        <div class="step-body">Your pocket comes loaded with a scored list of every high-likelihood roof prospect in your zone — real addresses, real owners, roof age, and home value. Delivered within 24 hours of purchase.</div>
+        <div class="step-body">Your pocket arrives within 48 hours — real addresses, real owners, roof age, and home value. Add your agents, assign them routes, and watch progress update in real time from your owner dashboard.</div>
       </div>
       <div class="step">
         <div class="step-num">STEP 03</div>
@@ -379,7 +380,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
           </svg>
         </div>
         <div class="step-title">Knock the Right Doors</div>
-        <div class="step-body">Skip the randomness. Every address is pre-qualified by roof age and home value — so you spend your time at doors that are actually worth knocking. No wasted miles, no cold lists.</div>
+        <div class="step-body">Agents knock from the mobile app — every door logged, every status tracked. You see the full pipeline: who's interested, who's scheduled, who closed. Your CRM updates live as your team works the street.</div>
       </div>
     </div>
   </div>
@@ -648,7 +649,30 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 </footer>
 
 <script>
-// Firebase contact form submission
+// ── ZIP SEARCH ──────────────────────────────────────────────────────────────
+function searchTerritory() {
+  var zip = document.getElementById('zip-input').value.trim();
+  var err = document.getElementById('zip-err');
+  if (!/^\d{5}$/.test(zip)) {
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  window.location.href = 'search.html?zip=' + zip;
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var inp = document.getElementById('zip-input');
+  if (inp) {
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchTerritory();
+    });
+    inp.addEventListener('input', function() {
+      document.getElementById('zip-err').style.display = 'none';
+    });
+  }
+});
+
+// ── FIREBASE CONTACT FORM ───────────────────────────────────────────────────
 var DB_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/leads';
 var API_KEY = 'AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U';
 
