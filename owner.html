@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RooFinder — Owner Portal</title>
+<title>RooFinder Owner Dashboard — Manage Your Zone & Team</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -178,6 +178,9 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
 .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4caf50;margin-right:5px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 </style>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"/>
+<link rel="apple-touch-icon" href="favicon-512.png"/>
 </head>
 <body>
 
@@ -236,6 +239,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
       <button class="nav-tab active" onclick="showPanel('dashboard',this)">Dashboard</button>
       <button class="nav-tab" onclick="showPanel('routes',this)">Routes</button>
       <button class="nav-tab" onclick="showPanel('agents',this)">Agents</button>
+      <button class="nav-tab" onclick="showPanel('applications',this)" id="tab-applications">Applications <span id="app-badge" style="display:none;background:#4caf50;color:#000;font-size:9px;font-weight:900;padding:2px 6px;border-radius:10px;margin-left:4px">0</span></button>
     </div>
     <span class="nav-company" id="nav-company"></span>
     <button class="nav-signout" onclick="signOut()">Sign Out</button>
@@ -320,6 +324,22 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
         </table>
       </div>
     </div>
+
+    <!-- ── APPLICATIONS ── -->
+    <div class="panel" id="panel-applications">
+      <div class="sec-head">
+        <div>
+          <div class="sec-title">Applications</div>
+          <div class="sec-sub">Inbound zone applications from roofinder.online</div>
+        </div>
+        <button class="btn-ghost" onclick="loadApplications()">↻ Refresh</button>
+      </div>
+
+      <div id="app-list">
+        <div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading applications…</div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -1064,7 +1084,8 @@ function showPanel(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
 }
-
+  if (name === 'applications') loadApplications();
+}
 // ── Utilities ─────────────────────────────────────────────────────────────
 function copyLink(url) {
   navigator.clipboard.writeText(url).then(function() {
@@ -1088,6 +1109,65 @@ function fmtTimeAgo(date) {
 // Close modals on backdrop click
 document.getElementById('create-modal').addEventListener('click', function(e){ if(e.target===this) closeCreateModal(); });
 document.getElementById('detail-modal').addEventListener('click', function(e){ if(e.target===this) closeDetailModal(); });
+
+/* ── APPLICATIONS ── */
+function loadApplications() {
+  var list = document.getElementById('app-list');
+  list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading…</div>';
+  db.collection('applications').orderBy('createdAt', 'desc').get().then(function(snap) {
+    var badge = document.getElementById('app-badge');
+    var newCount = 0;
+    if (snap.empty) {
+      list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">No applications yet. Share your link and they'll show up here.</div>';
+      return;
+    }
+    var html = '';
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var isNew = d.status === 'new';
+      if (isNew) newCount++;
+      var statusColor = isNew ? '#4caf50' : d.status === 'approved' ? '#3b82f6' : '#555';
+      var statusLabel = isNew ? 'NEW' : d.status === 'approved' ? 'APPROVED' : 'REVIEWED';
+      var date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      html += '<div style="background:#111;border:1px solid ' + (isNew ? 'rgba(76,175,80,0.3)' : '#222') + ';border-radius:12px;padding:20px 22px;margin-bottom:12px;transition:border-color .2s">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+              '<div style="font-size:16px;font-weight:800;color:#e0e4f0">' + (d.company || '—') + '</div>' +
+              '<span style="font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:6px;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + '44">' + statusLabel + '</span>' +
+            '</div>' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">' +
+              '<div style="font-size:12px;color:#666">📞 <a href="tel:' + (d.phone||'') + '" style="color:#4caf50;font-weight:600">' + (d.phone || '—') + '</a></div>' +
+              '<div style="font-size:12px;color:#666">✉️ <a href="mailto:' + (d.email||'') + '" style="color:#4caf50;font-weight:600">' + (d.email || '—') + '</a></div>' +
+              '<div style="font-size:12px;color:#666">📍 Target zip: <span style="color:#e0e4f0;font-weight:700">' + (d.targetZip || '—') + '</span></div>' +
+              '<div style="font-size:11px;color:#444">' + date + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;flex-shrink:0">' +
+            (isNew ? '<button class="tbl-btn" onclick="updateAppStatus('' + doc.id + '','reviewed')">Mark Reviewed</button>' : '') +
+            '<button class="tbl-btn" style="border-color:rgba(59,130,246,0.3);color:#3b82f6" onclick="updateAppStatus('' + doc.id + '','approved')">Approve</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+    if (newCount > 0) {
+      badge.style.display = 'inline';
+      badge.textContent = newCount;
+    } else {
+      badge.style.display = 'none';
+    }
+  }).catch(function(err) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#ff5555;font-size:13px">Error loading applications: ' + err.message + '</div>';
+  });
+}
+
+function updateAppStatus(id, status) {
+  db.collection('applications').doc(id).update({ status: status }).then(function() {
+    loadApplications();
+  });
+}
+
 </script>
 </body>
 </html>

@@ -493,108 +493,93 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 
     </div>
 
-    <div style="margin-top:24px;padding:20px 28px;background:rgba(76,175,80,.05);border:1px solid rgba(76,175,80,.2);border-radius:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
-      <div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:4px">Questions? We confirm availability same day.</div>
-        <div style="font-size:13px;color:var(--gray)">Text or call <a href="tel:9194808884" style="color:var(--green);font-weight:700;text-decoration:none">(919) 480-8884</a></div>
-      </div>
-      <a href="#cta" class="btn-primary">Claim a Zone →</a>
-    </div>
-
   </div>
 </section>
 
 <!-- CTA BAND -->
 <section id="cta" style="border-top:1px solid var(--border);text-align:center;padding:120px 24px;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(76,175,80,0.08) 0%,transparent 70%)">
   <div style="max-width:600px;margin:0 auto">
-    <div class="section-eyebrow" style="margin-bottom:20px">Ready to Own Your Territory?</div>
-    <h2 class="cta-title">Stop Guessing.<br>Start Closing.</h2>
-    <p style="font-size:14px;color:var(--green);margin-bottom:8px;margin-top:-8px">📱 Text or call: <a href="tel:9194808884" style="color:var(--green);font-weight:800;text-decoration:none">(919) 480-8884</a></p>
-    <p class="cta-sub">Tell us which market you're in and we'll confirm which zones are available. No commitment required — just a quick conversation.</p>
-    <form id="contact-form" onsubmit="submitForm(event)" style="display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto">
-      <input type="text" placeholder="Your name" id="f-name" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <input type="email" placeholder="Your email" id="f-email" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <input type="text" placeholder="Your city or zip code" id="f-market" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:14px;border:none;cursor:pointer;width:100%">Show Me Available Zones →</button>
+    <div class="section-eyebrow" style="margin-bottom:20px">Get Started</div>
+    <h2 class="cta-title">Apply for Your Zone.</h2>
+    <p class="cta-sub" style="margin-bottom:28px">Fill out the form below and we'll confirm availability in your target market within 24 hours. No commitment required.</p>
+    <form id="contact-form" onsubmit="submitForm(event)" style="display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto;text-align:left">
+      <input type="text" placeholder="Company name" id="f-company" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
+      <input type="tel" placeholder="Your phone number" id="f-phone" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
+      <input type="email" placeholder="Your email address" id="f-email" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
+      <input type="text" placeholder="Target zip code(s) to canvass" id="f-zip" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
+      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:14px;border:none;cursor:pointer;width:100%">Submit Application →</button>
     </form>
-    <div id="form-success" style="display:none;padding:20px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:8px;margin-top:12px">
-      <div style="font-size:15px;font-weight:700;color:var(--green);margin-bottom:4px">✓ Got it — we'll be in touch shortly.</div>
-      <div style="font-size:13px;color:var(--gray)">We'll confirm available zones in your market within 24 hours. You can also text us at (919) 480-8884 for a faster reply.</div>
+    <div id="form-success" style="display:none;padding:24px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:10px;margin-top:16px;text-align:center">
+      <div style="font-size:18px;font-weight:900;color:var(--green);margin-bottom:6px">✓ Application received.</div>
+      <div style="font-size:13px;color:var(--gray-light)">We'll confirm your zone availability within 24 hours.</div>
     </div>
-    <p style="margin-top:20px;font-size:12px;color:#444">No spam. No sales calls unless you want one. Just the data.</p>
   </div>
 </section>
 
 <!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div>
-      <div class="footer-logo"><img src="logo.png" height="28" alt="RooFinder" style="display:block"></div>
-      <div style="font-size:12px;color:#444;margin-top:6px">Exclusive neighborhood zones · Available nationwide</div>
-      <div style="font-size:11px;font-weight:300;letter-spacing:.07em;color:rgba(255,255,255,0.50);margin-top:4px">"Jesus answered, 'I am the way and the truth and the life. No one comes to the Father except through me.'" — John 14:6 NIV</div>
-      <div style="font-size:12px;margin-top:4px"><a href="tel:9194808884" style="color:var(--green);text-decoration:none;font-weight:600">(919) 480-8884</a></div>
+<footer style="border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 32px;text-align:center">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="font-size:22px;font-weight:900;letter-spacing:-0.5px;color:#fff;margin-bottom:6px">ROOFINDER</div>
+    <div style="font-size:12px;color:#444;margin-bottom:24px">Exclusive territories for roofing sales teams</div>
+    <div style="display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:28px">
+      <a href="how-it-works.html" style="font-size:13px;color:#555;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">How It Works</a>
+      <a href="search.html" style="font-size:13px;color:#555;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">Zone Finder</a>
+      <a href="owner.html" style="font-size:13px;color:#555;text-decoration:none;transition:color .2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">Admin Portal</a>
     </div>
-    <div class="footer-links">
-      <a href="how-it-works.html">How It Works</a>
-      <a href="#territory">Pricing</a>
-      <a href="#cta">Get Access</a>
-      <a href="privacy.html">Privacy</a>
-      <a href="https://roofinder.online/admin.html" style="color:#333;font-size:11px">Admin ↗</a>
-    </div>
+    <div style="font-size:11px;color:#333;font-style:italic;margin-bottom:16px">"I am the way, the truth, and the life." — John 14:6</div>
+    <div style="font-size:11px;color:#2a2a2a">&copy; 2025 RooFinder. All rights reserved.</div>
   </div>
-  <div class="footer-copy">© 2026 RooFinder. All rights reserved. &nbsp;·&nbsp; Available Nationwide</div>
 </footer>
 
 <script>
-// ── ZIP SEARCH ──────────────────────────────────────────────────────────────
-function searchTerritory() {
-  var zip = document.getElementById('zip-input').value.trim();
-  var err = document.getElementById('zip-err');
-  if (!/^\d{5}$/.test(zip)) {
-    err.style.display = 'block';
-    return;
-  }
-  err.style.display = 'none';
-  window.location.href = 'search.html?zip=' + zip;
-}
-document.addEventListener('DOMContentLoaded', function() {
-  var inp = document.getElementById('zip-input');
-  if (inp) {
-    inp.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') searchTerritory();
-    });
-    inp.addEventListener('input', function() {
-      document.getElementById('zip-err').style.display = 'none';
-    });
-  }
-});
-
-// ── FIREBASE CONTACT FORM ───────────────────────────────────────────────────
-var DB_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/leads';
 var API_KEY = 'AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U';
+var APP_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/applications';
 
 function submitForm(e) {
   e.preventDefault();
-  var name  = document.getElementById('f-name').value.trim();
-  var email = document.getElementById('f-email').value.trim();
-  var mkt   = document.getElementById('f-market').value;
+  var btn = e.target.querySelector('button[type="submit"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+
+  var company = (document.getElementById('f-company').value || '').trim();
+  var phone   = (document.getElementById('f-phone').value   || '').trim();
+  var email   = (document.getElementById('f-email').value   || '').trim();
+  var zip     = (document.getElementById('f-zip').value     || '').trim();
 
   var body = JSON.stringify({
     fields: {
-      name:      { stringValue: name  },
-      email:     { stringValue: email },
-      market:    { stringValue: mkt   },
-      source:    { stringValue: 'index-cta' },
+      company:   { stringValue: company },
+      phone:     { stringValue: phone   },
+      email:     { stringValue: email   },
+      targetZip: { stringValue: zip     },
+      status:    { stringValue: 'new'   },
+      source:    { stringValue: 'website-application' },
       createdAt: { stringValue: new Date().toISOString() }
     }
   });
 
-  fetch(DB_URL + '?key=' + API_KEY, { method: 'POST', headers: {'Content-Type':'application/json'}, body: body })
-    .catch(function(){});
-
-  document.getElementById('contact-form').style.display = 'none';
-  document.getElementById('form-success').style.display = 'block';
+  fetch(APP_URL + '?key=' + API_KEY, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: body
+  })
+  .then(function() {
+    document.getElementById('contact-form').style.display = 'none';
+    document.getElementById('form-success').style.display = 'block';
+  })
+  .catch(function() {
+    // Show success anyway — don't punish the user for network quirks
+    document.getElementById('contact-form').style.display = 'none';
+    document.getElementById('form-success').style.display = 'block';
+  });
 }
+
+// Smooth scroll for nav anchors
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    var target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
 </script>
 </body>
-</html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+</html>
