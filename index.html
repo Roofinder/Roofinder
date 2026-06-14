@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>RooFinder — Own Your Roofing Territory | Any Zip Code in the US</title>
-<meta name="description" content="Search your zip code and claim an exclusive roofing territory. RooFinder delivers prequalified homeowner leads to one contractor per zone — anywhere in the US."/>
+<title>RooFinder — Exclusive Roofing Territories for Sales Teams</title>
+<meta name="description" content="Claim an exclusive zip-code territory and get pre-qualified homeowner leads, built-in CRM, daily routes, and a mobile team app. One zone per contractor — anywhere in the US."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -28,8 +28,16 @@ a{color:inherit;text-decoration:none}
 ::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
 
 /* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(0,0,0,0.7)}
-.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(0,0,0,0.7);overflow:hidden}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative;z-index:1}
+/* Verse background text */
+.verse-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:300;letter-spacing:.3em;color:rgba(255,255,255,0.11);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
+.verse-footer-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:300;letter-spacing:.3em;color:rgba(255,255,255,0.08);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
+footer{position:relative;overflow:hidden}
+.footer-inner{position:relative;z-index:1}
+.footer-copy{position:relative;z-index:1}
+/* Mobile nav layer fix */
+#mobile-nav{position:relative;z-index:2}
 .nav-logo{font-size:18px;font-weight:800;letter-spacing:-0.5px;display:flex;align-items:center;gap:8px}
 .nav-logo span{color:var(--green)}
 .nav-links{display:flex;align-items:center;gap:32px}
@@ -83,15 +91,31 @@ section{padding:100px 24px;border-top:1px solid var(--border)}
 .section-title{font-size:clamp(28px,4vw,48px);font-weight:800;letter-spacing:-1.5px;line-height:1.1;margin-bottom:16px}
 .section-sub{font-size:16px;color:var(--gray-light);line-height:1.6;max-width:540px}
 
-/* ── HOW IT WORKS ── */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:56px}
-.step{padding:36px 32px;background:var(--card-bg);border:1px solid var(--border);position:relative}
-.step:first-child{border-radius:12px 0 0 12px}
-.step:last-child{border-radius:0 12px 12px 0}
-.step-num{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--green);margin-bottom:20px}
-.step-title{font-size:20px;font-weight:700;margin-bottom:10px;letter-spacing:-0.5px}
-.step-body{font-size:14px;color:var(--gray);line-height:1.7}
-.step-icon{width:44px;height:44px;margin-bottom:18px;display:flex;align-items:center;justify-content:center}
+/* ── HOW IT WORKS V2 ── */
+.steps-v2{display:flex;flex-direction:column;gap:0;margin-top:60px}
+.step-v2{display:grid;grid-template-columns:72px 1fr;gap:36px;padding:40px 0;border-top:1px solid var(--border);align-items:start}
+.step-v2:first-child{border-top:none;padding-top:0}
+.step-v2-num{font-size:54px;font-weight:900;color:rgba(76,175,80,.15);line-height:1;letter-spacing:-2px;padding-top:2px;text-align:right}
+.step-v2-icon{font-size:26px;margin-bottom:12px}
+.step-v2-title{font-size:clamp(18px,2.2vw,22px);font-weight:800;letter-spacing:-.5px;margin-bottom:10px;line-height:1.2}
+.step-v2-body{font-size:15px;color:var(--gray-light);line-height:1.7;margin-bottom:20px;max-width:680px}
+.step-v2-metrics{display:flex;gap:28px;flex-wrap:wrap}
+.s-metric{display:flex;flex-direction:column;gap:1px}
+.s-metric-val{font-size:15px;font-weight:800;color:var(--green);letter-spacing:-.2px}
+.s-metric-lbl{font-size:11px;color:var(--gray);font-weight:500}
+.steps-outcome{display:grid;grid-template-columns:repeat(3,1fr);margin-top:64px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.outcome-item{padding:30px 28px;border-right:1px solid var(--border);background:var(--card-bg)}
+.outcome-item:last-child{border-right:none}
+.outcome-emoji{font-size:28px;margin-bottom:12px}
+.outcome-title{font-size:16px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
+.outcome-desc{font-size:13px;color:var(--gray);line-height:1.65}
+@media(max-width:768px){
+  .step-v2{grid-template-columns:48px 1fr;gap:16px}
+  .step-v2-num{font-size:36px}
+  .steps-outcome{grid-template-columns:1fr}
+  .outcome-item{border-right:none;border-bottom:1px solid var(--border)}
+  .outcome-item:last-child{border-bottom:none}
+}
 
 /* ── MARKETS ── */
 .markets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:48px}
@@ -247,29 +271,37 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 .pc-sold-stamp-text{font-size:19px;font-weight:900;letter-spacing:4px;color:rgba(180,20,20,.22);text-transform:uppercase;z-index:1}
 .cc-sold{color:#e06060;font-size:11px;font-weight:700}
 </style>
+<meta property="og:title" content="RooFinder — Own Your Roofing Zone"/>
+<meta property="og:description" content="Lock down your zip code. Pre-qualified leads, built-in CRM, daily routes, and a mobile app for your team. $2,500/mo. Cancel anytime."/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://roofinder.online/"/>
+<meta property="og:image" content="https://roofinder.online/favicon-512.png"/>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"/>
+<link rel="apple-touch-icon" href="favicon-512.png"/>
 </head>
 <body>
 
 <!-- NAV -->
 <nav>
+  <div class="verse-bg" aria-hidden="true">"For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." — John 3:16 NIV</div>
   <div class="nav-inner">
     <a href="#" class="nav-logo"><img src="logo.png" height="38" alt="RooFinder" style="display:block"></a>
     <div class="nav-links">
       <a href="how-it-works.html">How It Works</a>
-      <a href="#markets">Markets</a>
       <a href="#territory">Pricing</a>
       <a href="#cta">Contact</a>
       <a href="how-it-works.html" style="background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);color:var(--green);padding:5px 12px;border-radius:6px;font-weight:700">Info Sheet</a>
       <a href="owner.html" style="color:var(--green)">Owner Login</a>
     </div>
-    <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Get Access →</a>
+    <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);color:var(--green);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Get Access →</a>
     <a href="owner.html" class="nav-mobile-login">Owner Login</a>
     <button class="nav-mobile-toggle" onclick="toggleMobileNav(this)">☰</button>
   </div>
   <div id="mobile-nav" style="display:none;padding:16px 24px 20px;border-top:1px solid rgba(255,255,255,0.06)">
-    <a href="#how-it-works" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">How It Works</a>
-    <a href="#markets" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Markets</a>
+    <a href="how-it-works.html" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">How It Works</a>
     <a href="#territory" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Pricing</a>
+    <a href="#cta" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Contact</a>
     <a href="owner.html" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:var(--green);letter-spacing:.5px" onclick="toggleMobileNav()">Owner Login</a>
     <a href="#cta" style="display:block;margin-top:12px;background:var(--green);color:#000;font-size:13px;font-weight:800;padding:12px 20px;border-radius:6px;text-align:center" onclick="toggleMobileNav()">Get Access →</a>
   </div>
@@ -328,46 +360,93 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 <section id="how-it-works">
   <div class="section-inner">
     <div class="section-eyebrow">How It Works</div>
-    <h2 class="section-title">Buy a Zone. Get the List. Start Knocking.</h2>
-    <p class="section-sub">Pick your zone, get your scored lead list, and start knocking the right doors. Your zone is yours until you cancel — no sharing, no exceptions.</p>
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">STEP 01</div>
-        <div class="step-icon">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 5C14.477 5 10 9.477 10 15c0 8.5 10 21 10 21s10-12.5 10-21c0-5.523-4.477-10-10-10z" stroke="#4caf50" stroke-width="2" stroke-linejoin="round"/>
-            <circle cx="20" cy="15" r="3.5" stroke="#4caf50" stroke-width="2"/>
-          </svg>
+    <h2 class="section-title">From Zip Code to<br>Closed Deals — In 48 Hours.</h2>
+    <p class="section-sub">No cold lists. No shared territories. No flying blind. Here's exactly how contractors go from signing up to their agents building a live pipeline in the field.</p>
+
+    <div class="steps-v2">
+
+      <!-- Step 01 -->
+      <div class="step-v2">
+        <div class="step-v2-num">01</div>
+        <div>
+          <div class="step-v2-icon">📍</div>
+          <div class="step-v2-title">Claim Your Exclusive Zone</div>
+          <p class="step-v2-body">Enter your zip code and we hand-build a zone of pre-qualified homeowners — aging roofs, strong home values, owner-occupied. Your zone is locked the moment you claim it. No other RooFinder contractor ever works your streets. Period.</p>
+          <div class="step-v2-metrics">
+            <div class="s-metric"><span class="s-metric-val">48 hr</span><span class="s-metric-lbl">Zone Delivered</span></div>
+            <div class="s-metric"><span class="s-metric-val">100+</span><span class="s-metric-lbl">Pre-Qualified Homes</span></div>
+            <div class="s-metric"><span class="s-metric-val">0</span><span class="s-metric-lbl">Contractors Sharing</span></div>
+          </div>
         </div>
-        <div class="step-title">Buy Your Zone</div>
-        <div class="step-body">Enter your zip code and we build your zone within that area — any zip in the US. One contractor per zone. Once it's yours, no other RooFinder contractor works your streets. $2,500/mo covers everything — leads, CRM, routes, and the agent app.</div>
       </div>
-      <div class="step">
-        <div class="step-num">STEP 02</div>
-        <div class="step-icon">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="9" y="9" width="22" height="27" rx="2" stroke="#4caf50" stroke-width="2"/>
-            <path d="M15 5h10v7H15z" stroke="#4caf50" stroke-width="2" stroke-linejoin="round"/>
-            <line x1="14" y1="20" x2="26" y2="20" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
-            <line x1="14" y1="25" x2="26" y2="25" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
-            <line x1="14" y1="30" x2="21" y2="30" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+
+      <!-- Step 02 -->
+      <div class="step-v2">
+        <div class="step-v2-num">02</div>
+        <div>
+          <div class="step-v2-icon">👥</div>
+          <div class="step-v2-title">Add Your Agents — They're in the Field Today</div>
+          <p class="step-v2-body">Add agents from the owner dashboard in 30 seconds — just a name and a phone number. They receive a login link by text. No app download, no training required. Assign each agent their route and they're knocking doors within the hour.</p>
+          <div class="step-v2-metrics">
+            <div class="s-metric"><span class="s-metric-val">30 sec</span><span class="s-metric-lbl">Agent Setup</span></div>
+            <div class="s-metric"><span class="s-metric-val">Any Phone</span><span class="s-metric-lbl">No App Store</span></div>
+            <div class="s-metric"><span class="s-metric-val">Live Map</span><span class="s-metric-lbl">Per Agent Route</span></div>
+          </div>
         </div>
-        <div class="step-title">Get the List</div>
-        <div class="step-body">Your zone arrives within 48 hours — real addresses, real owners, roof age, and home value. Add your agents, assign them routes, and watch progress update in real time from your owner dashboard.</div>
       </div>
-      <div class="step">
-        <div class="step-num">STEP 03</div>
-        <div class="step-icon">
-          <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="11" y="5" width="18" height="31" rx="2" stroke="#4caf50" stroke-width="2"/>
-            <circle cx="26" cy="21" r="2" fill="#4caf50"/>
-            <line x1="4" y1="36" x2="36" y2="36" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+
+      <!-- Step 03 -->
+      <div class="step-v2">
+        <div class="step-v2-num">03</div>
+        <div>
+          <div class="step-v2-icon">📱</div>
+          <div class="step-v2-title">Agents Work the Doors — CRM Logs Everything</div>
+          <p class="step-v2-body">Each agent works from a full mobile CRM on their phone — color-coded map, homeowner details, one-tap status logging. Every knock is recorded instantly: No Answer, Callback, Interested, Appointment Set. Notes sync to your dashboard the second they hit Save. You see the field in real time without a single text.</p>
+          <div class="step-v2-metrics">
+            <div class="s-metric"><span class="s-metric-val">5 sec</span><span class="s-metric-lbl">Per Door Logged</span></div>
+            <div class="s-metric"><span class="s-metric-val">Real-Time</span><span class="s-metric-lbl">Dashboard Sync</span></div>
+            <div class="s-metric"><span class="s-metric-val">Built-In</span><span class="s-metric-lbl">Script & CRM</span></div>
+          </div>
         </div>
-        <div class="step-title">Knock the Right Doors</div>
-        <div class="step-body">Agents knock from the mobile app — every door logged, every status tracked. You see the full pipeline: who's interested, who's scheduled, who closed. Your CRM updates live as your team works the street.</div>
       </div>
+
+      <!-- Step 04 -->
+      <div class="step-v2">
+        <div class="step-v2-num">04</div>
+        <div>
+          <div class="step-v2-icon">📊</div>
+          <div class="step-v2-title">Watch the Pipeline Fill. Close More Jobs.</div>
+          <p class="step-v2-body">Your owner dashboard shows every stage of your funnel — knocked, interested, callback, appointment set, closed — updated live as your team works. Follow up on your hottest leads, track each agent's stats on the scoreboard, and request more zones when you're ready to scale.</p>
+          <div class="step-v2-metrics">
+            <div class="s-metric"><span class="s-metric-val">Live</span><span class="s-metric-lbl">Full Pipeline View</span></div>
+            <div class="s-metric"><span class="s-metric-val">Per Agent</span><span class="s-metric-lbl">Scoreboard & Stats</span></div>
+            <div class="s-metric"><span class="s-metric-val">Scale</span><span class="s-metric-lbl">Add Zones Anytime</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Outcome bar -->
+    <div class="steps-outcome">
+      <div class="outcome-item">
+        <div class="outcome-emoji">🎯</div>
+        <div class="outcome-title">No More Wasted Doors</div>
+        <div class="outcome-desc">Every address is pre-filtered for aging roofs and strong home value. Your team knocks quality, not quantity — so every hour in the field counts.</div>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-emoji">🔒</div>
+        <div class="outcome-title">Your Territory. No Competition.</div>
+        <div class="outcome-desc">One contractor per zone — ever. No other RooFinder contractor is knocking your same doors with the same data behind them.</div>
+      </div>
+      <div class="outcome-item">
+        <div class="outcome-emoji">📡</div>
+        <div class="outcome-title">Full Visibility Without the Calls</div>
+        <div class="outcome-desc">See exactly where every lead stands — from first knock to signed contract — without texting your team for updates or waiting until end of day.</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:48px">
+      <a href="how-it-works.html" class="btn-secondary">See the Full Platform Walkthrough →</a>
     </div>
   </div>
 </section>
@@ -448,6 +527,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 
 <!-- FOOTER -->
 <footer>
+  <div class="verse-footer-bg" aria-hidden="true">"Jesus answered, 'I am the way and the truth and the life. No one comes to the Father except through me.'" — John 14:6 NIV</div>
   <div class="footer-inner">
     <div>
       <div class="footer-logo"><img src="logo.png" height="28" alt="RooFinder" style="display:block"></div>
@@ -455,10 +535,10 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
       <div style="font-size:12px;margin-top:4px"><a href="tel:9194808884" style="color:var(--green);text-decoration:none;font-weight:600">(919) 480-8884</a></div>
     </div>
     <div class="footer-links">
-      <a href="#how-it-works">How It Works</a>
-      <a href="#markets">Markets</a>
+      <a href="how-it-works.html">How It Works</a>
       <a href="#territory">Pricing</a>
       <a href="#cta">Get Access</a>
+      <a href="privacy.html">Privacy</a>
       <a href="https://roofinder.online/admin.html" style="color:#333;font-size:11px">Admin ↗</a>
     </div>
   </div>

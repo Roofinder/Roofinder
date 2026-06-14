@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Your Territory — RooFinder</title>
-<meta name="description" content="Claim your exclusive roofing territory on RooFinder. One contractor per zone, prequalified homeowner leads delivered."/>
+<title>Find Your Roofing Zone — RooFinder Territory Search</title>
+<meta name="description" content="Enter any zip code to check availability. Claim an exclusive roofing zone with pre-qualified leads, CRM, routes, and a mobile team app — before another contractor does."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -19,8 +19,11 @@ html,body{height:100%;background:var(--black);color:var(--white);font-family:'In
 a{color:inherit;text-decoration:none}
 
 /* NAV */
-nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);overflow:hidden}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;z-index:1}
+.verse-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:300;letter-spacing:.3em;color:rgba(255,255,255,0.11);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
+.verse-footer-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:300;letter-spacing:.3em;color:rgba(255,255,255,0.08);white-space:nowrap;pointer-events:none;z-index:0;overflow:hidden;font-family:'Inter',system-ui,sans-serif}
+footer{position:relative;overflow:hidden}
 .nav-logo{font-size:17px;font-weight:800;letter-spacing:-.5px}
 .nav-logo span{color:var(--green)}
 .nav-back{font-size:12px;font-weight:600;color:var(--gray);display:flex;align-items:center;gap:6px;transition:color .2s}
@@ -103,10 +106,14 @@ nav{position:sticky;top:0;z-index:200;background:rgba(0,0,0,0.92);backdrop-filte
 .leaflet-tile-pane{filter:brightness(0.85) saturate(0.7)}
 .leaflet-container{background:#1a1d2e}
 </style>
+<link rel="icon" type="image/x-icon" href="favicon.ico"/>
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"/>
+<link rel="apple-touch-icon" href="favicon-512.png"/>
 </head>
 <body>
 
 <nav>
+  <div class="verse-bg" aria-hidden="true">"For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life." — John 3:16 NIV</div>
   <div class="nav-inner">
     <a href="index.html" class="nav-logo"><img src="logo.png" height="38" alt="RooFinder" style="display:block"></a>
     <a href="index.html" class="nav-back">← Search Again</a>
@@ -267,5 +274,23 @@ function buildMap(city, state) {
 
 init();
 </script>
+
+<!-- FOOTER -->
+<footer style="padding:36px 24px;border-top:1px solid var(--border)">
+  <div class="verse-footer-bg" aria-hidden="true">"Jesus answered, 'I am the way and the truth and the life. No one comes to the Father except through me.'" — John 14:6 NIV</div>
+  <div style="position:relative;z-index:1;max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap">
+    <div>
+      <img src="logo.png" height="26" alt="RooFinder" style="display:block">
+      <div style="font-size:12px;color:#444;margin-top:6px">Exclusive neighborhood zones · Available nationwide</div>
+    </div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <a href="index.html" style="font-size:12px;color:#888;font-weight:500">Home</a>
+      <a href="how-it-works.html" style="font-size:12px;color:#888;font-weight:500">How It Works</a>
+      <a href="privacy.html" style="font-size:12px;color:#888;font-weight:500">Privacy</a>
+    </div>
+  </div>
+  <div style="position:relative;z-index:1;font-size:11px;color:#444;margin-top:20px;text-align:center">© 2026 RooFinder. All rights reserved.</div>
+</footer>
+
 </body>
 </html>

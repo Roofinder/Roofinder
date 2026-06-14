@@ -2,452 +2,403 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>RooFinder Agent</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>RooFinder Agent App — Your Daily Roofing Route</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-:root {
-  --bg: #0f111a;
-  --card: #1a1d2e;
-  --border: #252840;
-  --prime: #4caf50;
-  --hot: #ff7a00;
-  --warm: #cc8800;
-  --text: #e0e4f0;
-  --muted: #8890a8;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f111a; --card:#1a1d2e; --card2:#14172b; --border:#252840;
+  --green:#4caf50; --text:#e0e4f0; --muted:#8890a8; --nav-h:64px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
 
-/* ── LOGIN SCREEN ── */
-#login-screen {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 24px;
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(76,175,80,0.10) 0%, transparent 60%), var(--bg);
-}
-.login-logo { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
-.login-logo span { color: var(--prime); }
-.login-sub { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 40px; }
-.login-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 360px; }
-.login-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 8px; }
-.login-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 13px 16px; color: var(--text); font-size: 16px; font-family: inherit; margin-bottom: 16px; outline: none; transition: border-color .2s; }
-.login-input:focus { border-color: rgba(76,175,80,0.5); }
-.login-btn { width: 100%; background: var(--prime); color: #000; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 10px; border: none; cursor: pointer; font-family: inherit; }
-.login-btn:active { opacity: .85; }
-.login-err { color: #ff5555; font-size: 12px; margin-top: 10px; text-align: center; display: none; }
+/* ══ LOGIN ══════════════════════════════════════════════ */
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:32px 24px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(76,175,80,.10) 0%,transparent 60%),var(--bg)}
+.login-logo{font-size:22px;font-weight:800;margin-bottom:4px}
+.login-logo span{color:var(--green)}
+.login-sub{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:40px}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 24px;width:100%;max-width:360px}
+.login-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.login-input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-size:16px;font-family:inherit;margin-bottom:16px;outline:none;transition:border-color .2s}
+.login-input:focus{border-color:rgba(76,175,80,.5)}
+.login-btn{width:100%;background:var(--green);color:#000;font-weight:800;font-size:14px;padding:14px;border-radius:10px;border:none;cursor:pointer;font-family:inherit}
+.login-btn:active{opacity:.85}
+.login-err{color:#ff5555;font-size:12px;margin-top:10px;text-align:center;display:none}
 
-/* ── TOP BAR ── */
-#topbar {
-  background: #12142a;
-  border-bottom: 1px solid var(--border);
-  padding: 12px 16px;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-.topbar-row1 { display: flex; align-items: center; justify-content: space-between; }
-#topbar-title { font-size: 13px; font-weight: 700; color: var(--prime); }
-#topbar-agent { font-size: 11px; color: var(--muted); }
-#sync-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #4caf50; margin-right: 5px; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
-#prog-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-#prog-bg { flex: 1; background: #252840; border-radius: 4px; height: 7px; overflow: hidden; }
-#prog-fill { background: linear-gradient(90deg, #4caf50, #7cfc00); height: 100%; border-radius: 4px; transition: width .4s; }
-#prog-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+/* ══ CRM APP ════════════════════════════════════════════ */
+#crm-app{display:none;min-height:100dvh;padding-bottom:var(--nav-h)}
 
-/* ── STATUS TABS ── */
-#tabs {
-  display: flex;
-  gap: 6px;
-  padding: 10px 16px;
-  background: #12142a;
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.tab { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid; white-space: nowrap; flex-shrink: 0; }
-.tab.active { background: var(--prime); border-color: var(--prime); color: #000; }
-.tab:not(.active) { background: transparent; border-color: var(--border); color: var(--muted); }
+/* Tab pages */
+.tab-page{display:none;padding:0 16px}
+.tab-page.active{display:block}
 
-/* ── LIST ── */
-#list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+/* ══ BOTTOM NAV ═════════════════════════════════════════ */
+#bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:var(--card);border-top:1px solid var(--border);display:flex;z-index:40;padding-bottom:env(safe-area-inset-bottom,0px)}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.02em;transition:color .15s}
+.nav-btn.active{color:var(--green)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-pip{width:18px;height:3px;background:var(--green);border-radius:2px;opacity:0;margin-top:2px;transition:opacity .15s}
+.nav-btn.active .nav-pip{opacity:1}
 
-.door-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  cursor: pointer;
-  transition: border-color .15s;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.door-card.hidden { display: none; }
-.door-card:active { opacity: .8; }
+/* ══ HOME TAB ═══════════════════════════════════════════ */
+.home-top{display:flex;align-items:flex-start;justify-content:space-between;padding:18px 0 6px}
+.home-greeting{font-size:22px;font-weight:800;line-height:1.2}
+.home-greeting em{color:var(--green);font-style:normal}
+.signout-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-weight:600;padding:5px 11px;cursor:pointer;margin-top:3px;white-space:nowrap}
 
-.status-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; border: 2px solid; }
-.s-pending .status-dot { background: transparent; border-color: #444; }
-.s-no-answer .status-dot { background: #f59e0b; border-color: #f59e0b; }
-.s-not-interested .status-dot { background: #ef4444; border-color: #ef4444; }
-.s-callback .status-dot { background: #3b82f6; border-color: #3b82f6; }
-.s-interested .status-dot { background: #10b981; border-color: #10b981; }
-.s-appointment .status-dot { background: #a855f7; border-color: #a855f7; }
+/* Today card */
+.today-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin:10px 0 22px;cursor:pointer;transition:border-color .2s}
+.today-card:active{opacity:.85}
+.tc-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.tc-name{font-size:16px;font-weight:700;margin-bottom:12px}
+.tc-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:7px}
+.tc-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s}
+.tc-meta{font-size:12px;color:var(--muted);margin-bottom:12px}
+.tc-cta{font-size:13px;font-weight:700;color:var(--green)}
 
-.s-no-answer { opacity: .7; }
-.s-not-interested { opacity: .5; }
-.s-appointment { border-color: #a855f7 !important; }
-.s-interested { border-color: #10b981 !important; }
-.s-no-need .status-dot { background: #64748b; border-color: #64748b; }
-.s-no-need { opacity: .45; }
+/* Section headers */
+.sec-hdr{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sec-badge{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:1px 8px;font-size:11px;color:var(--text);font-weight:600}
 
-.card-body { flex: 1; min-width: 0; }
-.card-addr { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-meta { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
-.tier-badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
-.t-PRIME { background: #1a3a1a; color: var(--prime); }
-.t-HOT { background: #2d1500; color: var(--hot); }
-.t-WARM { background: #2d1f00; color: var(--warm); }
-.card-note { font-size: 11px; color: #6080b0; margin-top: 4px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.route-num { font-size: 13px; font-weight: 700; color: #4b5563; flex-shrink: 0; width: 24px; text-align: center; }
+/* Home door cards */
+.home-door{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.home-door:active{opacity:.8}
+.hd-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.hd-info{flex:1;min-width:0}
+.hd-addr{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.hd-tag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;flex-shrink:0}
+.empty-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;color:var(--muted);font-size:13px;margin-bottom:16px}
 
-/* ── FAB BUTTONS ── */
-#script-fab {
-  position: fixed;
-  bottom: 24px;
-  right: 16px;
-  background: var(--prime);
-  color: #000;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 10px 16px;
-  border-radius: 100px;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(76,175,80,0.4);
-  z-index: 60;
-}
-#add-home-fab {
-  position: fixed;
-  bottom: 24px;
-  left: 16px;
-  background: #ff7a00;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 10px 16px;
-  border-radius: 100px;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(255,122,0,0.4);
-  z-index: 60;
-}
+/* ══ ROUTES TAB ═════════════════════════════════════════ */
+.routes-title{font-size:22px;font-weight:800;padding:18px 0 16px}
+.route-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;transition:border-color .2s;overflow:hidden}
+.route-card:active{opacity:.85}
+.rc-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+.rc-name{font-size:17px;font-weight:700;margin-bottom:10px}
+.rc-meta{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:12px}
+.rc-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.rc-fill{height:100%;background:var(--green);border-radius:3px}
+.rc-prog{font-size:12px;color:var(--muted)}
+.rc-arrow{float:right;color:var(--green);font-size:20px;font-weight:800;margin-top:-42px}
+.no-route{padding:48px 0;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
 
-/* ── ADD HOME MODAL ── */
-#add-home-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: flex-end; }
-#add-home-modal.open { display: flex; }
-#ahbox {
-  background: #1a1d2e;
-  border-radius: 20px 20px 0 0;
-  width: 100%;
-  padding: 20px 16px 36px;
-}
-.ah-handle { width: 36px; height: 4px; background: #333; border-radius: 2px; margin: 0 auto 16px; }
-.ah-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; color: #ff7a00; }
-.ah-sub { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
-.ah-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
-.ah-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 15px; font-family: inherit; margin-bottom: 12px; outline: none; }
-.ah-input:focus { border-color: rgba(255,122,0,0.5); }
-.ah-tier-row { display: flex; gap: 8px; margin-bottom: 16px; }
-.ah-tier-btn { flex: 1; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .15s; }
-.ah-tier-btn.sel-prime { background: #1a3a1a; border-color: var(--prime); color: var(--prime); }
-.ah-tier-btn.sel-hot { background: #2d1500; border-color: var(--hot); color: var(--hot); }
-.ah-tier-btn.sel-warm { background: #2d1f00; border-color: var(--warm); color: var(--warm); }
-#ah-save { width: 100%; background: #ff7a00; color: #fff; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 10px; border: none; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
-#ah-cancel { width: 100%; background: transparent; color: var(--muted); font-size: 13px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; font-family: inherit; }
+/* ══ STATS TAB ══════════════════════════════════════════ */
+.stats-title{font-size:22px;font-weight:800;padding:18px 0 4px}
+.stats-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.stat-num{font-size:36px;font-weight:800;line-height:1;margin-bottom:5px}
+.stat-lbl{font-size:12px;color:var(--muted)}
+.bars-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.bar-row:last-child{margin-bottom:0}
+.bar-lbl{font-size:12px;width:100px;flex-shrink:0;color:var(--text)}
+.bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.bar-ct{font-size:12px;color:var(--muted);width:18px;text-align:right;flex-shrink:0}
 
-/* ── DETAIL MODAL ── */
-#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; align-items: flex-end; }
-#modal.open { display: flex; }
-#mbox { background: #1a1d2e; border-radius: 20px 20px 0 0; width: 100%; max-height: 92vh; overflow-y: auto; padding: 20px 16px 32px; }
-#m-handle { width: 40px; height: 4px; background: #333; border-radius: 2px; margin: 0 auto 16px; }
-#m-addr { font-size: 18px; font-weight: 700; color: var(--text); }
-#m-owner { font-size: 13px; color: var(--muted); margin-top: 4px; }
-#m-badges { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.m-chip { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
-.m-chip.prime { background: #1a3a1a; color: var(--prime); }
-.m-chip.hot { background: #2d1500; color: var(--hot); }
-.m-chip.warm { background: #2d1f00; color: var(--warm); }
-.m-chip.age { background: #1a2040; color: #7090e0; }
-.m-chip.val { background: #1a1a30; color: #a0a0c0; }
+/* ══ ROUTE VIEW (full-screen overlay) ══════════════════ */
+#route-view{display:none;position:fixed;inset:0;background:var(--bg);z-index:50;flex-direction:column}
+#route-view.open{display:flex}
 
-#m-nav-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: #1e3a5a; border: 1px solid #2a5a8a; color: #60a0ff; padding: 12px; border-radius: 10px; width: 100%; margin: 16px 0 0; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; }
-#m-status-label { font-size: 12px; color: var(--muted); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .5px; }
-#m-status-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.s-btn { padding: 12px 8px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: 2px solid; text-align: center; transition: all .12s; }
-.s-btn:active { transform: scale(.96); }
-.s-btn.sel { opacity: 1; }
-.s-btn[data-s="pending"] { border-color: #444; color: var(--muted); background: transparent; }
-.s-btn[data-s="pending"].sel { background: #333; border-color: #666; color: var(--text); }
-.s-btn[data-s="no-answer"] { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,.08); }
-.s-btn[data-s="no-answer"].sel { background: rgba(245,158,11,.2); }
-.s-btn[data-s="not-interested"] { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,.08); }
-.s-btn[data-s="not-interested"].sel { background: rgba(239,68,68,.2); }
-.s-btn[data-s="callback"] { border-color: #3b82f6; color: #3b82f6; background: rgba(59,130,246,.08); }
-.s-btn[data-s="callback"].sel { background: rgba(59,130,246,.2); }
-.s-btn[data-s="interested"] { border-color: #10b981; color: #10b981; background: rgba(16,185,129,.08); }
-.s-btn[data-s="interested"].sel { background: rgba(16,185,129,.25); }
-.s-btn[data-s="appointment"] { border-color: #a855f7; color: #a855f7; background: rgba(168,85,247,.08); }
-.s-btn[data-s="appointment"].sel { background: rgba(168,85,247,.25); }
-.s-btn[data-s="no-need"] { border-color: #64748b; color: #94a3b8; background: rgba(100,116,139,.08); }
-.s-btn[data-s="no-need"].sel { background: rgba(100,116,139,.2); }
+#rt-topbar{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.back-btn{background:none;border:none;color:var(--green);font-size:14px;font-weight:700;cursor:pointer;padding:4px 0;flex-shrink:0;font-family:inherit}
+#rt-name-lbl{font-size:15px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vt-btns{display:flex;background:#0d0f1c;border-radius:8px;overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.vt-btn{padding:6px 13px;font-size:12px;font-weight:700;border:none;background:none;color:var(--muted);cursor:pointer;font-family:inherit}
+.vt-btn.active{background:var(--green);color:#000}
 
-#m-note-label { font-size: 12px; color: var(--muted); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: .5px; }
-#m-note { width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; color: var(--text); font-size: 14px; font-family: inherit; resize: none; outline: none; height: 72px; }
-#m-save { display: block; width: 100%; margin-top: 14px; background: var(--prime); color: #000; font-weight: 800; font-size: 15px; padding: 15px; border-radius: 12px; border: none; cursor: pointer; font-family: inherit; }
-#m-save:active { opacity: .85; }
-#m-close { display: block; width: 100%; margin-top: 10px; background: transparent; color: var(--muted); font-size: 13px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; font-family: inherit; }
+#rt-prog-wrap{background:var(--card);padding:8px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.rt-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.rt-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s}
+.rt-prog-text{font-size:11px;color:var(--muted)}
 
-/* ── SCRIPT MODAL ── */
-#script-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 200; align-items: flex-end; }
-#script-modal.open { display: flex; }
-#sbox { background: #0f111a; border: 1px solid var(--border); border-radius: 20px 20px 0 0; width: 100%; max-height: 92vh; overflow-y: auto; padding: 20px 16px 40px; }
-.sbox-handle { width: 40px; height: 4px; background: #333; border-radius: 2px; margin: 0 auto 16px; }
-.sbox-title { font-size: 16px; font-weight: 800; color: var(--prime); margin-bottom: 20px; }
-.script-step { margin-bottom: 20px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
-.script-step-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; }
-.script-step-text { font-size: 14px; color: var(--text); line-height: 1.6; }
-.script-step-text em { color: var(--prime); font-style: normal; font-weight: 700; }
-.script-obj-title { font-size: 12px; font-weight: 800; color: #f59e0b; margin: 20px 0 12px; letter-spacing: .5px; text-transform: uppercase; }
-.script-obj { margin-bottom: 12px; background: rgba(245,158,11,.05); border: 1px solid rgba(245,158,11,.15); border-radius: 10px; padding: 12px 14px; }
-.script-obj-q { font-size: 12px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; }
-.script-obj-a { font-size: 13px; color: var(--text); line-height: 1.55; }
-.script-obj-a em { color: var(--prime); font-style: normal; font-weight: 600; }
-#script-close-btn { display: block; width: 100%; margin-top: 20px; background: transparent; color: var(--muted); font-size: 14px; padding: 14px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; font-family: inherit; }
+#map-view{flex-shrink:0}
+#map-el{height:240px;width:100%}
 
-/* ── VIEW TOGGLE ── */
-#view-toggle-row { display: flex; margin-top: 10px; background: rgba(255,255,255,.04); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
-.vt-btn { flex: 1; padding: 8px; background: transparent; border: none; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .15s; letter-spacing: .3px; }
-.vt-btn.active { background: var(--prime); color: #000; }
+#list-view{flex:1;overflow-y:auto;min-height:0;padding:0 12px 80px}
 
-/* ── MAP VIEW ── */
-#map-view { position: relative; height: 240px; flex-shrink: 0; }
-#map-el { width: 100%; height: 100%; }
-.map-legend { position: absolute; bottom: 8px; left: 8px; z-index: 500; background: rgba(15,17,26,0.9); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none; }
-.leg-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--muted); }
-.leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+/* Filter tabs */
+.ftabs{display:flex;gap:6px;overflow-x:auto;padding:10px 0 6px;scrollbar-width:none;flex-shrink:0}
+.ftabs::-webkit-scrollbar{display:none}
+.ftab{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit}
+.ftab.active{background:var(--green);color:#000;border-color:var(--green)}
 
-/* ── LIST VIEW ── */
-#list-view { padding-bottom: 100px; }
+/* Door cards in list */
+.door-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:12px}
+.door-card:active{opacity:.8}
+.door-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.door-info{flex:1}
+.door-addr{font-size:15px;font-weight:600}
+.door-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.door-badges{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
+.prime{background:#14532d22;color:#4ade80;border:1px solid #14532d}
+.hot{background:#7c150022;color:#f87171;border:1px solid #7c1500}
+.warm{background:#78350f22;color:#fbbf24;border:1px solid #78350f}
+.age{background:#1e293b;color:#94a3b8;border:1px solid #334155}
+.val{background:#1e293b;color:#94a3b8;border:1px solid #334155}
 
-.leaflet-tile-pane { filter: brightness(0.85) saturate(0.6); }
-.leaflet-container { background: #1a1d2e; }
+/* FABs inside route-view */
+#fab-script{position:absolute;right:16px;bottom:16px;background:var(--green);color:#000;border:none;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:800;cursor:pointer;z-index:5;box-shadow:0 4px 18px rgba(76,175,80,.4);font-family:inherit}
+#fab-add{position:absolute;left:16px;bottom:16px;background:#f97316;color:#fff;border:none;border-radius:14px;padding:12px 18px;font-size:14px;font-weight:800;cursor:pointer;z-index:5;box-shadow:0 4px 18px rgba(249,115,22,.35);font-family:inherit}
+
+/* ══ MODALS ═════════════════════════════════════════════ */
+#modal,#script-modal,#add-home-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:none;align-items:flex-end}
+#modal.open,#script-modal.open,#add-home-modal.open{display:flex}
+
+/* Detail modal */
+.modal-sheet{background:var(--card);border-radius:20px 20px 0 0;padding:20px 20px 36px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.m-addr{font-size:18px;font-weight:700;margin-bottom:4px}
+.m-owner{font-size:13px;color:var(--muted);margin-bottom:12px}
+.m-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.m-chip{font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px}
+.s-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.s-btn{padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:center;font-family:inherit;transition:background .15s,color .15s}
+.s-btn.sel{border-color:currentColor}
+.s-btn[data-s="pending"].sel{color:#9ca3af;background:#1f293740}
+.s-btn[data-s="no-answer"].sel{color:#f59e0b;background:#451a0320}
+.s-btn[data-s="not-interested"].sel{color:#ef4444;background:#450a0a20}
+.s-btn[data-s="callback"].sel{color:#3b82f6;background:#1e3a5f20}
+.s-btn[data-s="interested"].sel{color:#10b981;background:#064e3b20}
+.s-btn[data-s="appointment"].sel{color:#a855f7;background:#3b076420}
+.s-btn[data-s="no-need"].sel{color:#94a3b8;background:#1e293b}
+.m-note-lbl{font-size:12px;color:var(--muted);margin-bottom:6px}
+.m-note{width:100%;background:#0d0f1c;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;resize:none;height:80px;outline:none;font-family:inherit}
+.m-note:focus{border-color:var(--green)}
+.m-btns{display:flex;gap:10px;margin-top:16px}
+.m-nav-btn{flex:1;background:#0d0f1c;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:14px;font-weight:600;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.m-save-btn{flex:2;background:var(--green);border:none;border-radius:10px;padding:12px;color:#000;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+
+/* Script modal */
+.script-sheet{background:var(--card);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%;max-height:80vh;overflow-y:auto}
+.script-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.script-sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+.script-sec{margin-bottom:18px}
+.script-sec h4{font-size:10px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.script-sec p{font-size:14px;color:var(--text);line-height:1.65}
+.close-sheet-btn{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;margin-top:8px;font-family:inherit}
+
+/* Add home modal */
+.ah-sheet{background:var(--card);border-radius:20px 20px 0 0;padding:20px 20px 40px;width:100%}
+.ah-title{font-size:17px;font-weight:700;margin-bottom:18px}
+.ah-field{margin-bottom:14px}
+.ah-field label{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.ah-field input,.ah-field textarea{width:100%;background:#0d0f1c;border:1px solid var(--border);border-radius:10px;padding:12px;color:var(--text);font-size:15px;outline:none;font-family:inherit}
+.ah-field input:focus,.ah-field textarea:focus{border-color:var(--green)}
+.ah-tier-btns{display:flex;gap:8px}
+.ah-tier-btn{flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;text-align:center;font-family:inherit}
+.ah-tier-btn.sel-prime{background:#14532d22;color:#4ade80;border-color:#14532d}
+.ah-tier-btn.sel-hot{background:#450a0a30;color:#f87171;border-color:#7c1500}
+.ah-tier-btn.sel-warm{background:#451a0330;color:#fbbf24;border-color:#78350f}
+#ah-save{width:100%;background:var(--green);color:#000;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;font-family:inherit}
 </style>
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- ══ LOGIN ═══════════════════════════════════════════ -->
 <div id="login-screen">
   <div class="login-logo">Roo<span>Finder</span></div>
-  <div class="login-sub">Agent Mode</div>
+  <div class="login-sub">Agent Portal</div>
   <div class="login-box">
-    <label class="login-label">Your Name</label>
-    <input class="login-input" id="inp-name" placeholder="e.g. Jake" autocomplete="off"/>
-    <label class="login-label">PIN</label>
-    <input class="login-input" id="inp-pin" placeholder="Enter your PIN" type="password" autocomplete="off" inputmode="numeric"/>
-    <button class="login-btn" id="login-btn" onclick="startRoute()">Start My Route →</button>
+    <label class="login-label" for="lg-name">Your Name</label>
+    <input class="login-input" id="lg-name" type="text" placeholder="First Last" autocomplete="name">
+    <label class="login-label" for="lg-pin">PIN</label>
+    <input class="login-input" id="lg-pin" type="password" inputmode="numeric" placeholder="••••" maxlength="6">
+    <button class="login-btn" onclick="tryLogin()">Sign In</button>
     <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="app" style="display:none">
+<!-- ══ CRM APP ═════════════════════════════════════════ -->
+<div id="crm-app">
 
-  <!-- TOP BAR -->
-  <div id="topbar">
-    <div class="topbar-row1">
-      <span id="topbar-title">Loading...</span>
-      <span id="topbar-agent"><span id="sync-dot"></span><span id="agent-name-display"></span><button onclick="signOutAgent()" style="background:transparent;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:2px 6px;margin-left:4px;border-radius:4px;font-family:inherit">Sign Out</button></span>
+  <!-- HOME TAB -->
+  <div id="tab-home" class="tab-page active">
+    <div class="home-top">
+      <div>
+        <div class="home-greeting">Hey, <em id="hg-name">—</em> 👋</div>
+      </div>
+      <button class="signout-btn" onclick="signOutAgent()">Sign Out</button>
     </div>
-    <div id="prog-row">
-      <div id="prog-bg"><div id="prog-fill" style="width:0%"></div></div>
-      <span id="prog-label">0 / 0 knocked</span>
+
+    <div id="home-route-wrap"></div>
+
+    <div class="sec-hdr">
+      No Answer <span class="sec-badge" id="na-count">0</span>
     </div>
-    <div id="view-toggle-row">
-      <button class="vt-btn active" data-view="map" onclick="setView('map')">🗺 Map</button>
-      <button class="vt-btn" data-view="list" onclick="setView('list')">☰ List</button>
+    <div id="no-answer-list"></div>
+
+    <div class="sec-hdr" style="margin-top:18px">
+      Follow Up <span class="sec-badge" id="fu-count">0</span>
     </div>
+    <div id="followup-list"></div>
+    <div style="height:20px"></div>
   </div>
 
-  <!-- MAP VIEW (default) -->
+  <!-- ROUTES TAB -->
+  <div id="tab-routes" class="tab-page">
+    <div class="routes-title">Your Routes</div>
+    <div id="routes-list"></div>
+  </div>
+
+  <!-- STATS TAB -->
+  <div id="tab-stats" class="tab-page">
+    <div class="stats-title">Route Stats</div>
+    <div class="stats-sub" id="stats-sub">Current route progress</div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="sec-hdr">Breakdown</div>
+    <div class="bars-card" id="stats-bars"></div>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" id="nav-home" onclick="showTab('home')">
+      <span class="nav-icon">🏠</span>
+      <span>Home</span>
+      <span class="nav-pip"></span>
+    </button>
+    <button class="nav-btn" id="nav-routes" onclick="showTab('routes')">
+      <span class="nav-icon">📍</span>
+      <span>Routes</span>
+      <span class="nav-pip"></span>
+    </button>
+    <button class="nav-btn" id="nav-stats" onclick="showTab('stats')">
+      <span class="nav-icon">📊</span>
+      <span>Stats</span>
+      <span class="nav-pip"></span>
+    </button>
+  </nav>
+</div>
+
+<!-- ══ ROUTE VIEW (full-screen overlay) ════════════════ -->
+<div id="route-view">
+  <div id="rt-topbar">
+    <button class="back-btn" onclick="closeRouteView()">← Back</button>
+    <span id="rt-name-lbl">Route</span>
+    <div class="vt-btns">
+      <button class="vt-btn active" data-view="map" onclick="setView('map')">Map</button>
+      <button class="vt-btn" data-view="list" onclick="setView('list')">List</button>
+    </div>
+  </div>
+  <div id="rt-prog-wrap">
+    <div class="rt-bar"><div class="rt-fill" id="rt-fill" style="width:0%"></div></div>
+    <div class="rt-prog-text" id="rt-prog-text">0 / 0 knocked</div>
+  </div>
   <div id="map-view">
     <div id="map-el"></div>
-    <div class="map-legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#10b981"></div>Interested</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#a855f7"></div>Appt</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Callback</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>No Answer</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Not Int.</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#4b5563"></div>Pending</div>
-    </div>
   </div>
-
-  <!-- LIST VIEW -->
   <div id="list-view">
-
-  <!-- TABS -->
-  <div id="tabs">
-    <div class="tab active" onclick="setTab('all',this)">All</div>
-    <div class="tab" onclick="setTab('pending',this)">Pending</div>
-    <div class="tab" onclick="setTab('interested',this)">Interested 🟢</div>
-    <div class="tab" onclick="setTab('appointment',this)">Appt ⭐</div>
-    <div class="tab" onclick="setTab('callback',this)">Callback 🔵</div>
-    <div class="tab" onclick="setTab('no-answer',this)">No Answer</div>
-    <div class="tab" onclick="setTab('not-interested',this)">Not Int.</div>
-    <div class="tab" onclick="setTab('no-need',this)">No Need 🏚</div>
+    <div class="ftabs" id="filter-tabs">
+      <div class="ftab active" onclick="setTab('all',this)">All</div>
+      <div class="ftab" onclick="setTab('pending',this)">Pending</div>
+      <div class="ftab" onclick="setTab('interested',this)">Interested</div>
+      <div class="ftab" onclick="setTab('appointment',this)">Appt</div>
+      <div class="ftab" onclick="setTab('callback',this)">Callback</div>
+      <div class="ftab" onclick="setTab('no-answer',this)">No Answer</div>
+      <div class="ftab" onclick="setTab('not-interested',this)">Not Int.</div>
+      <div class="ftab" onclick="setTab('no-need',this)">No Need</div>
+    </div>
+    <div id="door-list"></div>
   </div>
-
-  <!-- DOOR LIST -->
-  <div id="list"></div>
-
-  </div><!-- end #list-view -->
-
   <!-- FABs -->
-  <button id="add-home-fab" onclick="openAddHome()">＋ Add Home</button>
-  <button id="script-fab" onclick="openScript()">📋 Script</button>
+  <button id="fab-script" onclick="openScript()">Script</button>
+  <button id="fab-add" onclick="openAddHome()">+ Add</button>
 </div>
 
-<!-- ADD HOME MODAL -->
-<div id="add-home-modal">
-  <div id="ahbox">
-    <div class="ah-handle"></div>
-    <div class="ah-title">🏠 Add Home to Route</div>
-    <div class="ah-sub">Spotted a roof that needs attention? Add it now.</div>
-    <label class="ah-label">Address</label>
-    <input class="ah-input" id="ah-addr" placeholder="e.g. 512 Oak Tree Ln" autocomplete="street-address"/>
-    <label class="ah-label">Roof Condition</label>
-    <div class="ah-tier-row">
-      <button class="ah-tier-btn sel-prime" id="ah-t-prime" onclick="setAhTier('PRIME',this)">🟢 PRIME</button>
-      <button class="ah-tier-btn" id="ah-t-hot" onclick="setAhTier('HOT',this)">🔥 HOT</button>
-      <button class="ah-tier-btn" id="ah-t-warm" onclick="setAhTier('WARM',this)">🌤 WARM</button>
-    </div>
-    <label class="ah-label">Quick Note (optional)</label>
-    <input class="ah-input" id="ah-note" placeholder="e.g. visibly damaged shingles, gutters falling off…"/>
-    <button id="ah-save" onclick="saveAddHome()">Add to Route ↑</button>
-    <button id="ah-cancel" onclick="closeAddHome()">Cancel</button>
-  </div>
-</div>
-
-<!-- DETAIL MODAL (bottom sheet) -->
+<!-- ══ DETAIL MODAL ════════════════════════════════════ -->
 <div id="modal">
-  <div id="mbox">
-    <div id="m-handle"></div>
-    <div id="m-addr"></div>
-    <div id="m-owner"></div>
-    <div id="m-badges"></div>
-    <a id="m-nav-btn" href="#" target="_blank" rel="noopener">
-      🗺 Navigate Here
-    </a>
-    <div id="m-status-label">Mark Status</div>
-    <div id="m-status-btns">
-      <button class="s-btn" data-s="no-answer" onclick="selectStatus('no-answer')">🔔 No Answer</button>
-      <button class="s-btn" data-s="not-interested" onclick="selectStatus('not-interested')">✗ Not Interested</button>
-      <button class="s-btn" data-s="callback" onclick="selectStatus('callback')">📞 Callback</button>
-      <button class="s-btn" data-s="interested" onclick="selectStatus('interested')">👍 Interested</button>
-      <button class="s-btn" data-s="appointment" style="grid-column:1/-1" onclick="selectStatus('appointment')">⭐ Appointment Set!</button>
-      <button class="s-btn" data-s="no-need" style="grid-column:1/-1" onclick="selectStatus('no-need')">🏚 No Need — New Roof</button>
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="m-addr" id="m-addr">—</div>
+    <div class="m-owner" id="m-owner">—</div>
+    <div class="m-chips" id="m-badges"></div>
+    <div class="s-btns">
+      <button class="s-btn" data-s="pending"        onclick="selectStatus('pending')">Pending</button>
+      <button class="s-btn" data-s="no-answer"      onclick="selectStatus('no-answer')">No Answer</button>
+      <button class="s-btn" data-s="not-interested" onclick="selectStatus('not-interested')">Not Interested</button>
+      <button class="s-btn" data-s="callback"       onclick="selectStatus('callback')">Callback</button>
+      <button class="s-btn" data-s="interested"     onclick="selectStatus('interested')">Interested</button>
+      <button class="s-btn" data-s="appointment"    onclick="selectStatus('appointment')">Appointment 🎯</button>
+      <button class="s-btn" data-s="no-need"        onclick="selectStatus('no-need')">No Need</button>
     </div>
-    <div id="m-note-label">Notes</div>
-    <textarea id="m-note" placeholder="Phone number, best time to call, what they said..."></textarea>
-    <button id="m-save" onclick="saveAndClose()">Save & Sync ↑</button>
-    <button id="m-close" onclick="closeModal()">Cancel</button>
+    <div class="m-note-lbl">Notes</div>
+    <textarea class="m-note" id="m-note" placeholder="Add a note…"></textarea>
+    <div class="m-btns">
+      <a class="m-nav-btn" id="m-nav-btn" href="#" target="_blank">🗺 Navigate</a>
+      <button class="m-save-btn" onclick="saveAndClose()">Save & Close</button>
+    </div>
   </div>
 </div>
 
-<!-- SCRIPT MODAL -->
+<!-- ══ SCRIPT MODAL ════════════════════════════════════ -->
 <div id="script-modal">
-  <div id="sbox">
-    <div class="sbox-handle"></div>
-    <div class="sbox-title">📋 Door Script — Cary Zone 82</div>
+  <div class="script-sheet">
+    <div class="modal-handle"></div>
+    <div class="script-title">Door Knock Script</div>
+    <div class="script-sub">Adjust to your natural style</div>
+    <div class="script-sec">
+      <h4>Opening</h4>
+      <p>"Hey! How's it going? I'm [Name] with [Company] — we're working in this neighborhood today and I wanted to stop by real quick."</p>
+    </div>
+    <div class="script-sec">
+      <h4>The Hook</h4>
+      <p>"A lot of homes in this area have roofs coming up on that 20-year mark — some are already showing wear from recent storms. We've been helping neighbors get it looked at before it becomes a bigger issue."</p>
+    </div>
+    <div class="script-sec">
+      <h4>The Ask</h4>
+      <p>"Would you be open to us taking a quick look at your roof? Takes maybe 10 minutes — totally free, no obligation. We'll tell you exactly what we see."</p>
+    </div>
+    <div class="script-sec">
+      <h4>If They Hesitate</h4>
+      <p>"Totally get it — I'd just hate for you to miss the insurance window if there's storm damage. Most homeowners don't even realize they're covered."</p>
+    </div>
+    <div class="script-sec">
+      <h4>Close</h4>
+      <p>"Awesome — I can get our inspector over here [today/tomorrow]. What time works best for you?"</p>
+    </div>
+    <button class="close-sheet-btn" onclick="closeScript()">Close</button>
+  </div>
+</div>
 
-    <div class="script-step">
-      <div class="script-step-label">STEP 1 — CONFIRM NAME</div>
-      <div class="script-step-text">
-        Knock and step back. When they answer:<br><br>
-        "Hey, is this <em>[Name from your list]</em>?"
+<!-- ══ ADD HOME MODAL ══════════════════════════════════ -->
+<div id="add-home-modal">
+  <div class="ah-sheet">
+    <div class="modal-handle"></div>
+    <div class="ah-title">Add a Home</div>
+    <div class="ah-field">
+      <label>Address</label>
+      <input id="ah-addr" type="text" placeholder="123 Main St">
+    </div>
+    <div class="ah-field">
+      <label>Tier</label>
+      <div class="ah-tier-btns">
+        <button id="ah-t-prime" class="ah-tier-btn sel-prime" onclick="setAhTier('PRIME',this)">PRIME</button>
+        <button id="ah-t-hot"   class="ah-tier-btn"           onclick="setAhTier('HOT',this)">HOT</button>
+        <button id="ah-t-warm"  class="ah-tier-btn"           onclick="setAhTier('WARM',this)">WARM</button>
       </div>
     </div>
-
-    <div class="script-step">
-      <div class="script-step-label">STEP 2 — THE OPENER</div>
-      <div class="script-step-text">
-        "Hey <em>[Name]</em>, I'm <em>[Your Name]</em> — I work with a roofing contractor in your area. I was driving through the neighborhood and noticed a lot of the roofs out here are getting some age on them — yours included. Didn't want to just skip past without stopping."<br><br>
-        <em>"Has anyone taken a look at your roof recently?"</em>
-      </div>
+    <div class="ah-field">
+      <label>Note (optional)</label>
+      <textarea id="ah-note" placeholder="e.g. Gate in back, spoke to neighbor…" style="height:60px;resize:none"></textarea>
     </div>
-
-    <div class="script-step">
-      <div class="script-step-label">STEP 3 — BUILD INTEREST</div>
-      <div class="script-step-text">
-        "We've been helping homeowners in this zip get a free inspection — we check the age, condition, and whether there's any storm damage that your insurance might actually cover. A lot of people are surprised what they qualify for."<br><br>
-        <em>"It's completely free, no obligation. We're just looking to be a resource for the neighborhood."</em>
-      </div>
-    </div>
-
-    <div class="script-step">
-      <div class="script-step-label">STEP 4 — CLOSE FOR INSPECTION</div>
-      <div class="script-step-text">
-        "We could get someone out here in the next few days — would you be open to a free 15-minute roof inspection? You'd get a full condition report, and if there's nothing urgent, you'd at least know where you stand."<br><br>
-        <em>[If yes → get their number and lock in a date/time]</em>
-      </div>
-    </div>
-
-    <div class="script-obj-title">💬 Objections</div>
-
-    <div class="script-obj">
-      <div class="script-obj-q">"We just had it done / replaced it."</div>
-      <div class="script-obj-a">"That's great — that's exactly the kind of thing we try to help people stay ahead of. If it's been done recently, you're in good shape. If you ever need documentation for insurance or want a second opinion down the road, we're always around. Mind if I leave a card?"</div>
-    </div>
-
-    <div class="script-obj">
-      <div class="script-obj-q">"Not interested" / "We're good."</div>
-      <div class="script-obj-a">"Totally understand. It's free and quick, but I get it — no worries at all. If you ever notice anything or want someone to take a look, feel free to reach out." <em>[Leave card, move on.]</em></div>
-    </div>
-
-    <div class="script-obj">
-      <div class="script-obj-q">"How old is my roof?"</div>
-      <div class="script-obj-a">"Based on when homes in this area were built, yours is around <em>[roof age from your list]</em> years old. That's right in the window where we like to take a closer look — most manufacturers warranty shingles for 20–25 years."</div>
-    </div>
-
-    <div class="script-obj">
-      <div class="script-obj-q">"Is this going to cost anything?"</div>
-      <div class="script-obj-a">"Nothing at all. The inspection is free, no strings attached. If we find damage, we'll walk you through your options — including whether insurance covers it. If everything looks fine, we'll tell you that too."</div>
-    </div>
-
-    <div class="script-obj">
-      <div class="script-obj-q">"I need to talk to my spouse first."</div>
-      <div class="script-obj-a">"Of course — makes total sense. Can I leave a card and check back in a couple days? Or if it's easier, I can send you a quick text so you have my info ready when you chat."</div>
-    </div>
-
-    <div class="script-obj">
-      <div class="script-obj-q">"How did you get my address / who gave you my info?"</div>
-      <div class="script-obj-a">"We work this neighborhood as part of our territory — we go street by street. It's all public information, nothing unusual. We just prefer to knock and introduce ourselves rather than cold call."</div>
-    </div>
-
-    <button id="script-close-btn" onclick="closeScript()">← Back to Route</button>
+    <button id="ah-save" onclick="saveAddHome()">Add to Route ↑</button>
   </div>
 </div>
 
 <script>
-// ── Firebase ─────────────────────────────────────────────────────────────────
-const firebaseConfig = {
+// ── Firebase ──────────────────────────────────────────────────────────────────
+var firebaseConfig = {
   apiKey: "AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U",
   authDomain: "roofinder-1c01f.firebaseapp.com",
   projectId: "roofinder-1c01f",
@@ -458,277 +409,371 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 
-// ── Built-in route data (seeded to Firestore on first launch) ─────────────
+// ── Built-in Routes ───────────────────────────────────────────────────────────
 var BUILT_IN_ROUTES = {
   'CARY82': {
-    routeName: 'Cary Zone 82',
-    zone: 'West Cary — 27519',
+    name: 'Cary — Zone 82 (Morning)',
+    pocket: 'cary-pocket-82',
     leads: [
-      {addr:'510 Emerald Downs Rd',owner:'Chen, Zhongmin / Du, Xiaoli',tier:'PRIME',age:20,val:'$579,338',street:'Emerald Downs Rd'},
-      {addr:'514 Emerald Downs Rd',owner:'Patel, Chetan / Patel, Neema',tier:'PRIME',age:20,val:'$667,407',street:'Emerald Downs Rd'},
-      {addr:'517 Emerald Downs Rd',owner:'Aiman, Ramish / Aiman, Susan',tier:'PRIME',age:20,val:'$585,788',street:'Emerald Downs Rd'},
-      {addr:'518 Emerald Downs Rd',owner:'Galvin, Michael',tier:'PRIME',age:20,val:'$590,898',street:'Emerald Downs Rd'},
-      {addr:'519 Emerald Downs Rd',owner:'Yang, Davie / Wang, Zusan',tier:'PRIME',age:20,val:'$594,447',street:'Emerald Downs Rd'},
-      {addr:'520 Emerald Downs Rd',owner:'Wu, Hao / Chen, Xinyuan',tier:'PRIME',age:20,val:'$578,858',street:'Emerald Downs Rd'},
-      {addr:'523 Emerald Downs Rd',owner:'Mahapatra, Sujit Kumar',tier:'PRIME',age:20,val:'$585,788',street:'Emerald Downs Rd'},
-      {addr:'525 Emerald Downs Rd',owner:'Kuan, Wai Keat',tier:'PRIME',age:20,val:'$674,082',street:'Emerald Downs Rd'},
-      {addr:'527 Emerald Downs Rd',owner:'Anglin, Jody / Edwards, Thomas',tier:'PRIME',age:20,val:'$662,448',street:'Emerald Downs Rd'},
-      {addr:'528 Emerald Downs Rd',owner:'Prajapati, Asheesh / Nitika',tier:'PRIME',age:20,val:'$676,246',street:'Emerald Downs Rd'},
-      {addr:'530 Emerald Downs Rd',owner:'Gundupalli, Lokesh / Ramireddy, Pallavi',tier:'PRIME',age:19,val:'$688,470',street:'Emerald Downs Rd'},
-      {addr:'405 Golden Harvest Loop',owner:'Wong, Dennis S / Judyl S',tier:'PRIME',age:19,val:'$672,163',street:'Golden Harvest Loop'},
-      {addr:'406 Golden Harvest Loop',owner:'Wang, Xuezhong / Li, Yingjie',tier:'PRIME',age:19,val:'$648,587',street:'Golden Harvest Loop'},
-      {addr:'418 Golden Harvest Loop',owner:'Tian, Julia / Tian, Wei',tier:'PRIME',age:19,val:'$687,795',street:'Golden Harvest Loop'},
-      {addr:'419 Golden Harvest Loop',owner:'Xie, Tao',tier:'PRIME',age:19,val:'$687,959',street:'Golden Harvest Loop'},
-      {addr:'433 Golden Harvest Loop',owner:'Richardson, David J / Angela S',tier:'PRIME',age:19,val:'$687,618',street:'Golden Harvest Loop'},
-      {addr:'434 Golden Harvest Loop',owner:'Govier, Sarah / James Ray',tier:'PRIME',age:19,val:'$658,485',street:'Golden Harvest Loop'},
-      {addr:'435 Golden Harvest Loop',owner:'Myoung, Suk Keun / Kim, Yoonjoo',tier:'PRIME',age:19,val:'$632,631',street:'Golden Harvest Loop'},
-      {addr:'304 Frontgate Dr',owner:'Fields, Timothy Jr / Cubillos, Lifaver',tier:'HOT',age:22,val:'$625,422',street:'Frontgate Dr'},
-      {addr:'402 Frontgate Dr',owner:'Donovan, Christine M',tier:'WARM',age:24,val:'$872,661',street:'Frontgate Dr'},
-      {addr:'508 Frontgate Dr',owner:'Skelding, Timothy T / Wendy C',tier:'HOT',age:22,val:'$892,932',street:'Frontgate Dr'},
-      {addr:'109 Dumbledore Ct',owner:'Ge, Dongliang / Liu, Li',tier:'PRIME',age:17,val:'$668,068',street:'Dumbledore Ct'},
-      {addr:'105 Dursley Way',owner:'Zhao, Jingyi',tier:'PRIME',age:15,val:'$655,867',street:'Dursley Way'},
-      {addr:'512 Elan Hall Rd',owner:'Carino, Joseph J II / Lucy J',tier:'PRIME',age:18,val:'$1,080,202',street:'Elan Hall Rd'},
-      {addr:'710 Dennison Ln',owner:'Snyder, Devon D / Cheryl',tier:'HOT',age:21,val:'$1,164,002',street:'Dennison Ln'}
+      // Emerald Downs Rd
+      {addr:'510 Emerald Downs Rd',owner:'Williams, T.',tier:'PRIME',age:19,val:'$420k',street:'Emerald Downs'},
+      {addr:'514 Emerald Downs Rd',owner:'Chen, M.',tier:'PRIME',age:20,val:'$395k',street:'Emerald Downs'},
+      {addr:'517 Emerald Downs Rd',owner:'Johnson, K.',tier:'PRIME',age:19,val:'$405k',street:'Emerald Downs'},
+      {addr:'518 Emerald Downs Rd',owner:'Davis, R.',tier:'PRIME',age:20,val:'$430k',street:'Emerald Downs'},
+      {addr:'519 Emerald Downs Rd',owner:'Martinez, A.',tier:'PRIME',age:19,val:'$415k',street:'Emerald Downs'},
+      {addr:'520 Emerald Downs Rd',owner:'Thompson, L.',tier:'PRIME',age:20,val:'$440k',street:'Emerald Downs'},
+      {addr:'523 Emerald Downs Rd',owner:'Anderson, P.',tier:'PRIME',age:19,val:'$385k',street:'Emerald Downs'},
+      {addr:'525 Emerald Downs Rd',owner:'Wilson, S.',tier:'PRIME',age:20,val:'$455k',street:'Emerald Downs'},
+      {addr:'527 Emerald Downs Rd',owner:'Taylor, B.',tier:'PRIME',age:19,val:'$400k',street:'Emerald Downs'},
+      {addr:'528 Emerald Downs Rd',owner:'Brown, C.',tier:'PRIME',age:20,val:'$425k',street:'Emerald Downs'},
+      {addr:'530 Emerald Downs Rd',owner:'Harris, J.',tier:'PRIME',age:19,val:'$410k',street:'Emerald Downs'},
+      // Golden Harvest Loop
+      {addr:'405 Golden Harvest Loop',owner:'Clark, D.',tier:'PRIME',age:19,val:'$390k',street:'Golden Harvest'},
+      {addr:'406 Golden Harvest Loop',owner:'Lewis, E.',tier:'PRIME',age:19,val:'$375k',street:'Golden Harvest'},
+      {addr:'418 Golden Harvest Loop',owner:'Robinson, F.',tier:'PRIME',age:19,val:'$410k',street:'Golden Harvest'},
+      {addr:'419 Golden Harvest Loop',owner:'Walker, G.',tier:'PRIME',age:19,val:'$395k',street:'Golden Harvest'},
+      {addr:'433 Golden Harvest Loop',owner:'Hall, H.',tier:'PRIME',age:19,val:'$420k',street:'Golden Harvest'},
+      {addr:'434 Golden Harvest Loop',owner:'Young, I.',tier:'PRIME',age:19,val:'$380k',street:'Golden Harvest'},
+      {addr:'435 Golden Harvest Loop',owner:'King, J.',tier:'PRIME',age:19,val:'$405k',street:'Golden Harvest'},
+      // Frontgate Dr
+      {addr:'304 Frontgate Dr',owner:'Scott, K.',tier:'HOT',age:22,val:'$465k',street:'Frontgate'},
+      {addr:'402 Frontgate Dr',owner:'Green, L.',tier:'WARM',age:24,val:'$480k',street:'Frontgate'},
+      {addr:'508 Frontgate Dr',owner:'Adams, M.',tier:'HOT',age:22,val:'$510k',street:'Frontgate'},
+      // Others
+      {addr:'109 Dumbledore Ct',owner:'Baker, N.',tier:'PRIME',age:20,val:'$375k',street:'Dumbledore'},
+      {addr:'105 Dursley Way',owner:'Carter, O.',tier:'PRIME',age:20,val:'$360k',street:'Dursley'},
+      {addr:'512 Elan Hall Rd',owner:'Mitchell, P.',tier:'WARM',age:21,val:'$445k',street:'Elan Hall'},
+      {addr:'710 Dennison Ln',owner:'Perez, Q.',tier:'PRIME',age:20,val:'$430k',street:'Dennison'}
     ]
   }
 };
 
-// ── State ─────────────────────────────────────────────────────────────────
-var agentName = '';
-var routeCode = '';
-var routeData = null;
-var statuses = {};
-var notes = {};
-var curIdx = -1;
-var curStatus = '';
-var curTab = 'all';
-var firestoreUnsubscribe = null;
-var curView = 'map';
-var agentMap = null;
-var mapMarkers = {};
-var mapInitialized = false;
-var coordCache = {};
+// ── State ─────────────────────────────────────────────────────────────────────
+var agentName = '', routeCode = '', routeData = null;
+var statuses = {}, notes = {}, curIdx = -1, curStatus = '';
+var curTab = 'all', firestoreUnsubscribe = null, curView = 'map';
+var agentMap = null, mapMarkers = {}, mapInitialized = false, coordCache = {};
 
 var STATUS_COLORS = {
-  'pending':        '#4b5563',
-  'no-answer':      '#f59e0b',
-  'not-interested': '#ef4444',
-  'callback':       '#3b82f6',
-  'interested':     '#10b981',
-  'appointment':    '#a855f7',
-  'no-need':        '#64748b'
+  'pending':'#4b5563','no-answer':'#f59e0b',
+  'not-interested':'#ef4444','callback':'#3b82f6',
+  'interested':'#10b981','appointment':'#a855f7','no-need':'#64748b'
+};
+var STATUS_LABELS = {
+  'pending':'Pending','no-answer':'No Answer',
+  'not-interested':'Not Interested','callback':'Callback',
+  'interested':'Interested','appointment':'Appointment','no-need':'No Need'
 };
 
-// ── Entry ─────────────────────────────────────────────────────────────────
-// URL params → saved session → show login
+// ── Tab Navigation ─────────────────────────────────────────────────────────────
+var curPageTab = 'home';
+function showTab(tab) {
+  curPageTab = tab;
+  document.querySelectorAll('.tab-page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('nav-' + tab).classList.add('active');
+  if (tab === 'home')   renderHomeTab();
+  if (tab === 'routes') renderRoutesTab();
+  if (tab === 'stats')  renderStatsTab();
+}
+
+// ── Login ──────────────────────────────────────────────────────────────────────
+document.getElementById('lg-name').addEventListener('keydown', function(e){ if(e.key==='Enter') document.getElementById('lg-pin').focus(); });
+document.getElementById('lg-pin').addEventListener('keydown',  function(e){ if(e.key==='Enter') tryLogin(); });
+
+function tryLogin() {
+  var name = document.getElementById('lg-name').value.trim();
+  var pin  = document.getElementById('lg-pin').value.trim();
+  var err  = document.getElementById('login-err');
+  if (!name || !pin) { err.textContent='Enter your name and PIN.'; err.style.display='block'; return; }
+  err.textContent = 'Signing in…'; err.style.display = 'block';
+  db.collection('agents').where('name','==',name).where('pin','==',pin).get()
+    .then(function(snap) {
+      if (snap.empty) { err.textContent='Name or PIN not recognized.'; return; }
+      sessionStorage.setItem('rf_agent', name);
+      agentName = name;
+      launchApp();
+    })
+    .catch(function() { err.textContent='Connection error. Try again.'; });
+}
+
+// Session restore
 (function() {
-  var params = new URLSearchParams(window.location.search);
-  var r = params.get('route');
-  var n = params.get('agent');
-
-  if (r) {
-    // Backward compat: direct route code in URL — skip PIN login
-    agentName = n || 'Agent';
-    routeCode = r.toUpperCase();
-    if (n) document.getElementById('inp-name').value = n;
-    db.collection('agentRoutes').doc(routeCode).get().then(function(doc) {
-      if (doc.exists) {
-        routeData = doc.data();
-        agentName = routeData.agentName || agentName;
-        launchApp();
-      } else {
-        var err = document.getElementById('login-err');
-        err.textContent = 'Route not found.';
-        err.style.display = 'block';
-      }
-    }).catch(function() {
-      var err = document.getElementById('login-err');
-      err.textContent = 'Could not load route. Try again.';
-      err.style.display = 'block';
-    });
-    return;
-  }
-
-  // Check saved session
-  try {
-    var saved = JSON.parse(localStorage.getItem('rf_agent') || 'null');
-    if (saved && saved.routeCode && saved.agentName) {
-      agentName = saved.agentName;
-      routeCode = saved.routeCode;
-      db.collection('agentRoutes').doc(routeCode).get().then(function(doc) {
-        if (doc.exists) {
-          routeData = doc.data();
-          launchApp();
-        } else {
-          localStorage.removeItem('rf_agent');
-        }
-      }).catch(function() { localStorage.removeItem('rf_agent'); });
-    }
-  } catch(e) { localStorage.removeItem('rf_agent'); }
+  var saved = sessionStorage.getItem('rf_agent');
+  if (saved) { agentName = saved; launchApp(); }
 })();
 
+// ── Launch App ─────────────────────────────────────────────────────────────────
+function launchApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('crm-app').style.display = 'block';
+  document.getElementById('hg-name').textContent = agentName.split(' ')[0];
+  startRoute();
+}
+
 function startRoute() {
-  var name = document.getElementById('inp-name').value.trim();
-  var pin = document.getElementById('inp-pin').value.trim();
-  var errEl = document.getElementById('login-err');
-  var btnEl = document.getElementById('login-btn');
-  errEl.style.display = 'none';
-
-  if (!name || !pin) {
-    errEl.textContent = 'Please enter your name and PIN.';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  btnEl.textContent = 'Signing in…';
-  btnEl.disabled = true;
-
-  function resetBtn() {
-    btnEl.textContent = 'Start My Route →';
-    btnEl.disabled = false;
-  }
-
-  // Step 1: Look up agent by name + PIN
-  db.collection('agents')
-    .where('name', '==', name)
-    .where('pin', '==', pin)
+  db.collection('agentRoutes')
+    .where('ownerCode','==','cary-pocket-82')
+    .where('agentName','==',agentName)
+    .where('status','==','active')
     .get()
     .then(function(snap) {
       if (snap.empty) {
-        errEl.textContent = 'Name or PIN not recognized. Check with your manager.';
-        errEl.style.display = 'block';
-        resetBtn();
-        return null;
-      }
-      var agentDoc = snap.docs[0].data();
-      agentName = name;
-
-      // Step 2: Find their active route
-      return db.collection('agentRoutes')
-        .where('ownerCode', '==', agentDoc.ownerCode)
-        .where('agentName', '==', name)
-        .where('status', '==', 'active')
-        .get();
-    })
-    .then(function(routeSnap) {
-      if (!routeSnap) return; // error already shown
-      if (routeSnap.empty) {
-        errEl.textContent = 'No active route found. Ask your manager to assign one.';
-        errEl.style.display = 'block';
-        resetBtn();
+        // No Firestore route — use built-in
+        routeCode = 'CARY82';
+        routeData = JSON.parse(JSON.stringify(BUILT_IN_ROUTES['CARY82']));
+        renderHomeTab(); renderRoutesTab(); renderStatsTab();
         return;
       }
-      var routes = [];
-      routeSnap.forEach(function(doc) { routes.push(Object.assign({ _id: doc.id }, doc.data())); });
-      routes.sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-      routeCode = routes[0]._id;
-      routeData = routes[0];
-      // Save session so next visit skips login
-      localStorage.setItem('rf_agent', JSON.stringify({ agentName: agentName, routeCode: routeCode }));
-      launchApp();
+      routeCode = snap.docs[0].id;
+      listenRoute();
     })
-    .catch(function(err) {
-      console.error('Login error:', err);
-      errEl.textContent = 'Login error. Check your connection and try again.';
-      errEl.style.display = 'block';
-      resetBtn();
+    .catch(function() {
+      routeCode = 'CARY82';
+      routeData = JSON.parse(JSON.stringify(BUILT_IN_ROUTES['CARY82']));
+      renderHomeTab(); renderRoutesTab(); renderStatsTab();
     });
 }
 
-function launchApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('topbar-title').textContent = routeData.routeName || routeCode;
-  document.getElementById('agent-name-display').textContent = agentName;
-
-  // Update agentName + startedAt in Firestore
-  db.collection('agentRoutes').doc(routeCode).update({
-    agentName: agentName,
-    startedAt: routeData.startedAt || Date.now(),
-    lastUpdate: Date.now()
-  }).catch(function(){});
-
-  // Real-time listener
+function listenRoute() {
+  if (firestoreUnsubscribe) firestoreUnsubscribe();
   firestoreUnsubscribe = db.collection('agentRoutes').doc(routeCode).onSnapshot(function(doc) {
-    if (doc.exists) {
-      var d = doc.data();
-      statuses = d.statuses || {};
-      notes = d.notes || {};
+    if (!doc.exists) return;
+    var data = doc.data();
+    if (!data.leads || data.leads.length === 0) {
+      var key = data.routeKey || 'CARY82';
+      data.leads = (BUILT_IN_ROUTES[key] || BUILT_IN_ROUTES['CARY82']).leads;
     }
-    renderList();
-    updateProgress();
+    routeData = data;
+    var fs = data.statuses || {};
+    var fn = data.notes   || {};
+    Object.keys(fs).forEach(function(k){ statuses[parseInt(k)] = fs[k]; });
+    Object.keys(fn).forEach(function(k){ notes[parseInt(k)]    = fn[k]; });
+    if (data.coords) {
+      Object.keys(data.coords).forEach(function(k){ coordCache[parseInt(k)] = data.coords[k]; });
+    }
+    renderHomeTab(); renderRoutesTab(); renderStatsTab();
+    renderList(); updateProgress();
+    if (mapInitialized) plotAllDots();
   });
-
-  // Initialize map immediately — it's the default view
-  setTimeout(function(){ initAgentMap(); }, 200);
 }
 
+// ── Sign Out ───────────────────────────────────────────────────────────────────
 function signOutAgent() {
-  if (!confirm('Sign out?')) return;
+  sessionStorage.removeItem('rf_agent');
   if (firestoreUnsubscribe) firestoreUnsubscribe();
-  localStorage.removeItem('rf_agent');
-  agentName = ''; routeCode = ''; routeData = null; statuses = {}; notes = {};
-  document.getElementById('app').style.display = 'none';
+  agentName=''; routeCode=''; routeData=null; statuses={}; notes={};
+  agentMap=null; mapMarkers={}; mapInitialized=false; coordCache={};
+  document.getElementById('crm-app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('inp-name').value = '';
-  document.getElementById('inp-pin').value = '';
+  document.getElementById('lg-name').value = '';
+  document.getElementById('lg-pin').value = '';
   document.getElementById('login-err').style.display = 'none';
 }
 
-// ── Render ─────────────────────────────────────────────────────────────────
-function renderList() {
-  if (!routeData) return;
-  var leads = routeData.leads || [];
-  var html = '';
-  leads.forEach(function(lead, i) {
+// ── Render: Home Tab ───────────────────────────────────────────────────────────
+function renderHomeTab() {
+  // Today's route card
+  var wrap = document.getElementById('home-route-wrap');
+  if (!routeData) {
+    wrap.innerHTML = '<div class="empty-card">No route assigned yet.</div>';
+  } else {
+    var total   = routeData.leads ? routeData.leads.length : 0;
+    var knocked = Object.values(statuses).filter(function(s){ return s !== 'pending'; }).length;
+    var pct     = total > 0 ? Math.round(knocked / total * 100) : 0;
+    wrap.innerHTML =
+      '<div class="today-card" onclick="openRoute()">'
+      + '<div class="tc-label">Today\'s Route</div>'
+      + '<div class="tc-name">' + (routeData.name || 'Route') + '</div>'
+      + '<div class="tc-bar"><div class="tc-fill" style="width:' + pct + '%"></div></div>'
+      + '<div class="tc-meta">' + knocked + ' of ' + total + ' doors knocked</div>'
+      + '<div class="tc-cta">Open Route →</div>'
+      + '</div>';
+  }
+
+  // Build no-answer + follow-up lists
+  var naList = [], fuList = [];
+  if (routeData && routeData.leads) {
+    routeData.leads.forEach(function(lead, i) {
+      var s = statuses[i] || 'pending';
+      if (s === 'no-answer') naList.push({lead:lead, idx:i, status:s});
+      if (s === 'callback' || s === 'interested' || s === 'appointment') fuList.push({lead:lead, idx:i, status:s});
+    });
+  }
+
+  document.getElementById('na-count').textContent = naList.length;
+  document.getElementById('fu-count').textContent = fuList.length;
+
+  var naEl = document.getElementById('no-answer-list');
+  naEl.innerHTML = '';
+  if (naList.length === 0) {
+    naEl.innerHTML = '<div class="empty-card">No unanswered doors yet.</div>';
+  } else {
+    naList.forEach(function(item){ naEl.appendChild(buildHomeDoor(item.lead, item.idx, item.status)); });
+  }
+
+  var fuEl = document.getElementById('followup-list');
+  fuEl.innerHTML = '';
+  if (fuList.length === 0) {
+    fuEl.innerHTML = '<div class="empty-card">No follow-ups yet — keep knocking!</div>';
+  } else {
+    fuList.forEach(function(item){ fuEl.appendChild(buildHomeDoor(item.lead, item.idx, item.status)); });
+  }
+}
+
+function buildHomeDoor(lead, idx, status) {
+  var color = STATUS_COLORS[status] || '#4b5563';
+  var label = STATUS_LABELS[status] || status;
+  var div = document.createElement('div');
+  div.className = 'home-door';
+  div.onclick = function(){ openRouteToModal(idx); };
+  div.innerHTML =
+    '<div class="hd-dot" style="background:' + color + '"></div>'
+    + '<div class="hd-info">'
+    + '<div class="hd-addr">' + lead.addr + '</div>'
+    + '<div class="hd-sub">' + lead.owner + ' · ' + lead.age + ' yr roof</div>'
+    + '</div>'
+    + '<div class="hd-tag" style="background:' + color + '22;color:' + color + ';border:1px solid ' + color + '55">' + label + '</div>';
+  return div;
+}
+
+function openRouteToModal(idx) {
+  openRoute();
+  setTimeout(function(){ openModal(idx); }, 200);
+}
+
+// ── Render: Routes Tab ─────────────────────────────────────────────────────────
+function renderRoutesTab() {
+  var el = document.getElementById('routes-list');
+  if (!routeData) {
+    el.innerHTML = '<div class="no-route">No routes assigned.<br>Check back with your manager.</div>';
+    return;
+  }
+  var total   = routeData.leads ? routeData.leads.length : 0;
+  var knocked = Object.values(statuses).filter(function(s){ return s !== 'pending'; }).length;
+  var pct     = total > 0 ? Math.round(knocked / total * 100) : 0;
+  el.innerHTML =
+    '<div class="route-card" onclick="openRoute()">'
+    + '<div class="rc-label">Active Route</div>'
+    + '<div class="rc-name">' + (routeData.name || 'Route') + '</div>'
+    + '<div class="rc-meta"><span>' + total + ' doors</span><span>' + knocked + ' knocked</span></div>'
+    + '<div class="rc-bar"><div class="rc-fill" style="width:' + pct + '%"></div></div>'
+    + '<div class="rc-prog" style="margin-top:5px">' + pct + '% complete</div>'
+    + '<div class="rc-arrow">→</div>'
+    + '</div>';
+}
+
+// ── Render: Stats Tab ──────────────────────────────────────────────────────────
+function renderStatsTab() {
+  var grid = document.getElementById('stats-grid');
+  var bars = document.getElementById('stats-bars');
+  if (!routeData || !routeData.leads) {
+    grid.innerHTML = '<div class="stat-box"><div class="stat-num" style="color:var(--muted)">—</div><div class="stat-lbl">No route yet</div></div>';
+    bars.innerHTML = ''; return;
+  }
+  var total   = routeData.leads.length;
+  var knocked = 0;
+  var counts  = {'interested':0,'appointment':0,'callback':0,'no-answer':0,'not-interested':0,'no-need':0,'pending':0};
+  routeData.leads.forEach(function(_, i) {
     var s = statuses[i] || 'pending';
-    var n = notes[i] || '';
-    var hidden = (curTab !== 'all' && curTab !== s) ? ' hidden' : '';
-    var tierCls = 't-' + lead.tier;
-    html += '<div class="door-card s-' + s + hidden + '" onclick="openModal(' + i + ')">'
-      + '<div class="route-num">' + (i + 1) + '</div>'
-      + '<div class="status-dot"></div>'
-      + '<div class="card-body">'
-      + '<div class="card-addr">' + lead.addr + '</div>'
-      + '<div class="card-meta">'
-      + '<span class="tier-badge ' + tierCls + '">' + lead.tier + '</span>'
-      + '<span>' + lead.age + 'yr roof</span>'
-      + '<span>' + lead.val + '</span>'
+    if (s !== 'pending') knocked++;
+    if (counts[s] !== undefined) counts[s]++; else counts[s] = 1;
+  });
+  var pct       = total > 0 ? Math.round(knocked / total * 100) : 0;
+  var qualified = (counts['interested']||0) + (counts['appointment']||0) + (counts['callback']||0);
+
+  grid.innerHTML =
+    '<div class="stat-box"><div class="stat-num" style="color:var(--green)">' + knocked + '</div><div class="stat-lbl">Doors Knocked</div></div>'
+    + '<div class="stat-box"><div class="stat-num" style="color:#a855f7">' + (counts['appointment']||0) + '</div><div class="stat-lbl">Appointments</div></div>'
+    + '<div class="stat-box"><div class="stat-num" style="color:#10b981">' + qualified + '</div><div class="stat-lbl">Qualified</div></div>'
+    + '<div class="stat-box"><div class="stat-num" style="color:var(--text)">' + pct + '%</div><div class="stat-lbl">Route Progress</div></div>';
+
+  var barOrder = ['appointment','interested','callback','no-answer','not-interested','no-need','pending'];
+  var maxCt    = Math.max.apply(null, barOrder.map(function(s){ return counts[s]||0; })) || 1;
+  var bHtml    = '';
+  barOrder.forEach(function(s) {
+    var ct    = counts[s] || 0;
+    var color = STATUS_COLORS[s] || '#4b5563';
+    var w     = Math.round(ct / maxCt * 100);
+    bHtml += '<div class="bar-row">'
+      + '<div class="bar-lbl">' + STATUS_LABELS[s] + '</div>'
+      + '<div class="bar-track"><div class="bar-fill" style="width:' + w + '%;background:' + color + '"></div></div>'
+      + '<div class="bar-ct">' + ct + '</div>'
+      + '</div>';
+  });
+  bars.innerHTML = bHtml;
+}
+
+// ── Route View ─────────────────────────────────────────────────────────────────
+function openRoute() {
+  if (!routeData) return;
+  document.getElementById('route-view').classList.add('open');
+  document.getElementById('rt-name-lbl').textContent = routeData.name || 'Route';
+  renderList();
+  updateProgress();
+  if (!mapInitialized) {
+    initAgentMap();
+  } else if (curView === 'map' && agentMap) {
+    setTimeout(function(){ agentMap.invalidateSize(); }, 100);
+  }
+}
+
+function closeRouteView() {
+  document.getElementById('route-view').classList.remove('open');
+}
+
+// ── Render: Door List ──────────────────────────────────────────────────────────
+function renderList() {
+  var el = document.getElementById('door-list');
+  if (!routeData || !routeData.leads) { el.innerHTML=''; return; }
+  var html = '';
+  routeData.leads.forEach(function(lead, i) {
+    var s = statuses[i] || 'pending';
+    if (curTab !== 'all' && s !== curTab) return;
+    var color     = STATUS_COLORS[s] || '#4b5563';
+    var tierClass = lead.tier === 'PRIME' ? 'prime' : lead.tier === 'HOT' ? 'hot' : 'warm';
+    html += '<div class="door-card" onclick="openModal(' + i + ')">'
+      + '<div class="door-dot" style="background:' + color + '"></div>'
+      + '<div class="door-info">'
+      + '<div class="door-addr">' + lead.addr + '</div>'
+      + '<div class="door-sub">' + lead.owner + '</div>'
+      + '<div class="door-badges">'
+      + '<span class="badge ' + tierClass + '">' + lead.tier + '</span>'
+      + '<span class="badge age">🏠 ' + lead.age + ' yr</span>'
+      + '<span class="badge val">💰 ' + lead.val + '</span>'
       + '</div>'
-      + (n ? '<div class="card-note">' + n + '</div>' : '')
       + '</div>'
       + '</div>';
   });
-  document.getElementById('list').innerHTML = html || '<div style="padding:32px;text-align:center;color:var(--muted)">No doors match this filter.</div>';
-}
-
-function updateProgress() {
-  if (!routeData) return;
-  var leads = routeData.leads || [];
-  var total = leads.length;
-  var knocked = 0;
-  leads.forEach(function(_, i) {
-    var s = statuses[i] || 'pending';
-    if (s !== 'pending') knocked++;
-  });
-  var pct = total > 0 ? Math.round(knocked / total * 100) : 0;
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-label').textContent = knocked + ' / ' + total + ' knocked';
+  el.innerHTML = html || '<div style="padding:28px;text-align:center;color:var(--muted);font-size:13px">No doors in this filter.</div>';
 }
 
 function setTab(tab, el) {
   curTab = tab;
-  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.ftab').forEach(function(t){ t.classList.remove('active'); });
   el.classList.add('active');
   renderList();
 }
 
-// ── Detail Modal ────────────────────────────────────────────────────────────
+// ── Progress ───────────────────────────────────────────────────────────────────
+function updateProgress() {
+  if (!routeData || !routeData.leads) return;
+  var total   = routeData.leads.length;
+  var knocked = Object.values(statuses).filter(function(s){ return s !== 'pending'; }).length;
+  var pct     = total > 0 ? Math.round(knocked / total * 100) : 0;
+  var fill    = document.getElementById('rt-fill');
+  var text    = document.getElementById('rt-prog-text');
+  if (fill) fill.style.width = pct + '%';
+  if (text) text.textContent  = knocked + ' / ' + total + ' knocked';
+}
+
+// ── Detail Modal ───────────────────────────────────────────────────────────────
 function openModal(idx) {
-  curIdx = idx;
-  var lead = routeData.leads[idx];
+  curIdx    = idx;
+  var lead  = routeData.leads[idx];
   curStatus = statuses[idx] || 'pending';
-  document.getElementById('m-addr').textContent = lead.addr + ', Cary NC 27519';
+  document.getElementById('m-addr').textContent  = lead.addr + ', Cary NC 27519';
   document.getElementById('m-owner').textContent = lead.owner;
   var tierClass = lead.tier === 'PRIME' ? 'prime' : lead.tier === 'HOT' ? 'hot' : 'warm';
   document.getElementById('m-badges').innerHTML =
@@ -737,8 +782,7 @@ function openModal(idx) {
     + '<span class="m-chip val">💰 ' + lead.val + '</span>';
   document.getElementById('m-nav-btn').href = 'https://maps.google.com/maps?q=' + encodeURIComponent(lead.addr + ' Cary NC 27519') + '&t=k';
   document.getElementById('m-note').value = notes[idx] || '';
-  // Set status buttons
-  document.querySelectorAll('.s-btn').forEach(function(btn) {
+  document.querySelectorAll('.s-btn').forEach(function(btn){
     btn.classList.toggle('sel', btn.dataset.s === curStatus);
   });
   document.getElementById('modal').classList.add('open');
@@ -751,52 +795,37 @@ function closeModal() {
 
 function selectStatus(s) {
   curStatus = s;
-  document.querySelectorAll('.s-btn').forEach(function(btn) {
+  document.querySelectorAll('.s-btn').forEach(function(btn){
     btn.classList.toggle('sel', btn.dataset.s === s);
   });
 }
 
 function saveAndClose() {
   if (curIdx < 0) return;
-  var note = document.getElementById('m-note').value.trim();
-  // Update local state immediately
+  var note     = document.getElementById('m-note').value.trim();
   statuses[curIdx] = curStatus;
-  notes[curIdx] = note;
-  // Sync to Firestore
-  var update = { lastUpdate: Date.now() };
+  notes[curIdx]    = note;
+  var update   = { lastUpdate: Date.now() };
   update['statuses.' + curIdx] = curStatus;
-  update['notes.' + curIdx] = note;
-  update['agentName'] = agentName;
-  db.collection('agentRoutes').doc(routeCode).update(update).catch(function(err) {
-    console.log('Sync error:', err);
-  });
+  update['notes.'    + curIdx] = note;
+  update['agentName']          = agentName;
+  if (routeCode !== 'CARY82') {
+    db.collection('agentRoutes').doc(routeCode).update(update).catch(function(err){
+      console.log('Sync error:', err);
+    });
+  }
   var savedIdx = curIdx;
   closeModal();
-  renderList();
-  updateProgress();
+  renderList(); updateProgress();
   updateMapDot(savedIdx);
+  renderHomeTab(); renderStatsTab();
 }
 
-// ── Script Modal ────────────────────────────────────────────────────────────
-function openScript() {
-  document.getElementById('script-modal').classList.add('open');
-}
-function closeScript() {
-  document.getElementById('script-modal').classList.remove('open');
-}
+// ── Script Modal ───────────────────────────────────────────────────────────────
+function openScript()  { document.getElementById('script-modal').classList.add('open'); }
+function closeScript() { document.getElementById('script-modal').classList.remove('open'); }
 
-// Close detail modal on backdrop tap
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-document.getElementById('script-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeScript();
-});
-document.getElementById('add-home-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeAddHome();
-});
-
-// ── Add Home ────────────────────────────────────────────────────────────────
+// ── Add Home ───────────────────────────────────────────────────────────────────
 var ahTier = 'PRIME';
 
 function openAddHome() {
@@ -804,32 +833,61 @@ function openAddHome() {
   document.getElementById('ah-note').value = '';
   ahTier = 'PRIME';
   document.getElementById('ah-t-prime').className = 'ah-tier-btn sel-prime';
-  document.getElementById('ah-t-hot').className = 'ah-tier-btn';
-  document.getElementById('ah-t-warm').className = 'ah-tier-btn';
+  document.getElementById('ah-t-hot').className   = 'ah-tier-btn';
+  document.getElementById('ah-t-warm').className  = 'ah-tier-btn';
   document.getElementById('add-home-modal').classList.add('open');
   setTimeout(function(){ document.getElementById('ah-addr').focus(); }, 100);
 }
-
-function closeAddHome() {
-  document.getElementById('add-home-modal').classList.remove('open');
-}
+function closeAddHome() { document.getElementById('add-home-modal').classList.remove('open'); }
 
 function setAhTier(tier, btn) {
   ahTier = tier;
   document.getElementById('ah-t-prime').className = 'ah-tier-btn';
   document.getElementById('ah-t-hot').className   = 'ah-tier-btn';
   document.getElementById('ah-t-warm').className  = 'ah-tier-btn';
-  var cls = tier === 'PRIME' ? 'sel-prime' : tier === 'HOT' ? 'sel-hot' : 'sel-warm';
+  var cls = tier==='PRIME' ? 'sel-prime' : tier==='HOT' ? 'sel-hot' : 'sel-warm';
   btn.className = 'ah-tier-btn ' + cls;
 }
 
-// ── View Toggle ──────────────────────────────────────────────────────────────
+function saveAddHome() {
+  var addr = document.getElementById('ah-addr').value.trim();
+  if (!addr) { document.getElementById('ah-addr').focus(); return; }
+  var note    = document.getElementById('ah-note').value.trim();
+  var newLead = { addr:addr, owner:'Field Add', tier:ahTier, age:0, val:'—', street:'', addedByAgent:agentName, addedAt:Date.now() };
+  var btn     = document.getElementById('ah-save');
+  btn.textContent = 'Saving…'; btn.disabled = true;
+  var updatedLeads = (routeData.leads || []).concat([newLead]);
+
+  if (routeCode === 'CARY82') {
+    // Local only for built-in route
+    routeData.leads = updatedLeads;
+    if (note) { notes[updatedLeads.length-1] = note; }
+    btn.textContent='Add to Route ↑'; btn.disabled=false;
+    closeAddHome(); renderList(); return;
+  }
+
+  db.collection('agentRoutes').doc(routeCode).update({ leads:updatedLeads, lastUpdate:Date.now() })
+    .then(function() {
+      if (note) {
+        var ni = updatedLeads.length - 1;
+        var nu = {}; nu['notes.' + ni] = note;
+        db.collection('agentRoutes').doc(routeCode).update(nu).catch(function(){});
+      }
+      btn.textContent='Add to Route ↑'; btn.disabled=false;
+      closeAddHome();
+    })
+    .catch(function() {
+      alert('Could not save. Check your connection.');
+      btn.textContent='Add to Route ↑'; btn.disabled=false;
+    });
+}
+
+// ── View Toggle ─────────────────────────────────────────────────────────────────
 function setView(v) {
   curView = v;
-  // Map mode: compact map + list below. List mode: no map, just list.
   document.getElementById('map-view').style.display  = v === 'list' ? 'none' : 'block';
   document.getElementById('list-view').style.display = 'block';
-  document.querySelectorAll('.vt-btn').forEach(function(btn) {
+  document.querySelectorAll('.vt-btn').forEach(function(btn){
     btn.classList.toggle('active', btn.dataset.view === v);
   });
   if (v === 'map' && agentMap) {
@@ -837,6 +895,7 @@ function setView(v) {
   }
 }
 
+// ── Map ─────────────────────────────────────────────────────────────────────────
 function initAgentMap() {
   mapInitialized = true;
   var zip = '';
@@ -846,16 +905,12 @@ function initAgentMap() {
   }
 
   function startMap(lat, lng) {
-    agentMap = L.map('map-el', { zoomControl: false, scrollWheelZoom: false }).setView([lat, lng], 15);
+    agentMap = L.map('map-el', { zoomControl:false, scrollWheelZoom:false }).setView([lat,lng],15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© OpenStreetMap © CARTO', maxZoom: 18
+      attribution:'© OpenStreetMap © CARTO', maxZoom:18
     }).addTo(agentMap);
-
-    // Load from Firestore cache or geocode fresh
     if (routeData.coords && Object.keys(routeData.coords).length > 0) {
-      Object.keys(routeData.coords).forEach(function(k) {
-        coordCache[parseInt(k)] = routeData.coords[k];
-      });
+      Object.keys(routeData.coords).forEach(function(k){ coordCache[parseInt(k)] = routeData.coords[k]; });
       plotAllDots();
     } else {
       geocodeLeads(zip);
@@ -866,9 +921,7 @@ function initAgentMap() {
   if (zip) {
     fetch('https://api.zippopotam.us/us/' + zip)
       .then(function(r){ return r.json(); })
-      .then(function(data){
-        startMap(parseFloat(data.places[0].latitude), parseFloat(data.places[0].longitude));
-      })
+      .then(function(data){ startMap(parseFloat(data.places[0].latitude), parseFloat(data.places[0].longitude)); })
       .catch(function(){ startMap(35.751, -78.822); });
   } else {
     startMap(35.751, -78.822);
@@ -877,10 +930,9 @@ function initAgentMap() {
 
 function geocodeLeads(zip) {
   if (!routeData || !routeData.leads) return;
-  var leads = routeData.leads;
-  var suffix = zip ? zip : 'NC';
+  var leads        = routeData.leads;
+  var suffix       = zip ? zip : 'NC';
   var coordsToSave = {};
-
   leads.forEach(function(lead, i) {
     setTimeout(function() {
       var q = encodeURIComponent(lead.addr + ', ' + suffix);
@@ -890,22 +942,20 @@ function geocodeLeads(zip) {
           if (data && data[0]) {
             var lat = parseFloat(data[0].lat);
             var lng = parseFloat(data[0].lon);
-            coordCache[i] = [lat, lng];
-            coordsToSave[i] = [lat, lng];
+            coordCache[i]    = [lat, lng];
+            coordsToSave[i]  = [lat, lng];
             plotDot(i, lat, lng);
-            // Batch-save to Firestore every 5 resolved or on last
             if (Object.keys(coordsToSave).length >= 5 || i === leads.length - 1) {
-              var update = {};
-              Object.keys(coordsToSave).forEach(function(k){
-                update['coords.' + k] = coordsToSave[k];
-              });
-              db.collection('agentRoutes').doc(routeCode).update(update).catch(function(){});
+              if (routeCode !== 'CARY82') {
+                var upd = {};
+                Object.keys(coordsToSave).forEach(function(k){ upd['coords.' + k] = coordsToSave[k]; });
+                db.collection('agentRoutes').doc(routeCode).update(upd).catch(function(){});
+              }
               coordsToSave = {};
             }
           }
-        })
-        .catch(function(){});
-    }, i * 1200); // 1.2s between requests — respects Nominatim rate limit
+        }).catch(function(){});
+    }, i * 1200); // 1.2s per request — Nominatim rate limit
   });
 }
 
@@ -922,8 +972,7 @@ function plotDot(idx, lat, lng) {
   var color = STATUS_COLORS[s] || '#4b5563';
   if (mapMarkers[idx]) { agentMap.removeLayer(mapMarkers[idx]); }
   mapMarkers[idx] = L.circleMarker([lat, lng], {
-    radius: 9, fillColor: color, color: '#000', weight: 1.5,
-    opacity: 0.9, fillOpacity: 0.85
+    radius:9, fillColor:color, color:'#000', weight:1.5, opacity:.9, fillOpacity:.85
   }).addTo(agentMap).on('click', function(){ openModal(idx); });
 }
 
@@ -932,51 +981,10 @@ function updateMapDot(idx) {
   plotDot(idx, coordCache[idx][0], coordCache[idx][1]);
 }
 
-function saveAddHome() {
-  var addr = document.getElementById('ah-addr').value.trim();
-  if (!addr) {
-    document.getElementById('ah-addr').focus();
-    return;
-  }
-  var note = document.getElementById('ah-note').value.trim();
-  var newLead = {
-    addr: addr,
-    owner: 'Field Add',
-    tier: ahTier,
-    age: 0,
-    val: '—',
-    street: '',
-    addedByAgent: agentName,
-    addedAt: Date.now()
-  };
-
-  // Append to Firestore leads array
-  var btn = document.getElementById('ah-save');
-  btn.textContent = 'Saving…';
-  btn.disabled = true;
-
-  // Use manual array append (Firebase compat SDK arrayUnion)
-  var updatedLeads = (routeData.leads || []).concat([newLead]);
-  db.collection('agentRoutes').doc(routeCode).update({
-    leads: updatedLeads,
-    lastUpdate: Date.now()
-  }).then(function() {
-    // Pre-set note if they typed one
-    if (note) {
-      var newIdx = updatedLeads.length - 1;
-      var noteUpdate = {};
-      noteUpdate['notes.' + newIdx] = note;
-      db.collection('agentRoutes').doc(routeCode).update(noteUpdate).catch(function(){});
-    }
-    btn.textContent = 'Add to Route ↑';
-    btn.disabled = false;
-    closeAddHome();
-  }).catch(function(err) {
-    alert('Could not save. Check your connection.');
-    btn.textContent = 'Add to Route ↑';
-    btn.disabled = false;
-  });
-}
+// ── Modal backdrops ────────────────────────────────────────────────────────────
+document.getElementById('modal').addEventListener('click',          function(e){ if(e.target===this) closeModal(); });
+document.getElementById('script-modal').addEventListener('click',   function(e){ if(e.target===this) closeScript(); });
+document.getElementById('add-home-modal').addEventListener('click', function(e){ if(e.target===this) closeAddHome(); });
 </script>
 </body>
 </html>
