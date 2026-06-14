@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RooFinder — Zone Status Importer</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;min-height:100vh}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(76,175,80,0.12) 0%,transparent 60%),#0a0a0a}
+.login-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:48px 40px;max-width:420px;width:100%;text-align:center}
+.logo{font-size:22px;font-weight:800;margin-bottom:4px}.logo span{color:#4caf50}
+.sub{font-size:13px;color:#888;margin-bottom:32px}
+.label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888;display:block;margin-bottom:8px;text-align:left}
+.inp{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px 16px;color:#fff;font-size:14px;font-family:inherit;margin-bottom:16px;outline:none;transition:border-color .2s}
+.inp:focus{border-color:rgba(76,175,80,0.5)}
+.btn-primary{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:14px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
+.btn-primary:hover{background:#5cc760}
+.err{color:#ff5555;font-size:12px;margin-top:8px}
+#main{display:none;padding:48px 24px;max-width:720px;margin:0 auto}
+.page-logo{font-size:18px;font-weight:800;margin-bottom:4px}.page-logo span{color:#4caf50}
+.page-sub{font-size:13px;color:#888;margin-bottom:8px}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.35);color:#4caf50;padding:3px 10px;border-radius:100px;margin-bottom:28px}
+.card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;margin-bottom:20px}
+.card-title{font-size:11px;font-weight:700;color:#555;margin-bottom:16px;text-transform:uppercase;letter-spacing:1.5px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.field-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:6px}
+.field-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:14px;font-weight:700;letter-spacing:3px;padding:10px 14px;border-radius:8px;outline:none;font-family:inherit}
+.field-input:focus{border-color:rgba(76,175,80,0.5)}
+.file-zone{border:2px dashed #2a2a2a;border-radius:10px;padding:36px 24px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:16px}
+.file-zone:hover,.file-zone.drag{border-color:#4caf50;background:rgba(76,175,80,0.04)}
+.file-zone-label{font-size:13px;color:#555}
+.file-zone-label strong{color:#aaa}
+.file-status{display:none;font-size:13px;font-weight:600;color:#4caf50;padding:10px 14px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);border-radius:7px;margin-bottom:16px}
+.format-hint{font-size:11px;color:#444;line-height:1.7;margin-bottom:16px}
+.format-hint code{color:#888;background:#1a1a1a;padding:1px 5px;border-radius:3px;font-family:monospace}
+.or-divider{text-align:center;color:#333;font-size:11px;margin:14px 0;position:relative}
+.or-divider:before,.or-divider:after{content:'';position:absolute;top:50%;width:46%;height:1px;background:#222}
+.or-divider:before{left:0}.or-divider:after{right:0}
+.paste-area{width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);color:#bbb;font-size:12px;padding:12px 14px;border-radius:8px;outline:none;font-family:monospace;height:120px;resize:vertical;margin-bottom:14px}
+.paste-area:focus{border-color:rgba(76,175,80,0.4)}
+.action-row{display:flex;gap:10px;align-items:center}
+.btn-parse{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-weight:700;font-size:13px;padding:10px 20px;border-radius:8px;cursor:pointer;font-family:inherit}
+.btn-parse:hover{background:rgba(76,175,80,0.18)}
+.parse-hint{font-size:12px;color:#555}
+#preview{display:none}
+.preview-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat-pill{font-size:12px;font-weight:700;padding:5px 12px;border-radius:100px}
+.pill-keep{background:rgba(76,175,80,0.12);color:#4caf50;border:1px solid rgba(76,175,80,0.3)}
+.pill-skip{background:rgba(255,85,85,0.08);color:#ff6b6b;border:1px solid rgba(255,85,85,0.25)}
+.pill-total{background:rgba(255,255,255,0.04);color:#aaa;border:1px solid rgba(255,255,255,0.12)}
+.preview-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px}
+.preview-table th{text-align:left;color:#555;font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid #222}
+.preview-table td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.04);color:#bbb}
+.preview-table .s-keep{color:#4caf50;font-weight:700}
+.preview-table .s-skip{color:#ff6b6b;font-weight:700}
+.preview-table tr:last-child td{border-bottom:none}
+.mode-note{font-size:11px;color:#666;padding:10px 14px;background:rgba(255,165,0,0.04);border:1px solid rgba(255,165,0,0.15);border-radius:7px;margin-bottom:16px}
+.mode-note strong{color:#ffa500}
+.import-row{display:flex;gap:12px;align-items:center;margin-top:4px}
+.btn-import{background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:12px 28px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
+.btn-import:hover{background:#5cc760}
+.btn-import:disabled{background:#2a6e2e;color:#555;cursor:not-allowed}
+#log-section{display:none}
+.log-box{background:#080808;border:1px solid #1a1a1a;border-radius:8px;padding:14px 16px;font-family:monospace;font-size:12px;max-height:280px;overflow-y:auto;line-height:1.8}
+.log-info{color:#444}.log-ok{color:#4caf50}.log-warn{color:#ffa500}.log-err{color:#ff5555}.log-bold{color:#e0e4f0;font-weight:700}
+.success-banner{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:10px;padding:20px 24px;margin-top:16px;text-align:center;display:none}
+.success-title{font-size:15px;font-weight:700;color:#4caf50;margin-bottom:4px}
+.success-sub{font-size:12px;color:#888}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <div class="logo">Roo<span>Finder</span></div>
+    <div class="sub">Zone Status Importer — Admin Only</div>
+    <label class="label">Admin Password</label>
+    <input id="pw-input" class="inp" type="password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <button class="btn-primary" onclick="tryLogin()">Sign In</button>
+    <div id="login-err" class="err" style="display:none"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="page-logo">Roo<span>Finder</span></div>
+  <div class="page-sub">Admin Tools</div>
+  <div class="badge">Zone Status Importer</div>
+
+  <!-- STEP 1: ZIP + FILE -->
+  <div class="card">
+    <div class="card-title">Step 1 — Target Zip Code</div>
+    <div style="margin-bottom:4px"><label class="field-label">Zip Code</label></div>
+    <input type="text" class="field-input" id="zip-input" placeholder="27601" maxlength="5" style="max-width:180px"/>
+    <div style="font-size:11px;color:#444;margin-top:8px">Statuses will be written to <code style="color:#888;background:#1a1a1a;padding:1px 5px;border-radius:3px">zones/{zip}.statuses</code> in Firestore.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Step 2 — Status File or Paste</div>
+    <div class="format-hint">
+      CSV format (header row required):<br/>
+      <code>address,status</code><br/>
+      <code>123 Oak St,keep</code><br/>
+      <code>456 Maple Ave,skip</code><br/>
+      The <code>address</code> must match exactly what was uploaded in the Zone Seeder. Status must be <code>keep</code> or <code>skip</code> (other values are ignored).
+    </div>
+    <div class="file-zone" id="file-zone"
+      ondrop="handleDrop(event)" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')"
+      onclick="document.getElementById('file-input').click()">
+      <div style="font-size:24px;margin-bottom:8px">📋</div>
+      <div class="file-zone-label">Drop CSV here or <strong>click to browse</strong></div>
+      <input type="file" id="file-input" accept=".csv,.txt" style="display:none" onchange="handleFile(this.files[0])"/>
+    </div>
+    <div class="file-status" id="file-status"></div>
+    <div class="or-divider">or paste CSV text</div>
+    <textarea class="paste-area" id="paste-area" placeholder="address,status&#10;123 Oak St,keep&#10;456 Maple Ave,skip"></textarea>
+    <div class="action-row">
+      <button class="btn-parse" onclick="parseAndPreview()">Parse &amp; Preview</button>
+      <span class="parse-hint" id="parse-hint"></span>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="card" id="preview">
+    <div class="card-title">Step 3 — Review &amp; Import</div>
+    <div class="preview-stats" id="preview-stats"></div>
+    <div class="mode-note" id="mode-note"></div>
+    <table class="preview-table">
+      <thead><tr><th>#</th><th>Address</th><th>Status</th></tr></thead>
+      <tbody id="preview-tbody"></tbody>
+    </table>
+    <div id="more-note" style="font-size:11px;color:#444;margin-bottom:14px"></div>
+    <div class="import-row">
+      <button class="btn-import" id="import-btn" onclick="runImport()">Import to Firestore →</button>
+      <span style="font-size:12px;color:#444" id="import-note"></span>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="card" id="log-section">
+    <div class="card-title">Import Log</div>
+    <div class="log-box" id="log-box"></div>
+    <div class="success-banner" id="success-banner">
+      <div class="success-title">✓ Import Complete</div>
+      <div class="success-sub" id="success-sub"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyDP5VoKCvWGxhqyZwtdQ05oL_Tqed3fi94",
+  authDomain: "roofinder-cc880.firebaseapp.com",
+  projectId: "roofinder-cc880",
+  storageBucket: "roofinder-cc880.firebasestorage.app",
+  messagingSenderId: "882068436752",
+  appId: "1:882068436752:web:2ccd00b3580a47ec749795"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+var ADMIN_PW = 'ROOFADMIN1';
+var parsedStatuses = null; // {address: 'keep'|'skip'}
+
+function tryLogin() {
+  var pw = document.getElementById('pw-input').value.trim();
+  if (pw === ADMIN_PW) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+  } else {
+    var el = document.getElementById('login-err');
+    el.textContent = 'Incorrect password.';
+    el.style.display = 'block';
+  }
+}
+
+function handleDrop(ev) {
+  ev.preventDefault();
+  document.getElementById('file-zone').classList.remove('drag');
+  if (ev.dataTransfer.files[0]) handleFile(ev.dataTransfer.files[0]);
+}
+
+function handleFile(file) {
+  var r = new FileReader();
+  r.onload = function(e) {
+    document.getElementById('paste-area').value = e.target.result.trim();
+    document.getElementById('file-status').textContent = '✓ Loaded: ' + file.name;
+    document.getElementById('file-status').style.display = 'block';
+    document.getElementById('parse-hint').textContent = 'File ready — click Parse & Preview';
+  };
+  r.readAsText(file);
+}
+
+function parseCSV(text) {
+  var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
+  if (lines.length < 2) return null;
+  var headers = lines[0].split(',').map(function(h){ return h.trim().toLowerCase().replace(/^"|"$/g,''); });
+  var addrIdx = headers.indexOf('address');
+  var statusIdx = headers.indexOf('status');
+  if (addrIdx < 0) addrIdx = 0;
+  if (statusIdx < 0) statusIdx = 1;
+  var result = {};
+  for (var i=1; i<lines.length; i++) {
+    var vals = lines[i].split(',').map(function(v){ return v.trim().replace(/^"|"$/g,''); });
+    var addr = vals[addrIdx] || '';
+    var status = (vals[statusIdx] || '').toLowerCase();
+    if (addr && (status === 'keep' || status === 'skip')) {
+      result[addr] = status;
+    }
+  }
+  return result;
+}
+
+function parseAndPreview() {
+  var zip = document.getElementById('zip-input').value.trim();
+  if (!/^\d{5}$/.test(zip)) {
+    document.getElementById('parse-hint').textContent = 'Enter a valid 5-digit zip code first.';
+    document.getElementById('parse-hint').style.color = '#ff5555';
+    return;
+  }
+
+  var raw = document.getElementById('paste-area').value.trim();
+  if (!raw) {
+    document.getElementById('parse-hint').textContent = 'No data to parse.';
+    document.getElementById('parse-hint').style.color = '#ff5555';
+    return;
+  }
+
+  var result = parseCSV(raw);
+  if (!result || Object.keys(result).length === 0) {
+    document.getElementById('parse-hint').textContent = 'No valid keep/skip rows found. Check format.';
+    document.getElementById('parse-hint').style.color = '#ff5555';
+    return;
+  }
+
+  parsedStatuses = result;
+  var entries = Object.entries(result);
+  var kept = entries.filter(function(e){ return e[1]==='keep'; }).length;
+  var skipped = entries.filter(function(e){ return e[1]==='skip'; }).length;
+
+  document.getElementById('parse-hint').textContent = Object.keys(result).length + ' records parsed';
+  document.getElementById('parse-hint').style.color = '#4caf50';
+
+  document.getElementById('preview-stats').innerHTML =
+    '<span class="stat-pill pill-total">' + entries.length + ' total</span>'
+    + '<span class="stat-pill pill-keep">✓ ' + kept + ' keep</span>'
+    + '<span class="stat-pill pill-skip">✗ ' + skipped + ' skip</span>';
+
+  document.getElementById('mode-note').innerHTML =
+    'These decisions will be <strong>merged</strong> into the existing status map for zip <strong>' + zip + '</strong>. '
+    + 'Existing statuses not in this file will be preserved. Import only overwrites addresses you include.';
+
+  var preview = entries.slice(0, 10);
+  document.getElementById('preview-tbody').innerHTML = preview.map(function(e, i) {
+    return '<tr><td style="color:#555">' + (i+1) + '</td>'
+      + '<td>' + e[0] + '</td>'
+      + '<td class="s-' + e[1] + '">' + (e[1]==='keep'?'✓ Keep':'✗ Skip') + '</td></tr>';
+  }).join('');
+
+  if (entries.length > 10) {
+    document.getElementById('more-note').textContent = '... and ' + (entries.length - 10) + ' more rows';
+  } else {
+    document.getElementById('more-note').textContent = '';
+  }
+
+  document.getElementById('import-note').textContent = 'Will merge ' + entries.length + ' statuses into zones/' + zip;
+  document.getElementById('preview').style.display = 'block';
+  document.getElementById('import-btn').disabled = false;
+}
+
+function logLine(msg, type) {
+  var box = document.getElementById('log-box');
+  var d = document.createElement('div');
+  d.className = 'log-' + (type||'info');
+  d.textContent = msg;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function runImport() {
+  var zip = document.getElementById('zip-input').value.trim();
+  if (!parsedStatuses || Object.keys(parsedStatuses).length === 0) { alert('No data parsed.'); return; }
+
+  document.getElementById('import-btn').disabled = true;
+  document.getElementById('import-btn').textContent = 'Importing...';
+  document.getElementById('log-section').style.display = 'block';
+
+  var entries = Object.entries(parsedStatuses);
+  logLine('Starting import: ' + entries.length + ' statuses → zones/' + zip, 'bold');
+
+  try {
+    // Read current zone doc first (to merge)
+    var zoneRef = db.collection('zones').doc(zip);
+    var zoneSnap = await zoneRef.get();
+    var existing = (zoneSnap.exists && zoneSnap.data().statuses) ? zoneSnap.data().statuses : {};
+
+    // Merge
+    var merged = Object.assign({}, existing);
+    var keepCount = 0, skipCount = 0;
+    entries.forEach(function(e) {
+      merged[e[0]] = e[1];
+      if (e[1]==='keep') keepCount++;
+      else skipCount++;
+    });
+
+    await zoneRef.set({ statuses: merged }, { merge: true });
+    logLine('✓ Wrote ' + Object.keys(merged).length + ' total statuses to zones/' + zip + ' (' + keepCount + ' keep, ' + skipCount + ' skip)', 'ok');
+    logLine('Import complete.', 'ok');
+
+    document.getElementById('success-banner').style.display = 'block';
+    document.getElementById('success-sub').textContent = entries.length + ' statuses imported to zip ' + zip + '. Open the Zone Builder to verify.';
+  } catch(e) {
+    logLine('✗ Import failed: ' + e.message, 'err');
+    document.getElementById('import-btn').disabled = false;
+    document.getElementById('import-btn').textContent = 'Import to Firestore →';
+  }
+}
+</script>
+</body>
+</html>

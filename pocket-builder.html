@@ -2,21 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>RooFinder — Pocket Builder</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>RooFinder — Zone Builder</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif}
 
-/* ── LOADING OVERLAY ── */
-#loading-overlay{position:fixed;inset:0;background:rgba(10,10,10,0.92);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;display:none}
+/* LOADING */
+#loading-overlay{position:fixed;inset:0;background:rgba(10,10,10,0.92);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center}
 .loading-spinner{width:36px;height:36px;border:3px solid rgba(76,175,80,0.2);border-top-color:#4caf50;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:14px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:14px;color:#888}
 
-/* ── LOGIN ── */
+/* LOGIN */
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(76,175,80,0.12) 0%,transparent 60%),#0a0a0a}
 .login-box{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:48px 40px;max-width:400px;width:100%;text-align:center}
 .login-logo{font-size:22px;font-weight:800;margin-bottom:4px}.login-logo span{color:#4caf50}
@@ -25,11 +25,10 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif}
 .login-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:12px 16px;color:#fff;font-size:14px;font-family:inherit;margin-bottom:16px;outline:none;transition:border-color .2s}
 .login-input:focus{border-color:rgba(76,175,80,0.5)}
 .login-btn{width:100%;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:14px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
-.login-btn:hover{background:#5cc760}
-.login-btn:disabled{background:#2a6e2e;color:#555;cursor:not-allowed}
+.login-btn:hover{background:#5cc760}.login-btn:disabled{background:#2a6e2e;color:#555;cursor:not-allowed}
 .login-err{color:#ff5555;font-size:12px;margin-top:8px;display:none}
 
-/* ── PICKER ── */
+/* PICKER */
 #picker{display:none;min-height:100vh;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(76,175,80,0.08) 0%,transparent 60%),#0a0a0a;padding:60px 24px}
 .picker-wrap{max-width:960px;margin:0 auto}
 .picker-logo{font-size:18px;font-weight:800;margin-bottom:4px}.picker-logo span{color:#4caf50}
@@ -38,29 +37,36 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif}
 .picker-tab{font-size:13px;font-weight:700;padding:10px 20px;cursor:pointer;color:#555;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
 .picker-tab.active{color:#fff;border-bottom-color:#4caf50}
 .picker-tab:hover{color:#aaa}
-#tab-pockets{display:block}
+#tab-zones{display:block}
 #tab-codes{display:none}
 
-/* Pocket grid */
-.market-group{margin-bottom:28px}
-.market-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05)}
-.pocket-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
-.pocket-tile{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .2s}
-.pocket-tile:hover{background:rgba(76,175,80,0.06);border-color:rgba(76,175,80,0.35)}
-.pocket-tile.has-leads{border-color:rgba(76,175,80,0.2);background:rgba(76,175,80,0.03)}
-.pocket-tile.assigned{border-color:rgba(255,165,0,0.3);background:rgba(255,165,0,0.04)}
-.pocket-tile-name{font-size:12px;font-weight:600;color:#fff;margin-bottom:3px}
-.pocket-tile-meta{font-size:10px;color:#555}
-.pocket-tile.has-leads .pocket-tile-meta{color:#4caf50}
-.pocket-tile.assigned .pocket-tile-meta{color:#ffa500}
-.pocket-tile-stats{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+/* Zone entry */
+.zip-entry-card{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;margin-bottom:28px}
+.zip-entry-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#555;margin-bottom:12px}
+.zip-entry-row{display:flex;gap:10px;align-items:center}
+.zip-text-input{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:18px;font-weight:700;letter-spacing:4px;padding:12px 18px;border-radius:8px;outline:none;font-family:inherit;width:160px;text-align:center}
+.zip-text-input:focus{border-color:rgba(76,175,80,0.5)}
+.zip-go-btn{background:#4caf50;color:#000;font-size:13px;font-weight:800;padding:12px 22px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
+.zip-go-btn:hover{background:#5cc760}
+.zip-hint{font-size:11px;color:#444;margin-top:10px}
+
+/* Active zone list */
+.zones-section-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:28px}
+.zone-tile{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:14px;cursor:pointer;transition:all .2s}
+.zone-tile:hover{background:rgba(76,175,80,0.06);border-color:rgba(76,175,80,0.35)}
+.zone-tile.has-activity{border-color:rgba(76,175,80,0.2);background:rgba(76,175,80,0.03)}
+.zone-tile-zip{font-size:18px;font-weight:800;color:#fff;letter-spacing:2px;margin-bottom:4px}
+.zone-tile-meta{font-size:11px;color:#555}
+.zone-tile.has-activity .zone-tile-meta{color:#4caf50}
+.zone-tile-stats{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
 .pts-keep{font-size:10px;font-weight:700;color:#4caf50;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.25);padding:2px 7px;border-radius:4px}
 .pts-skip{font-size:10px;font-weight:700;color:#ff6b6b;background:rgba(255,85,85,0.08);border:1px solid rgba(255,85,85,0.2);padding:2px 7px;border-radius:4px}
-.pts-pct{font-size:10px;color:#666;padding:2px 4px}
+.zones-empty{text-align:center;padding:40px 24px;color:#444;font-size:13px}
 .picker-back{background:transparent;border:none;color:#555;font-size:12px;cursor:pointer;font-family:inherit;margin-top:24px;padding:0}
 .picker-back:hover{color:#fff}
 
-/* ── CONTRACTOR CODES TAB ── */
+/* Contractor codes tab */
 .codes-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .codes-title{font-size:16px;font-weight:700}
 .add-code-btn{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:inherit}
@@ -72,7 +78,6 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif}
 .form-group label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#666;display:block;margin-bottom:6px}
 .form-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:13px;padding:9px 12px;border-radius:8px;outline:none;font-family:inherit}
 .form-input:focus{border-color:rgba(76,175,80,0.4)}
-.form-select{width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:13px;padding:9px 12px;border-radius:8px;outline:none;font-family:inherit}
 .form-hint{font-size:11px;color:#555;margin-top:4px}
 .form-actions{display:flex;gap:10px;margin-top:16px}
 .save-code-btn{background:#4caf50;color:#000;font-weight:800;font-size:12px;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-family:inherit}
@@ -88,22 +93,19 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif}
 .code-pill{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);color:#4caf50;font-size:11px;font-weight:800;padding:4px 10px;border-radius:6px;font-family:monospace;letter-spacing:1px}
 .copy-btn{background:transparent;border:1px solid rgba(255,255,255,0.1);color:#666;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
 .copy-btn:hover{border-color:#4caf50;color:#4caf50}
-.view-pocket-btn{background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);color:#4caf50;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
-.view-pocket-btn:hover{background:rgba(76,175,80,0.18)}
+.view-zone-btn{background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);color:#4caf50;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
+.view-zone-btn:hover{background:rgba(76,175,80,0.18)}
 .del-code-btn{background:transparent;border:1px solid rgba(255,85,85,0.2);color:#ff5555;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
 .del-code-btn:hover{background:rgba(255,85,85,0.1);border-color:rgba(255,85,85,0.5)}
 .empty-codes{text-align:center;padding:48px 24px;color:#444}
-.empty-codes-icon{font-size:32px;margin-bottom:12px}
-.empty-codes-title{font-size:14px;font-weight:600;color:#555;margin-bottom:6px}
-.empty-codes-sub{font-size:12px;color:#444}
 .codes-loading{text-align:center;padding:32px;color:#555;font-size:13px}
 
-/* ── PORTAL ── */
+/* PORTAL */
 #portal{display:none}
 nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);padding:0 24px}
 .nav-inner{max-width:1200px;margin:0 auto;height:60px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .nav-logo{font-size:15px;font-weight:800;cursor:pointer}.nav-logo span{color:#4caf50}
-.nav-pocket{font-size:12px;color:#888;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);padding:4px 12px;border-radius:100px}
+.nav-zone{font-size:12px;color:#888;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);padding:4px 12px;border-radius:100px}
 .nav-mode{font-size:11px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:100px}
 .nav-mode.admin{background:rgba(255,165,0,0.15);border:1px solid rgba(255,165,0,0.4);color:#ffa500}
 .nav-mode.contractor{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50}
@@ -140,10 +142,8 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
 .lead-table tr:hover td{background:rgba(255,255,255,0.015)}
 .lead-table tr.is-hidden td{opacity:0.35}
 .owner-name{color:#fff;font-weight:600}
-.address{color:#888;font-size:12px;margin-top:2px}
+.addr-text{color:#888;font-size:12px;margin-top:2px}
 .value-num{color:#4caf50;font-weight:700}
-.view-btn{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;text-decoration:none;display:inline-block;transition:all .2s}
-.view-btn:hover{background:rgba(76,175,80,0.2)}
 .keep-btn,.skip-btn{font-size:11px;font-weight:700;padding:5px 13px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s;border:1px solid}
 .keep-btn{background:transparent;border-color:rgba(76,175,80,0.25);color:#555}
 .keep-btn:hover{border-color:rgba(76,175,80,0.6);color:#4caf50;background:rgba(76,175,80,0.08)}
@@ -160,55 +160,63 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
 .hide-btn.is-hidden:hover{border-color:rgba(76,175,80,0.4);color:#4caf50}
 .del-btn{background:transparent;border:1px solid rgba(255,85,85,0.2);color:#ff5555;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .2s}
 .del-btn:hover{background:rgba(255,85,85,0.12);border-color:rgba(255,85,85,0.5)}
-.empty-pocket{text-align:center;padding:80px 24px;color:#444}
-.empty-pocket-icon{font-size:40px;margin-bottom:16px}
-.empty-pocket-title{font-size:16px;font-weight:600;color:#555;margin-bottom:8px}
-.empty-pocket-sub{font-size:13px;color:#444}
+.empty-zone{text-align:center;padding:80px 24px;color:#444}
+.empty-zone-icon{font-size:40px;margin-bottom:16px}
+.empty-zone-title{font-size:16px;font-weight:600;color:#555;margin-bottom:8px}
+.empty-zone-sub{font-size:13px;color:#444}
 </style>
 </head>
 <body>
 
-<!-- ── LOADING OVERLAY ── -->
-<div id="loading-overlay">
+<!-- LOADING -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,10,10,0.92);z-index:500;flex-direction:column;align-items:center;justify-content:center">
   <div class="loading-spinner"></div>
-  <div class="loading-text" id="loading-text">Loading pocket data...</div>
+  <div class="loading-text" id="loading-text">Loading zone data...</div>
 </div>
 
-<!-- ── LOGIN ── -->
+<!-- LOGIN -->
 <div id="login">
   <div class="login-box">
     <div class="login-logo">Roo<span>Finder</span></div>
     <div class="login-sub">Enter your password or access code</div>
     <label class="login-label">Password / Access Code</label>
-    <input type="password" class="login-input" id="code-input" placeholder="Enter code or email" onkeydown="if(event.key==='Enter')tryLogin()"/>
-    <button class="login-btn" id="login-btn" onclick="tryLogin()">Access Pocket Builder</button>
+    <input type="password" class="login-input" id="code-input" placeholder="Enter code" onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <button class="login-btn" id="login-btn" onclick="tryLogin()">Access Zone Builder</button>
     <div class="login-err" id="login-err">Incorrect password or access code.</div>
   </div>
 </div>
 
-<!-- ── ADMIN PICKER ── -->
+<!-- ADMIN PICKER -->
 <div id="picker">
   <div class="picker-wrap">
     <div class="picker-logo">Roo<span>Finder</span></div>
-    <div class="picker-badge">ADMIN · POCKET BUILDER</div>
+    <div class="picker-badge">ADMIN · ZONE BUILDER</div>
 
     <div class="picker-tabs">
-      <div class="picker-tab active" id="ptab-pockets" onclick="switchPickerTab('pockets')">📦 All Pockets</div>
+      <div class="picker-tab active" id="ptab-zones" onclick="switchPickerTab('zones')">📍 Zones</div>
       <div class="picker-tab" id="ptab-codes" onclick="switchPickerTab('codes')">🔑 Contractor Codes</div>
     </div>
 
-    <!-- Pockets tab -->
-    <div id="tab-pockets">
-      <div id="picker-markets"></div>
+    <!-- Zones tab -->
+    <div id="tab-zones">
+      <div class="zip-entry-card">
+        <div class="zip-entry-label">Open Zone by Zip Code</div>
+        <div class="zip-entry-row">
+          <input type="text" class="zip-text-input" id="zip-picker-input" placeholder="27601" maxlength="5" onkeydown="if(event.key==='Enter')openZoneFromPicker()"/>
+          <button class="zip-go-btn" onclick="openZoneFromPicker()">Open Zone →</button>
+        </div>
+        <div class="zip-hint">Type any 5-digit zip code. Data must be seeded first via the Zone Seeder tool.</div>
+      </div>
+      <div class="zones-section-label" id="zones-section-label">Active Zones</div>
+      <div class="zone-grid" id="zone-grid"><div class="zones-empty">Loading zones...</div></div>
     </div>
 
     <!-- Codes tab -->
-    <div id="tab-codes">
+    <div id="tab-codes" style="display:none">
       <div class="codes-header">
         <div class="codes-title">Contractor Access Codes</div>
         <button class="add-code-btn" onclick="toggleAddCodeForm()">+ Add Code</button>
       </div>
-
       <div class="add-code-form" id="add-code-form">
         <h3>NEW CONTRACTOR CODE</h3>
         <div class="form-row">
@@ -218,14 +226,15 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
           </div>
           <div class="form-group">
             <label>Access Code</label>
-            <input type="text" class="form-input" id="new-code" placeholder="e.g. ROOF2025A (or leave blank to auto-generate)"/>
+            <input type="text" class="form-input" id="new-code" placeholder="Auto-generate if blank"/>
             <div class="form-hint">Leave blank to auto-generate</div>
           </div>
         </div>
         <div class="form-row single">
           <div class="form-group">
-            <label>Assigned Pocket</label>
-            <select class="form-select" id="new-pocket"></select>
+            <label>Assigned Zip Code</label>
+            <input type="text" class="form-input" id="new-zip" placeholder="e.g. 27601" maxlength="5"/>
+            <div class="form-hint">Contractor will see only this zip code zone</div>
           </div>
         </div>
         <div class="form-actions">
@@ -233,15 +242,10 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
           <button class="cancel-btn" onclick="toggleAddCodeForm()">Cancel</button>
         </div>
       </div>
-
       <div class="codes-table-wrap">
         <table class="codes-table">
-          <thead>
-            <tr><th>Code</th><th>Contractor</th><th>Assigned Pocket</th><th>Added</th><th>Actions</th></tr>
-          </thead>
-          <tbody id="codes-tbody">
-            <tr><td colspan="5"><div class="codes-loading">Loading codes...</div></td></tr>
-          </tbody>
+          <thead><tr><th>Code</th><th>Contractor</th><th>Assigned Zip</th><th>Added</th><th>Actions</th></tr></thead>
+          <tbody id="codes-tbody"><tr><td colspan="5"><div class="codes-loading">Loading codes...</div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -250,12 +254,12 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
   </div>
 </div>
 
-<!-- ── PORTAL ── -->
+<!-- PORTAL -->
 <div id="portal">
   <nav>
     <div class="nav-inner">
-      <div class="nav-logo" onclick="switchPocket()">Roo<span>Finder</span></div>
-      <div class="nav-pocket" id="nav-pocket-label"></div>
+      <div class="nav-logo" onclick="switchZone()">Roo<span>Finder</span></div>
+      <div class="nav-zone" id="nav-zone-label"></div>
       <div class="nav-mode" id="mode-badge"></div>
       <div class="nav-stats">
         <div class="nav-stat"><div class="nav-stat-num" id="stat-total">0</div><div class="nav-stat-lbl">Leads</div></div>
@@ -272,7 +276,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 24px}
       <div class="mgr-count" id="mgr-count"></div>
       <button class="mgr-btn" onclick="setFilter('hidden',document.querySelector('[data-f=hidden]'))">View Hidden</button>
       <button class="mgr-btn danger" onclick="restoreAll()">Restore All</button>
-      <button class="mgr-btn switch" onclick="switchPocket()">← Switch Pocket</button>
+      <button class="mgr-btn switch" onclick="switchZone()">← Switch Zone</button>
     </div>
   </div>
 
@@ -318,114 +322,22 @@ var db = firebase.firestore();
 var ADMIN_PW    = 'ROOFADMIN1';
 var ADMIN_EMAIL = 'daltonnicely@gmail.com';
 
-// ── All 87 pockets ────────────────────────────────────────────────
-var ALL_POCKETS = [
-  {market:"Raleigh",name:"Raleigh Pocket 1",slug:"raleigh-pocket-1"},
-  {market:"Apex",name:"Apex Pocket 2",slug:"apex-pocket-2"},
-  {market:"Raleigh",name:"Raleigh Pocket 3",slug:"raleigh-pocket-3"},
-  {market:"Raleigh",name:"Raleigh Pocket 4",slug:"raleigh-pocket-4"},
-  {market:"Apex",name:"Apex Pocket 5",slug:"apex-pocket-5"},
-  {market:"Raleigh",name:"Raleigh Pocket 6",slug:"raleigh-pocket-6"},
-  {market:"Raleigh",name:"Raleigh Pocket 7",slug:"raleigh-pocket-7"},
-  {market:"Raleigh",name:"Raleigh Pocket 8",slug:"raleigh-pocket-8"},
-  {market:"Raleigh",name:"Raleigh Pocket 9",slug:"raleigh-pocket-9"},
-  {market:"Raleigh",name:"Raleigh Pocket 10",slug:"raleigh-pocket-10"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 11",slug:"wake-forest-pocket-11"},
-  {market:"Raleigh",name:"Raleigh Pocket 12",slug:"raleigh-pocket-12"},
-  {market:"Raleigh",name:"Raleigh Pocket 13",slug:"raleigh-pocket-13"},
-  {market:"Raleigh",name:"Raleigh Pocket 14",slug:"raleigh-pocket-14"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 15",slug:"wake-forest-pocket-15"},
-  {market:"Raleigh",name:"Raleigh Pocket 16",slug:"raleigh-pocket-16"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 17",slug:"holly-springs-pocket-17"},
-  {market:"Raleigh",name:"Raleigh Pocket 18",slug:"raleigh-pocket-18"},
-  {market:"Apex",name:"Apex Pocket 19",slug:"apex-pocket-19"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 20",slug:"holly-springs-pocket-20"},
-  {market:"Raleigh",name:"Raleigh Pocket 21",slug:"raleigh-pocket-21"},
-  {market:"Fuquay-Varina",name:"Fuquay-Varina Pocket 22",slug:"fuquay-varina-pocket-22"},
-  {market:"Raleigh",name:"Raleigh Pocket 23",slug:"raleigh-pocket-23"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 24",slug:"wake-forest-pocket-24"},
-  {market:"Raleigh",name:"Raleigh Pocket 25",slug:"raleigh-pocket-25"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 26",slug:"holly-springs-pocket-26"},
-  {market:"Cary",name:"Cary Pocket 27",slug:"cary-pocket-27"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 28",slug:"holly-springs-pocket-28"},
-  {market:"Raleigh",name:"Raleigh Pocket 29",slug:"raleigh-pocket-29"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 30",slug:"wake-forest-pocket-30"},
-  {market:"Raleigh",name:"Raleigh Pocket 31",slug:"raleigh-pocket-31"},
-  {market:"Garner",name:"Garner Pocket 32",slug:"garner-pocket-32"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 33",slug:"wake-forest-pocket-33"},
-  {market:"Raleigh",name:"Raleigh Pocket 34",slug:"raleigh-pocket-34"},
-  {market:"Cary",name:"Cary Pocket 35",slug:"cary-pocket-35"},
-  {market:"Raleigh",name:"Raleigh Pocket 36",slug:"raleigh-pocket-36"},
-  {market:"Cary",name:"Cary Pocket 37",slug:"cary-pocket-37"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 38",slug:"holly-springs-pocket-38"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 39",slug:"holly-springs-pocket-39"},
-  {market:"Cary",name:"Cary Pocket 40",slug:"cary-pocket-40"},
-  {market:"Raleigh",name:"Raleigh Pocket 41",slug:"raleigh-pocket-41"},
-  {market:"Garner",name:"Garner Pocket 42",slug:"garner-pocket-42"},
-  {market:"Raleigh",name:"Raleigh Pocket 43",slug:"raleigh-pocket-43"},
-  {market:"Cary",name:"Cary Pocket 44",slug:"cary-pocket-44"},
-  {market:"Garner",name:"Garner Pocket 45",slug:"garner-pocket-45"},
-  {market:"Morrisville",name:"Morrisville Pocket 46",slug:"morrisville-pocket-46"},
-  {market:"Apex",name:"Apex Pocket 47",slug:"apex-pocket-47"},
-  {market:"Raleigh",name:"Raleigh Pocket 48",slug:"raleigh-pocket-48"},
-  {market:"Fuquay-Varina",name:"Fuquay-Varina Pocket 49",slug:"fuquay-varina-pocket-49"},
-  {market:"Raleigh",name:"Raleigh Pocket 50",slug:"raleigh-pocket-50"},
-  {market:"Cary",name:"Cary Pocket 51",slug:"cary-pocket-51"},
-  {market:"Knightdale",name:"Knightdale Pocket 52",slug:"knightdale-pocket-52"},
-  {market:"Raleigh",name:"Raleigh Pocket 53",slug:"raleigh-pocket-53"},
-  {market:"Fuquay-Varina",name:"Fuquay-Varina Pocket 54",slug:"fuquay-varina-pocket-54"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 55",slug:"wake-forest-pocket-55"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 56",slug:"holly-springs-pocket-56"},
-  {market:"Raleigh",name:"Raleigh Pocket 57",slug:"raleigh-pocket-57"},
-  {market:"Raleigh",name:"Raleigh Pocket 58",slug:"raleigh-pocket-58"},
-  {market:"Raleigh",name:"Raleigh Pocket 59",slug:"raleigh-pocket-59"},
-  {market:"Cary",name:"Cary Pocket 60",slug:"cary-pocket-60"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 61",slug:"holly-springs-pocket-61"},
-  {market:"Knightdale",name:"Knightdale Pocket 62",slug:"knightdale-pocket-62"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 63",slug:"wake-forest-pocket-63"},
-  {market:"Cary",name:"Cary Pocket 64",slug:"cary-pocket-64"},
-  {market:"Morrisville",name:"Morrisville Pocket 65",slug:"morrisville-pocket-65"},
-  {market:"Raleigh",name:"Raleigh Pocket 66",slug:"raleigh-pocket-66"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 67",slug:"holly-springs-pocket-67"},
-  {market:"Cary",name:"Cary Pocket 68",slug:"cary-pocket-68"},
-  {market:"Raleigh",name:"Raleigh Pocket 69",slug:"raleigh-pocket-69"},
-  {market:"Raleigh",name:"Raleigh Pocket 70",slug:"raleigh-pocket-70"},
-  {market:"Cary",name:"Cary Pocket 71",slug:"cary-pocket-71"},
-  {market:"Morrisville",name:"Morrisville Pocket 72",slug:"morrisville-pocket-72"},
-  {market:"Raleigh",name:"Raleigh Pocket 73",slug:"raleigh-pocket-73"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 74",slug:"holly-springs-pocket-74"},
-  {market:"Holly Springs",name:"Holly Springs Pocket 75",slug:"holly-springs-pocket-75"},
-  {market:"Cary",name:"Cary Pocket 76",slug:"cary-pocket-76"},
-  {market:"Cary",name:"Cary Pocket 77",slug:"cary-pocket-77"},
-  {market:"Apex",name:"Apex Pocket 78",slug:"apex-pocket-78"},
-  {market:"Cary",name:"Cary Pocket 79",slug:"cary-pocket-79"},
-  {market:"Raleigh",name:"Raleigh Pocket 80",slug:"raleigh-pocket-80"},
-  {market:"Cary",name:"Cary Pocket 81",slug:"cary-pocket-81"},
-  {market:"Cary",name:"Cary Pocket 82",slug:"cary-pocket-82"},
-  {market:"Knightdale",name:"Knightdale Pocket 83",slug:"knightdale-pocket-83"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 84",slug:"wake-forest-pocket-84"},
-  {market:"Cary",name:"Cary Pocket 85",slug:"cary-pocket-85"},
-  {market:"Knightdale",name:"Knightdale Pocket 86",slug:"knightdale-pocket-86"},
-  {market:"Wake Forest",name:"Wake Forest Pocket 87",slug:"wake-forest-pocket-87"}
-];
-
 // ── App state ─────────────────────────────────────────────────────
 var currentRole   = null;
-var currentSlug   = null;
-var currentPocket = null;
+var currentZip    = null;
 var LEADS         = [];
 var isManager     = false;
 var statuses      = {};
 var hidden        = {};
 var deleted       = {};
 var currentFilter = 'all';
-var pocketDoc     = null;
+var zoneDoc       = null;
 var unsubscribe   = null;
 var leadsCache    = {};
-var assignedSlugs = {};  // slug -> code (for showing assigned badge)
-var pocketStats   = {};  // slug -> {kept, skipped, total}
+var zoneStats     = {};
+var assignedZips  = {};
 
-// ── Loading overlay ───────────────────────────────────────────────
+// ── Loading ───────────────────────────────────────────────────────
 function showLoading(msg) {
   document.getElementById('loading-text').textContent = msg || 'Loading...';
   document.getElementById('loading-overlay').style.display = 'flex';
@@ -442,45 +354,41 @@ async function tryLogin() {
   document.getElementById('login-btn').disabled = true;
   document.getElementById('login-btn').textContent = 'Checking...';
 
-  // Admin check (fast, no network)
+  // Admin check
   if (valUp === ADMIN_PW || valUp === ADMIN_EMAIL.toUpperCase()) {
     currentRole = 'admin';
     document.getElementById('login-btn').disabled = false;
-    document.getElementById('login-btn').textContent = 'Access Pocket Builder';
-    // If a ?slug= param is in the URL, open that pocket directly
-    var urlSlug = new URLSearchParams(window.location.search).get('slug');
-    if (urlSlug) {
-      openPocket(urlSlug);
-    } else {
-      showPicker();
-    }
+    document.getElementById('login-btn').textContent = 'Access Zone Builder';
+    var urlZip = new URLSearchParams(window.location.search).get('zip');
+    if (urlZip) { openZone(urlZip); } else { showPicker(); }
     return;
   }
 
-  // Contractor code check (Firebase lookup)
+  // Contractor code check
   try {
     var doc = await db.collection('codes').doc(valUp).get();
     if (doc.exists) {
       var data = doc.data();
       currentRole = 'contractor';
       document.getElementById('login-btn').disabled = false;
-      document.getElementById('login-btn').textContent = 'Access Pocket Builder';
-      await openPocket(data.slug);
+      document.getElementById('login-btn').textContent = 'Access Zone Builder';
+      // Support both old slug field and new zip field
+      var zip = data.zip || data.slug || '';
+      await openZone(zip);
     } else {
       document.getElementById('login-err').style.display = 'block';
       document.getElementById('login-btn').disabled = false;
-      document.getElementById('login-btn').textContent = 'Access Pocket Builder';
+      document.getElementById('login-btn').textContent = 'Access Zone Builder';
     }
   } catch(e) {
-    console.warn('Login error:', e);
     document.getElementById('login-err').style.display = 'block';
     document.getElementById('login-btn').disabled = false;
-    document.getElementById('login-btn').textContent = 'Access Pocket Builder';
+    document.getElementById('login-btn').textContent = 'Access Zone Builder';
   }
 }
 
 function logout() {
-  currentRole = null; currentSlug = null; LEADS = [];
+  currentRole = null; currentZip = null; LEADS = [];
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
   document.getElementById('portal').style.display = 'none';
   document.getElementById('picker').style.display = 'none';
@@ -494,108 +402,116 @@ function showPicker() {
   document.getElementById('portal').style.display = 'none';
   document.getElementById('picker').style.display = 'block';
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-  // Load assigned slugs to show badges on pockets
-  loadAssignedSlugs().then(renderPicker);
+  loadZoneList();
 }
 
-async function loadAssignedSlugs() {
+async function loadZoneList() {
   try {
-    var snap = await db.collection('codes').get();
-    assignedSlugs = {};
-    snap.forEach(function(d) { assignedSlugs[d.data().slug] = d.id; });
-  } catch(e) { assignedSlugs = {}; }
-  // Also load progress stats for all pockets
-  try {
-    var pSnap = await db.collection('pockets').get();
-    pocketStats = {};
-    pSnap.forEach(function(d) {
+    // Load assigned zips from codes
+    var cSnap = await db.collection('codes').get();
+    assignedZips = {};
+    cSnap.forEach(function(d) {
+      var zip = d.data().zip || d.data().slug || '';
+      if (zip) assignedZips[zip] = d.id;
+    });
+
+    // Load activity stats from zones collection
+    var zSnap = await db.collection('zones').get();
+    zoneStats = {};
+    zSnap.forEach(function(d) {
       var s = d.data().statuses || {};
       var kept = 0, skipped = 0;
       Object.values(s).forEach(function(v){ if(v==='keep') kept++; else if(v==='skip') skipped++; });
-      if (kept + skipped > 0) pocketStats[d.id] = {kept:kept, skipped:skipped};
+      if (kept + skipped > 0) zoneStats[d.id] = { kept: kept, skipped: skipped };
     });
-  } catch(e) { pocketStats = {}; }
+
+    // Load all seeded zips from zipLeads (index docs only — no chunks)
+    var lSnap = await db.collection('zipLeads').get();
+    var zips = [];
+    lSnap.forEach(function(d) {
+      // Skip chunk docs (have underscore in ID like "27601_chunk0")
+      if (!d.id.includes('_')) zips.push(d.id);
+    });
+    zips.sort();
+
+    renderZoneGrid(zips);
+  } catch(e) {
+    document.getElementById('zone-grid').innerHTML = '<div class="zones-empty">Error loading zones: ' + e.message + '</div>';
+  }
+}
+
+function renderZoneGrid(zips) {
+  var grid = document.getElementById('zone-grid');
+  var label = document.getElementById('zones-section-label');
+  if (!zips.length) {
+    grid.innerHTML = '<div class="zones-empty">No zones seeded yet. Use the Zone Seeder tool to upload homeowner data.</div>';
+    label.textContent = 'Active Zones';
+    return;
+  }
+  label.textContent = 'Active Zones (' + zips.length + ')';
+  grid.innerHTML = zips.map(function(zip) {
+    var stats = zoneStats[zip];
+    var hasActivity = stats && (stats.kept + stats.skipped) > 0;
+    var assigned = assignedZips[zip];
+    var tileCls = 'zone-tile' + (hasActivity || assigned ? ' has-activity' : '');
+    var meta = assigned ? '🔑 ' + assigned : (hasActivity ? stats.kept + ' kept · ' + stats.skipped + ' skipped' : 'No activity yet');
+    var statsHtml = hasActivity
+      ? '<div class="zone-tile-stats"><span class="pts-keep">✓ ' + stats.kept + '</span><span class="pts-skip">✗ ' + stats.skipped + '</span></div>'
+      : '';
+    return '<div class="' + tileCls + '" onclick="openZone(\'' + zip + '\')">'
+      + '<div class="zone-tile-zip">' + zip + '</div>'
+      + '<div class="zone-tile-meta">' + meta + '</div>'
+      + statsHtml
+      + '</div>';
+  }).join('');
 }
 
 function switchPickerTab(tab) {
-  document.getElementById('tab-pockets').style.display = tab === 'pockets' ? 'block' : 'none';
+  document.getElementById('tab-zones').style.display = tab === 'zones' ? 'block' : 'none';
   document.getElementById('tab-codes').style.display = tab === 'codes' ? 'block' : 'none';
-  document.getElementById('ptab-pockets').className = 'picker-tab' + (tab === 'pockets' ? ' active' : '');
+  document.getElementById('ptab-zones').className = 'picker-tab' + (tab === 'zones' ? ' active' : '');
   document.getElementById('ptab-codes').className = 'picker-tab' + (tab === 'codes' ? ' active' : '');
   if (tab === 'codes') renderCodesTab();
 }
 
-function renderPicker() {
-  var markets = [];
-  ALL_POCKETS.forEach(function(p) { if (markets.indexOf(p.market) === -1) markets.push(p.market); });
-  var html = '';
-  markets.forEach(function(m) {
-    var pockets = ALL_POCKETS.filter(function(p){ return p.market === m; });
-    html += '<div class="market-group"><div class="market-label">' + m + ' (' + pockets.length + ')</div><div class="pocket-grid">';
-    pockets.forEach(function(p) {
-      var isAssigned = !!assignedSlugs[p.slug];
-      var stats = pocketStats[p.slug];
-      var hasStats = stats && (stats.kept + stats.skipped) > 0;
-      var tileClass = 'pocket-tile' + (isAssigned ? ' assigned has-leads' : (hasStats ? ' has-leads' : ''));
-      var meta = isAssigned ? '🔑 ' + assignedSlugs[p.slug] : 'Unassigned';
-      var statsHtml = hasStats
-        ? '<div class="pocket-tile-stats">'
-          + '<span class="pts-keep">✓ ' + stats.kept + '</span>'
-          + '<span class="pts-skip">✗ ' + stats.skipped + '</span>'
-          + '<span class="pts-pct">' + Math.round((stats.kept+stats.skipped)/5) + '% done</span>'
-          + '</div>'
-        : '';
-      html += '<div class="' + tileClass + '" onclick="openPocket(\'' + p.slug + '\')">'
-        + '<div class="pocket-tile-name">' + p.name + '</div>'
-        + '<div class="pocket-tile-meta">' + meta + '</div>'
-        + statsHtml
-        + '</div>';
-    });
-    html += '</div></div>';
-  });
-  document.getElementById('picker-markets').innerHTML = html;
+function openZoneFromPicker() {
+  var zip = document.getElementById('zip-picker-input').value.trim();
+  if (!/^\d{5}$/.test(zip)) { alert('Enter a valid 5-digit zip code.'); return; }
+  openZone(zip);
 }
 
-// ── Contractor Codes Tab ──────────────────────────────────────────
+// ── Contractor Codes ──────────────────────────────────────────────
 var codesUnsubscribe = null;
 
 function renderCodesTab() {
-  // Populate pocket dropdown in form
-  var sel = document.getElementById('new-pocket');
-  sel.innerHTML = ALL_POCKETS.map(function(p){
-    return '<option value="' + p.slug + '">' + p.name + '</option>';
-  }).join('');
-
-  // Listen for codes in real-time
   if (codesUnsubscribe) codesUnsubscribe();
-  codesUnsubscribe = db.collection('codes').orderBy('createdAt', 'desc').onSnapshot(function(snap) {
+  codesUnsubscribe = db.collection('codes').orderBy('createdAt','desc').onSnapshot(function(snap) {
     var tbody = document.getElementById('codes-tbody');
     if (snap.empty) {
-      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-codes"><div class="empty-codes-icon">🔑</div><div class="empty-codes-title">No contractor codes yet</div><div class="empty-codes-sub">Click "Add Code" to create one</div></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5"><div class="empty-codes"><div style="font-size:32px;margin-bottom:12px">🔑</div><div style="font-size:14px;font-weight:600;color:#555;margin-bottom:6px">No contractor codes yet</div><div style="font-size:12px;color:#444">Click "Add Code" to create one</div></div></td></tr>';
       return;
     }
     var rows = '';
     snap.forEach(function(d) {
       var data = d.data();
       var code = d.id;
-      var pocket = ALL_POCKETS.filter(function(p){return p.slug===data.slug;})[0];
-      var pocketName = pocket ? pocket.name : data.slug;
+      var zip = data.zip || data.slug || '—';
       var created = data.createdAt ? new Date(data.createdAt).toLocaleDateString() : '—';
       rows += '<tr>'
         + '<td><span class="code-pill">' + code + '</span></td>'
         + '<td style="color:#fff;font-weight:600">' + (data.contractorName || '—') + '</td>'
-        + '<td style="color:#aaa">' + pocketName + '</td>'
+        + '<td style="color:#aaa;font-family:monospace;letter-spacing:2px">' + zip + '</td>'
         + '<td style="color:#555;font-size:12px">' + created + '</td>'
         + '<td><div class="action-btns">'
-        + '<button class="copy-btn" onclick="copyCode(\'' + code + '\')">Copy</button>'
-        + '<button class="view-pocket-btn" onclick="openPocket(\'' + data.slug + '\')">View</button>'
+        + '<button class="copy-btn" data-code="' + code + '" onclick="copyCode(\'' + code + '\')">Copy</button>'
+        + '<button class="view-zone-btn" onclick="openZone(\'' + zip + '\')">View</button>'
         + '<button class="del-code-btn" onclick="deleteCode(\'' + code + '\')">Delete</button>'
         + '</div></td>'
         + '</tr>';
     });
     tbody.innerHTML = rows;
   }, function(e) {
-    document.getElementById('codes-tbody').innerHTML = '<tr><td colspan="5" style="color:#ff5555;padding:16px;font-size:12px">Error loading codes: ' + e.message + '</td></tr>';
+    document.getElementById('codes-tbody').innerHTML = '<tr><td colspan="5" style="color:#ff5555;padding:16px;font-size:12px">Error: ' + e.message + '</td></tr>';
   });
 }
 
@@ -605,85 +521,59 @@ function toggleAddCodeForm() {
   if (form.style.display === 'block') {
     document.getElementById('new-name').value = '';
     document.getElementById('new-code').value = '';
+    document.getElementById('new-zip').value = '';
   }
 }
 
 function generateCode() {
   var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   var code = 'ROOF';
-  for (var i = 0; i < 4; i++) code += chars[Math.floor(Math.random()*chars.length)];
+  for (var i=0;i<4;i++) code += chars[Math.floor(Math.random()*chars.length)];
   return code;
 }
 
 async function saveCode() {
   var name = document.getElementById('new-name').value.trim();
   var code = document.getElementById('new-code').value.trim().toUpperCase() || generateCode();
-  var slug = document.getElementById('new-pocket').value;
+  var zip  = document.getElementById('new-zip').value.trim();
   if (!name) { alert('Please enter a contractor name.'); return; }
-  // Block admin codes
-  if (code === ADMIN_PW || code === ADMIN_EMAIL.toUpperCase()) {
-    alert('That code is reserved. Please choose a different one.'); return;
-  }
+  if (!/^\d{5}$/.test(zip)) { alert('Enter a valid 5-digit zip code.'); return; }
+  if (code === ADMIN_PW) { alert('That code is reserved.'); return; }
   try {
-    await db.collection('codes').doc(code).set({
-      contractorName: name,
-      slug: slug,
-      createdAt: Date.now()
-    });
+    await db.collection('codes').doc(code).set({ contractorName: name, zip: zip, createdAt: Date.now() });
     document.getElementById('add-code-form').style.display = 'none';
-    // Refresh assigned slugs
-    await loadAssignedSlugs();
-    renderPicker();
-  } catch(e) {
-    alert('Error saving code: ' + e.message);
-  }
+  } catch(e) { alert('Error saving code: ' + e.message); }
 }
 
 async function deleteCode(code) {
   if (!confirm('Delete code ' + code + '? The contractor will lose access.')) return;
-  try {
-    await db.collection('codes').doc(code).delete();
-    await loadAssignedSlugs();
-    renderPicker();
-  } catch(e) {
-    alert('Error deleting code: ' + e.message);
-  }
+  try { await db.collection('codes').doc(code).delete(); }
+  catch(e) { alert('Error: ' + e.message); }
 }
 
 function copyCode(code) {
   navigator.clipboard.writeText(code).then(function() {
-    // Brief feedback
-    var btns = document.querySelectorAll('.copy-btn');
-    btns.forEach(function(b) { if (b.onclick && b.onclick.toString().includes(code)) b.textContent = 'Copied!'; });
-    setTimeout(function() {
-      btns.forEach(function(b) { b.textContent = 'Copy'; });
-    }, 1500);
+    var btn = document.querySelector('[data-code="' + code + '"]');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
   });
 }
 
-// ── Open pocket ───────────────────────────────────────────────────
-async function openPocket(slug) {
+// ── Open Zone ─────────────────────────────────────────────────────
+async function openZone(zip) {
+  if (!zip || zip === '—') { alert('No zip code assigned to this code.'); return; }
   if (unsubscribe) { unsubscribe(); unsubscribe = null; }
-  currentSlug = slug;
-  currentPocket = ALL_POCKETS.filter(function(p){ return p.slug === slug; })[0]
-    || { market: '', name: slug, slug: slug };
+  currentZip = zip;
   isManager = (currentRole === 'admin');
 
-  // Load leads from cache or Firestore
-  if (leadsCache[slug] === undefined) {
-    showLoading('Loading ' + currentPocket.name + '...');
-    try {
-      var doc = await db.collection('pocketLeads').doc(slug).get();
-      leadsCache[slug] = doc.exists ? (doc.data().leads || []) : [];
-    } catch(e) {
-      console.warn('Failed to load leads:', e);
-      leadsCache[slug] = [];
-    }
+  // Load leads
+  if (leadsCache[zip] === undefined) {
+    showLoading('Loading zone ' + zip + '...');
+    leadsCache[zip] = await fetchLeads(zip);
     hideLoading();
   }
-  LEADS = leadsCache[slug];
+  LEADS = leadsCache[zip];
 
-  pocketDoc = db.collection('pockets').doc(slug);
+  zoneDoc = db.collection('zones').doc(zip);
   statuses = {}; hidden = {}; deleted = {};
   currentFilter = 'all';
 
@@ -695,12 +585,11 @@ async function openPocket(slug) {
   document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
   document.querySelector('[data-f=all]').classList.add('active');
 
-  var label = currentPocket.name;
-  document.getElementById('nav-pocket-label').textContent = label;
-  document.getElementById('portal-title').textContent = label;
+  document.getElementById('nav-zone-label').textContent = 'ZIP ' + zip;
+  document.getElementById('portal-title').textContent = 'Zone ' + zip;
 
   var badge = document.getElementById('mode-badge');
-  if (currentRole === 'admin') { badge.textContent = 'ADMIN'; badge.className = 'nav-mode admin'; }
+  if (isManager) { badge.textContent = 'ADMIN'; badge.className = 'nav-mode admin'; }
   else { badge.textContent = 'CONTRACTOR'; badge.className = 'nav-mode contractor'; }
 
   if (isManager) {
@@ -716,15 +605,38 @@ async function openPocket(slug) {
   startSync();
 }
 
-function switchPocket() {
+async function fetchLeads(zip) {
+  try {
+    var doc = await db.collection('zipLeads').doc(zip).get();
+    if (!doc.exists) return [];
+    var data = doc.data();
+    // Single doc (no chunks)
+    if (data.leads) return data.leads;
+    // Chunked: load each chunk
+    if (data.chunks && data.chunks > 1) {
+      var all = [];
+      for (var ci=0; ci<data.chunks; ci++) {
+        var chunk = await db.collection('zipLeads').doc(zip + '_chunk' + ci).get();
+        if (chunk.exists) all = all.concat(chunk.data().leads || []);
+      }
+      return all;
+    }
+    return [];
+  } catch(e) {
+    console.warn('Failed to load leads for', zip, e);
+    return [];
+  }
+}
+
+function switchZone() {
   if (codesUnsubscribe) { codesUnsubscribe(); codesUnsubscribe = null; }
-  if (currentRole === 'admin') { showPicker(); }
+  if (currentRole === 'admin') { showPicker(); loadZoneList(); }
   else { logout(); }
 }
 
-// ── Firebase sync ─────────────────────────────────────────────────
+// ── Sync ──────────────────────────────────────────────────────────
 function startSync() {
-  unsubscribe = pocketDoc.onSnapshot(function(doc) {
+  unsubscribe = zoneDoc.onSnapshot(function(doc) {
     if (doc.exists) {
       var d = doc.data();
       statuses = d.statuses || {};
@@ -741,20 +653,20 @@ function startSync() {
 function saveField(field, value) {
   var update = {};
   update[field] = value;
-  pocketDoc.set(update, { merge: true }).catch(function(e){ console.warn(e); });
+  zoneDoc.set(update, { merge: true }).catch(function(e){ console.warn(e); });
 }
 
-// ── Render table ──────────────────────────────────────────────────
+// ── Render ────────────────────────────────────────────────────────
 function updateSubtitle() {
   var el = document.getElementById('portal-sub');
   if (!LEADS.length) {
-    el.textContent = 'No leads loaded for this pocket yet. Run the seeder to load data.';
+    el.textContent = 'No leads loaded for this zone. Run the Zone Seeder tool to upload data for zip ' + currentZip + '.';
     return;
   }
   if (isManager) {
-    el.textContent = LEADS.filter(function(_,i){ return !deleted[i]; }).length + ' total leads · Manager view';
+    el.textContent = LEADS.filter(function(_,i){ return !deleted[i]; }).length.toLocaleString() + ' total leads · Admin view';
   } else {
-    el.textContent = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; }).length + ' pre-qualified leads · Exclusive to you';
+    el.textContent = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; }).length.toLocaleString() + ' pre-qualified leads · Exclusive to you';
   }
 }
 
@@ -767,20 +679,22 @@ function setFilter(f, btn) {
 
 function fmtValue(v) {
   var n = parseInt(v);
-  if (isNaN(n)) return v;
+  if (isNaN(n)) return v || '—';
   if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M';
   return '$' + Math.round(n/1000) + 'K';
 }
 
 function openMap(addr, city) {
-  var url = 'https://maps.google.com/maps?q=' + encodeURIComponent(addr + ', ' + city + ', NC') + '&t=k';
-  window.open(url, 'roofmap', 'width=1100,height=750,left=' + Math.max(0, screen.width - 1120) + ',top=0');
+  var url = 'https://maps.google.com/maps?q=' + encodeURIComponent(addr + ', ' + (city||'NC') + ', NC') + '&t=k';
+  window.open(url, 'roofmap', 'width=1100,height=750,left=' + Math.max(0, screen.width-1120) + ',top=0');
 }
+
+function esc(s) { return (s||'').replace(/'/g,"\\'"); }
 
 function renderTable() {
   var tbody = document.getElementById('lead-tbody');
   if (!LEADS.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-pocket"><div class="empty-pocket-icon">📦</div><div class="empty-pocket-title">No leads loaded for this pocket</div><div class="empty-pocket-sub">Run pocket-seeder.html to populate all 87 pockets from Firebase.</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-zone"><div class="empty-zone-icon">📍</div><div class="empty-zone-title">No leads loaded for zip ' + currentZip + '</div><div class="empty-zone-sub">Use the Zone Seeder to upload homeowner CSV data for this zip code.</div></div></td></tr>';
     return;
   }
   var search = document.getElementById('search').value.toLowerCase();
@@ -790,23 +704,22 @@ function renderTable() {
     var isHid = !!hidden[i];
     var s = statuses[l.address] || '';
     if (!isManager && isHid) return;
-    if (currentFilter === 'keep'        && s !== 'keep') return;
-    if (currentFilter === 'skip'        && s !== 'skip') return;
+    if (currentFilter === 'keep'         && s !== 'keep') return;
+    if (currentFilter === 'skip'         && s !== 'skip') return;
     if (currentFilter === 'not_reviewed' && s !== '') return;
-    if (currentFilter === 'hidden'      && !isHid) return;
+    if (currentFilter === 'hidden'       && !isHid) return;
     if (search && !l.owner.toLowerCase().includes(search) && !l.address.toLowerCase().includes(search)) return;
     rows.push({l:l, i:i, s:s, isHid:isHid});
   });
-  document.getElementById('count-tag').textContent = rows.length + ' leads';
-  var escapedAddr = function(a){ return a.replace(/'/g,"\\'"); };
+  document.getElementById('count-tag').textContent = rows.length.toLocaleString() + ' leads';
   tbody.innerHTML = rows.map(function(r) {
     var l=r.l, i=r.i, s=r.s;
-    var owner = l.owner.split(',')[0].trim();
+    var owner = (l.owner||'').split(',')[0].trim() || 'Unknown';
     var hideLabel = r.isHid ? '👁 Show' : 'Hide';
     var hideCls = 'hide-btn' + (r.isHid ? ' is-hidden' : '');
     var rowCls = r.isHid ? ' class="is-hidden"' : '';
     var roofAge = l.roof_age ? l.roof_age + ' yrs' : '—';
-    var ea = escapedAddr(l.address), ec = escapedAddr(l.city || 'Raleigh');
+    var ea = esc(l.address), ec = esc(l.city||'');
     var keepCls = 'keep-btn' + (s==='keep' ? ' active' : '');
     var skipCls = 'skip-btn' + (s==='skip' ? ' active' : '');
     var decisionCell = '<td><div class="action-btns">'
@@ -821,7 +734,7 @@ function renderTable() {
       : '';
     return '<tr' + rowCls + '>'
       + '<td style="color:#555;font-size:11px">' + (i+1) + '</td>'
-      + '<td><div class="owner-name">' + owner + '</div><div class="addr-text">' + l.address + '</div></td>'
+      + '<td><div class="owner-name">' + owner + '</div><div class="addr-text">' + (l.address||'') + '</div></td>'
       + '<td>' + fmtValue(l.value) + '</td>'
       + '<td>' + roofAge + '</td>'
       + '<td><button class="map-popup-btn" onclick="openMap(\'' + ea + '\',\'' + ec + '\')">🗺 Map</button></td>'
@@ -833,24 +746,20 @@ function renderTable() {
 
 // ── Lead actions ──────────────────────────────────────────────────
 function toggleStatus(addr, val) {
-  if (statuses[addr] === val) {
-    delete statuses[addr];  // clicking active button clears it
-  } else {
-    statuses[addr] = val;
-  }
+  if (statuses[addr] === val) { delete statuses[addr]; }
+  else { statuses[addr] = val; }
   saveField('statuses', statuses);
   updateStats();
   renderTable();
 }
 
 function hideLead(i) {
-  hidden[i] = !hidden[i];
-  if (!hidden[i]) delete hidden[i];
+  if (hidden[i]) { delete hidden[i]; } else { hidden[i] = true; }
   saveField('hidden', hidden);
 }
 
 function deleteLead(i) {
-  if (!confirm('Remove this lead permanently from the pocket?')) return;
+  if (!confirm('Remove this lead permanently from the zone?')) return;
   deleted[i] = true;
   saveField('deleted', deleted);
 }
@@ -865,10 +774,8 @@ function restoreAll() {
 function updateStats() {
   var visible = LEADS.filter(function(_,i){ return !deleted[i] && !hidden[i]; });
   document.getElementById('stat-total').textContent = visible.length;
-  var kept    = visible.filter(function(l){ return statuses[l.address]==='keep'; }).length;
-  var skipped = visible.filter(function(l){ return statuses[l.address]==='skip'; }).length;
-  document.getElementById('stat-kept').textContent = kept;
-  document.getElementById('stat-skipped').textContent = skipped;
+  document.getElementById('stat-kept').textContent = visible.filter(function(l){ return statuses[l.address]==='keep'; }).length;
+  document.getElementById('stat-skipped').textContent = visible.filter(function(l){ return statuses[l.address]==='skip'; }).length;
 }
 
 function updateMgrCount() {
@@ -878,14 +785,14 @@ function updateMgrCount() {
   if (el) el.textContent = cnt > 0 ? cnt + ' hidden' : '';
 }
 
-// ── Auto-bypass from Owner Portal ─────────────────────────────────
+// ── URL params ────────────────────────────────────────────────────
 (function() {
   var params = new URLSearchParams(window.location.search);
-  var autoSlug = params.get('slug');
+  var autoZip = params.get('zip');
   var autoFlag = params.get('auto');
-  if (autoSlug && autoFlag === '1') {
+  if (autoZip && autoFlag === '1') {
     currentRole = 'admin';
-    openPocket(autoSlug);
+    openZone(autoZip);
   }
 })();
 </script>
