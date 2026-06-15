@@ -431,7 +431,7 @@ function tmOpenBuilder(){
   var _hasSaved=false;
   try{
     var _raw=localStorage.getItem('rf_prog_'+zbAppId);
-    if(_raw){var _snap=JSON.parse(_raw);if(_snap&&_snap.leads&&_snap.leads.length&&_snap.status){_hasSaved=true;zbLeads=_snap.leads.slice();zbFromFetch=false;zbStartScreener(false);zbResumeProgress();}}
+    if(_raw){var _snap=JSON.parse(_raw);if(_snap&&_snap.leads&&_snap.leads.length&&_snap.status){_hasSaved=true;zbLeads=_snap.leads.slice();zbFromFetch=false;zbLoadWorkedStatus();zbShowMapStep();}}
   }catch(_e){}
   if(!_hasSaved){zbShowStep(1);if(zbGetCountyConfig(zbZip))setTimeout(zbFetchLiveData,150);}
 }
@@ -481,6 +481,8 @@ function zbShowMapStep(){
 
 function zbLoadMapsAPI(cb){
   if(window.google&&window.google.maps&&window.google.maps.drawing){cb();return;}
+  if(window._zbMapsLoading){window._zbMapsReady=cb;return;}
+  window._zbMapsLoading=true;
   window._zbMapsReady=cb;
   var s=document.createElement('script');
   s.src='https://maps.googleapis.com/maps/api/js?key='+GMAPS_KEY+'&libraries=drawing,geometry&callback=_zbMapsReady';

@@ -1206,9 +1206,9 @@ function buildZone(id, company, zip) {
       if (_snap && _snap.leads && _snap.leads.length && _snap.status) {
         _hasSaved = true;
         zbLeads = _snap.leads.slice();
-        zbFromFetch = false; // don't wipe progress in zbStartScreener
-        zbStartScreener(); // synchronously sets zbSavedSnap from localStorage
-        zbResumeProgress(); // immediately restore saved statuses + jump to first pending card
+        zbFromFetch = false;
+        zbLoadWorkedStatus();
+        zbShowMapStep(); // always show map first; resume banner will appear in screener
       }
     }
   } catch(_e) {}
@@ -1252,6 +1252,7 @@ function zbBack() {
 
 /* ── MAP STEP ── */
 var zbMap = null, zbDrawingManager = null, zbMapMarkers = [], zbDrawnShapes = [], zbSelectedLeadIndices = null;
+var GMAPS_KEY = 'AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0';
 var zbWorkedStatus = {};
 
 function zbLoadWorkedStatus() { try { var r = localStorage.getItem('rf_worked_' + zbZip); zbWorkedStatus = r ? JSON.parse(r) : {}; } catch(e) { zbWorkedStatus = {}; } }
@@ -1273,6 +1274,8 @@ function zbShowMapStep() {
 
 function zbLoadMapsAPI(cb) {
   if (window.google && window.google.maps && window.google.maps.drawing) { cb(); return; }
+  if (window._zbMapsLoading) { window._zbMapsReady = cb; return; } // already loading, just swap cb
+  window._zbMapsLoading = true;
   window._zbMapsReady = cb;
   var s = document.createElement('script');
   s.src = 'https://maps.googleapis.com/maps/api/js?key=' + GMAPS_KEY + '&libraries=drawing,geometry&callback=_zbMapsReady';
@@ -1692,7 +1695,6 @@ function zbShowScreenCard(idx) {
   document.getElementById('sc-age').textContent      = lead.age + ' years old';
   document.getElementById('sc-val').textContent      = lead.val  || '—';
   document.getElementById('sc-zip-disp').textContent = lead.zip  || zbZip;
-  var GMAPS_KEY = 'AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0';
   var addr = lead.addr + ' NC USA';
   var enc = encodeURIComponent(addr);
   var mapEl = document.getElementById('sc-map');
