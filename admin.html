@@ -1925,8 +1925,6 @@ function zbLaunchZone() {
       if (zbAppId) {
         db.collection('applications').doc(zbAppId).update({ status: 'zone-built', ownerCode: ownerCode });
       }
-      zbClearProgress();
-      try { localStorage.removeItem('rf_zips_' + zbAppId); } catch(_e) {}
       // Show success
       document.getElementById('zb-success-code').textContent = ownerCode;
       document.getElementById('zb-s-leads').textContent  = zbLeads.length;
@@ -2177,4 +2175,5 @@ function zbCopyCode(el) {
     <div class="zb-step" id="zb-step4">
       <div style="text-align:center;max-width:480px;margin:60px auto 0">
         <div style="font-size:40px;margin-bottom:20px">✅</div>
-        <div style="font-size:22px;font-weight:900;margin-bottom:8px">
+        <div style="font-size:22px;font-weight:900;margin-bottom:8px">Zone Is Live!</div>
+        <div style="font-size:13px;color:#666;margin-bottom:32px">Routes create
