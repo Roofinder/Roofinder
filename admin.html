@@ -413,12 +413,18 @@ var ADMIN_PW = 'ROOFADMIN1';
 function tryLogin() {
   var v = document.getElementById('pw-input').value.trim();
   if (v === ADMIN_PW) {
+    localStorage.setItem('rf_admin_auth', '1');
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
     initDashboard();
   } else {
     document.getElementById('login-err').style.display = 'block';
   }
+}
+if (localStorage.getItem('rf_admin_auth') === '1') {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  initDashboard();
 }
 
 // ── Nav ──────────────────────────────────────────────────────────
@@ -2164,7 +2170,3 @@ function zbCopyCode(el) {
           <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
             <div id="zb-s-leads" style="font-size:24px;font-weight:900;color:#4caf50"></div>
             <div style="font-size:11px;color:#555;margin-top:2px">Addresses</div>
-          </div>
-          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
-            <div id="zb-s-routes" style="font-size:24px;font-weight:900;color:#4caf50"></div>
-            <div style="font-s
