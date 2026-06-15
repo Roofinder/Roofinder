@@ -1384,7 +1384,21 @@ function zbShowScreenCard(idx) {
   document.getElementById('sc-val').textContent      = lead.val  || '—';
   document.getElementById('sc-zip-disp').textContent = lead.zip  || zbZip;
   var enc = encodeURIComponent(lead.addr + ' NC USA');
-  document.getElementById('sc-map').src = 'https://maps.google.com/maps?q=' + enc + '&layer=c&output=embed&z=17';
+  var mapEl = document.getElementById('sc-map');
+  // Show road map immediately while we geocode
+  mapEl.src = 'https://maps.google.com/maps?q=' + enc + '&output=embed&z=17';
+  // Geocode to get lat/lng, then switch to actual Street View embed
+  fetch('https://nominatim.openstreetmap.org/search?q=' + enc + '&format=json&limit=1', {headers:{'Accept':'application/json'}})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data && data[0]) {
+        var lat = data[0].lat, lon = data[0].lon;
+        // Only update if still showing this same card
+        if (mapEl === document.getElementById('sc-map')) {
+          mapEl.src = 'https://maps.google.com/maps?q=&layer=c&cbll=' + lat + ',' + lon + '&cbp=11,0,0,0,0&output=embed';
+        }
+      }
+    }).catch(function(){});
 }
 
 function zbKeepLead() {
@@ -1504,8 +1518,19 @@ function zbOpenSV() {
   var addr = document.getElementById('sc-addr').textContent;
   if (!addr) return;
   var enc = encodeURIComponent(addr + ' NC USA');
-  document.getElementById('sv-iframe').src = 'https://maps.google.com/maps?q=' + enc + '&layer=c&output=embed&z=17';
+  var iframeEl = document.getElementById('sv-iframe');
+  // Show modal with road map while geocoding
+  iframeEl.src = 'https://maps.google.com/maps?q=' + enc + '&output=embed&z=17';
   document.getElementById('sv-modal').style.display = 'flex';
+  // Upgrade to Street View once we have coordinates
+  fetch('https://nominatim.openstreetmap.org/search?q=' + enc + '&format=json&limit=1', {headers:{'Accept':'application/json'}})
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (data && data[0]) {
+        var lat = data[0].lat, lon = data[0].lon;
+        iframeEl.src = 'https://maps.google.com/maps?q=&layer=c&cbll=' + lat + ',' + lon + '&cbp=11,0,0,0,0&output=embed';
+      }
+    }).catch(function(){});
 }
 function zbCloseSV() {
   document.getElementById('sv-modal').style.display = 'none';
