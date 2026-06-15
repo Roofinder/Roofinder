@@ -1070,6 +1070,7 @@ function deleteApplication(id) {
 
 /* ── ZONE BUILDER ── */
 var zbAppId = '', zbZip = '', zbCompany = '', zbLeads = [];
+var zbFromFetch = false; /* true when screener is being started from a fresh fetch/parse */
 
 var zbRawCSV = '';
 
@@ -1085,6 +1086,11 @@ function buildZone(id, company, zip) {
   document.getElementById('zb-parse-err').style.display = 'none';
   document.getElementById('zb-extra-zips').value = zip;
   document.getElementById('zb-fetch-status').textContent = 'Add more zips with commas · uses age range & min value above';
+  // Restore saved extra zips for this contractor (if any)
+  try {
+    var _savedZips = localStorage.getItem('rf_zips_' + id);
+    if (_savedZips) document.getElementById('zb-extra-zips').value = _savedZips;
+  } catch(_e) {}
   zbShowStep(1);
   document.getElementById('zone-builder').classList.add('open');
   // Auto-fetch if this county is supported
@@ -1236,6 +1242,7 @@ function zbProcessParcel() {
   var tierOrder = { PRIME: 0, HOT: 1, WARM: 2 };
   zbLeads.sort(function(a,b){ return (tierOrder[a.tier]||0) - (tierOrder[b.tier]||0); });
 
+  zbFromFetch = true;
   zbStartScreener();
 }
 
@@ -1293,23 +1300,30 @@ function zbStartScreener() {
   zbSetCardSortBtn('street', 1);
   zbRenderListView();
 
-  /* Check for saved progress */
+  /* Check for saved progress — only if we did NOT just do a fresh fetch */
   zbSavedSnap = null;
-  try {
-    var _raw = localStorage.getItem('rf_prog_' + zbAppId);
-    if (_raw) {
-      var _snap = JSON.parse(_raw);
-      if (_snap && _snap.leads && _snap.status && _snap.status.some(function(s){ return s !== 'pending'; })) {
-        zbSavedSnap = _snap;
-        var _kc = _snap.status.filter(function(s){ return s === 'kept'; }).length;
-        var _dc = _snap.status.filter(function(s){ return s !== 'pending'; }).length;
-        var _d  = new Date(_snap.saved);
-        var _ts = _d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' at ' + _d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
-        document.getElementById('sc-resume-info').textContent = _dc + ' reviewed · ' + _kc + ' kept · saved ' + _ts;
-        document.getElementById('sc-resume-banner').style.display = 'flex';
+  document.getElementById('sc-resume-banner').style.display = 'none';
+  if (zbFromFetch) {
+    // Fresh data from fetch/parse — always start clean, discard any old saved state
+    zbClearProgress();
+    zbFromFetch = false;
+  } else {
+    try {
+      var _raw = localStorage.getItem('rf_prog_' + zbAppId);
+      if (_raw) {
+        var _snap = JSON.parse(_raw);
+        if (_snap && _snap.leads && _snap.status && _snap.status.some(function(s){ return s !== 'pending'; })) {
+          zbSavedSnap = _snap;
+          var _kc = _snap.status.filter(function(s){ return s === 'kept'; }).length;
+          var _dc = _snap.status.filter(function(s){ return s !== 'pending'; }).length;
+          var _d  = new Date(_snap.saved);
+          var _ts = _d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) + ' at ' + _d.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+          document.getElementById('sc-resume-info').textContent = _dc + ' reviewed · ' + _kc + ' kept · saved ' + _ts;
+          document.getElementById('sc-resume-banner').style.display = 'flex';
+        }
       }
-    }
-  } catch(_e) {}
+    } catch(_e) {}
+  }
 
   zbAdvanceTo(0);
   zbShowStep(2);
@@ -1859,6 +1873,9 @@ function zbFetchLiveData() {
 
       statusEl.textContent = '✓ ' + zbLeads.length + ' homes pulled';
       btn.textContent = 'Fetch Live Data →'; btn.disabled = false;
+      // Save which zips were used for this contractor
+      try { localStorage.setItem('rf_zips_' + zbAppId, document.getElementById('zb-extra-zips').value); } catch(_e) {}
+      zbFromFetch = true;
       zbStartScreener();
     })
     .catch(function(e) {
@@ -1909,6 +1926,7 @@ function zbLaunchZone() {
         db.collection('applications').doc(zbAppId).update({ status: 'zone-built', ownerCode: ownerCode });
       }
       zbClearProgress();
+      try { localStorage.removeItem('rf_zips_' + zbAppId); } catch(_e) {}
       // Show success
       document.getElementById('zb-success-code').textContent = ownerCode;
       document.getElementById('zb-s-leads').textContent  = zbLeads.length;
@@ -2159,14 +2177,4 @@ function zbCopyCode(el) {
     <div class="zb-step" id="zb-step4">
       <div style="text-align:center;max-width:480px;margin:60px auto 0">
         <div style="font-size:40px;margin-bottom:20px">✅</div>
-        <div style="font-size:22px;font-weight:900;margin-bottom:8px">Zone Is Live!</div>
-        <div style="font-size:13px;color:#666;margin-bottom:32px">Routes created and loaded into the system. Share the owner code with the contractor so they can log into their dashboard.</div>
-
-        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Owner Code</div>
-        <div class="zb-success-code" id="zb-success-code" onclick="zbCopyCode(this)" title="Click to copy">—</div>
-        <div style="font-size:11px;color:#444;margin-bottom:32px">Click to copy</div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:32px">
-          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
-            <div id="zb-s-leads" style="font-size:24px;font-weight:900;color:#4caf50"></div>
-            <div style="font-size:11px;color:#555;margin-top:2px">Addresses</div>
+        <div style="font-size:22px;font-weight:900;margin-bottom:8px">
