@@ -2038,4 +2038,122 @@ function zbCopyCode(el) {
               </div>
             </div>
             <button onclick="zbOpenSV()" style="display:block;width:100%;text-align:center;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:10px;padding:10px;font-size:12px;font-weight:700;color:#666;cursor:pointer;font-family:inherit">🔍 Open in Street View</button>
-            <button onclick="zbKeepLead()" style="background:#4caf50;color:#000;font-weight:900;font-size:15px;padding:15px;b
+            <button onclick="zbKeepLead()" style="background:#4caf50;color:#000;font-weight:900;font-size:15px;padding:15px;border:none;border-radius:10px;cursor:pointer">✅ Good Lead — Keep</button>
+            <button onclick="zbSkipLead()" style="background:#111;border:1px solid #1e1e1e;color:#555;font-weight:700;font-size:13px;padding:12px;border-radius:10px;cursor:pointer">❌ Skip</button>
+          </div>
+        </div>
+        <div id="sc-done" style="display:none;text-align:center;padding:60px 0">
+          <div style="font-size:40px;margin-bottom:16px">🎯</div>
+          <div style="font-size:22px;font-weight:900;margin-bottom:8px">Screening Complete</div>
+          <div style="font-size:13px;color:#666;margin-bottom:28px"><span id="sc-final-kept">0</span> leads kept · <span id="sc-final-skip">0</span> skipped</div>
+          <button onclick="zbFinishScreening()" style="background:#4caf50;color:#000;font-weight:800;font-size:14px;padding:14px 32px;border:none;border-radius:10px;cursor:pointer">Create Routes with <span id="sc-final-btn-count">0</span> Leads →</button>
+        </div>
+      </div>
+
+      <!-- LIST VIEW -->
+      <div id="sc-list-view" style="display:none">
+        <!-- Sort + pagination controls -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button id="sc-sort-street" onclick="zbSetListSort('street')" style="background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.4);color:#4caf50;font-size:11px;font-weight:800;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">🏘 By Street</button>
+            <button id="sc-sort-addr"   onclick="zbSetListSort('addr')"   style="background:#0d0d0d;border:1px solid #1a1a1a;color:#555;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">A–Z Address</button>
+            <button id="sc-sort-age"    onclick="zbSetListSort('age')"    style="background:#0d0d0d;border:1px solid #1a1a1a;color:#555;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">🕐 Roof Age</button>
+            <button id="sc-sort-val"    onclick="zbSetListSort('val')"    style="background:#0d0d0d;border:1px solid #1a1a1a;color:#555;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">💰 Home Value</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#555">
+            <span>Showing <span id="sc-page-start">1</span>–<span id="sc-page-end">50</span></span>
+            <button onclick="zbListPrevPage()" style="background:#0d0d0d;border:1px solid #1a1a1a;color:#666;font-size:12px;padding:4px 9px;border-radius:6px;cursor:pointer">◄</button>
+            <span style="white-space:nowrap">Sheet <select id="sc-page-select" onchange="zbListPage=+this.value;zbRenderListView()" style="background:#0d0d0d;border:1px solid #222;color:#ccc;padding:3px 6px;border-radius:6px;font-family:inherit;font-size:12px"></select> of <span id="sc-page-total">1</span></span>
+            <button onclick="zbListNextPage()" style="background:#0d0d0d;border:1px solid #1a1a1a;color:#666;font-size:12px;padding:4px 9px;border-radius:6px;cursor:pointer">►</button>
+          </div>
+        </div>
+        <div id="sc-list-container"></div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Configure + Launch -->
+    <div class="zb-step" id="zb-step3">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Step 3 — Configure &amp; Launch</div>
+      <div id="zb-lead-summary" style="font-size:13px;color:#666;margin-bottom:20px"></div>
+
+      <!-- Preview table -->
+      <div style="border:1px solid #1a1a1a;border-radius:10px;overflow:hidden;margin-bottom:24px">
+        <table class="zb-table">
+          <thead><tr><th>#</th><th>Address</th><th>Owner</th><th>Tier / Age</th><th>Value</th></tr></thead>
+          <tbody id="zb-preview-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Config row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px">
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Owner Code</div>
+          <input class="zb-field" id="zb-owner-code" type="text" placeholder="e.g. raleigh-27601" style="width:100%"/>
+          <div style="font-size:11px;color:#444;margin-top:4px">Contractor uses this to log in</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Addresses Per Route</div>
+          <input class="zb-field" id="zb-per-route" type="number" value="25" min="5" max="100" style="width:100%"/>
+          <div style="font-size:11px;color:#444;margin-top:4px">How many doors per agent</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Routes Preview</div>
+          <div id="zb-route-preview" style="font-size:22px;font-weight:900;color:#4caf50;margin-top:4px">—</div>
+          <div style="font-size:11px;color:#444;margin-top:2px">routes will be created</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <button onclick="zbShowStep(2)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer">← Back to Screener</button>
+        <button id="zb-launch-btn" onclick="zbLaunchZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer">Launch Zone →</button>
+        <span id="zb-launch-err" style="color:#ff5555;font-size:12px;align-self:center;display:none"></span>
+      </div>
+    </div>
+
+    <!-- STEP 4: Success -->
+    <div class="zb-step" id="zb-step4">
+      <div style="text-align:center;max-width:480px;margin:60px auto 0">
+        <div style="font-size:40px;margin-bottom:20px">✅</div>
+        <div style="font-size:22px;font-weight:900;margin-bottom:8px">Zone Is Live!</div>
+        <div style="font-size:13px;color:#666;margin-bottom:32px">Routes created and loaded into the system. Share the owner code with the contractor so they can log into their dashboard.</div>
+
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#555;margin-bottom:6px">Owner Code</div>
+        <div class="zb-success-code" id="zb-success-code" onclick="zbCopyCode(this)" title="Click to copy">—</div>
+        <div style="font-size:11px;color:#444;margin-bottom:32px">Click to copy</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:32px">
+          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
+            <div id="zb-s-leads" style="font-size:24px;font-weight:900;color:#4caf50"></div>
+            <div style="font-size:11px;color:#555;margin-top:2px">Addresses</div>
+          </div>
+          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
+            <div id="zb-s-routes" style="font-size:24px;font-weight:900;color:#4caf50"></div>
+            <div style="font-size:11px;color:#555;margin-top:2px">Routes</div>
+          </div>
+          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
+            <div id="zb-s-zip" style="font-size:24px;font-weight:900;color:#4caf50"></div>
+            <div style="font-size:11px;color:#555;margin-top:2px">Zip Code</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button id="zb-continue-btn" onclick="zbContinueScreening()" style="display:none;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer;font-family:inherit">▶ Continue Screening</button>
+          <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">← Back to Admin</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Street View Modal -->
+<div id="sv-modal" onclick="if(event.target===this)zbCloseSV()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
+  <div style="width:92vw;max-width:1100px;height:82vh;background:#0a0a0a;border:1px solid #222;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
+      <div style="font-size:13px;font-weight:700;color:#888">🔍 Street View</div>
+      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-family:inherit">✕</button>
+    </div>
+    <iframe id="sv-iframe" style="flex:1;width:100%;border:none;display:block" loading="lazy" allowfullscreen></iframe>
+  </div>
+</div>
+</body>
+</html>
