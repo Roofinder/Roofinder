@@ -1091,11 +1091,30 @@ function buildZone(id, company, zip) {
     var _savedZips = localStorage.getItem('rf_zips_' + id);
     if (_savedZips) document.getElementById('zb-extra-zips').value = _savedZips;
   } catch(_e) {}
-  zbShowStep(1);
   document.getElementById('zone-builder').classList.add('open');
-  // Auto-fetch if this county is supported
-  if (zbGetCountyConfig(zip)) {
-    setTimeout(zbFetchLiveData, 150);
+
+  // Check for existing saved progress — if found, auto-resume instead of re-fetching
+  var _hasSaved = false;
+  try {
+    var _rawProg = localStorage.getItem('rf_prog_' + id);
+    if (_rawProg) {
+      var _snap = JSON.parse(_rawProg);
+      if (_snap && _snap.leads && _snap.leads.length && _snap.status) {
+        _hasSaved = true;
+        zbLeads = _snap.leads.slice();
+        zbFromFetch = false; // don't wipe progress in zbStartScreener
+        zbStartScreener(); // synchronously sets zbSavedSnap from localStorage
+        zbResumeProgress(); // immediately restore saved statuses + jump to first pending card
+      }
+    }
+  } catch(_e) {}
+
+  if (!_hasSaved) {
+    zbShowStep(1);
+    // Auto-fetch if this county is supported and no saved progress
+    if (zbGetCountyConfig(zip)) {
+      setTimeout(zbFetchLiveData, 150);
+    }
   }
 }
 
