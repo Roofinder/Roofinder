@@ -976,6 +976,7 @@ function loadApplications() {
     list.innerHTML = '';
     snap.forEach(function(doc) {
       var d = doc.data();
+      if (d.status === 'approved' || d.status === 'zone-built') return; // moved to Owners tab
       var isNew = d.status === 'new';
       if (isNew) newCount++;
       var isBuilt = d.status === 'zone-built';
@@ -1021,10 +1022,26 @@ function loadApplications() {
 
 function updateAppStatus(id, status, company, zip) {
   db.collection('applications').doc(id).update({ status: status }).then(function() {
-    loadApplications();
-    if (status === 'approved' && zip) {
-      buildZone(id, company || '', zip);
+    if (status === 'approved') {
+      // Pull full application data and create contractor record
+      db.collection('applications').doc(id).get().then(function(doc) {
+        if (doc.exists) {
+          var d = doc.data();
+          db.collection('contractors').add({
+            company: d.company || '',
+            fname: '', lname: '',
+            phone: d.phone || '',
+            email: d.email || '',
+            pocket: '', portal: '', amount: '',
+            payment: 'pending',
+            notes: 'Auto-created from application. Target zip: ' + (d.targetZip || ''),
+            createdAt: Date.now()
+          });
+        }
+      });
+      if (zip) buildZone(id, company || '', zip);
     }
+    loadApplications();
   });
 }
 
@@ -1360,15 +1377,25 @@ function zbSkipLead() {
 function zbSaveProgress() {
   if (!zbAppId) return;
   try {
-    localStorage.setItem('rf_prog_' + zbAppId, JSON.stringify({ leads: zbAllLeads, status: zbStatus, saved: Date.now() }));
+    var now = Date.now();
+    localStorage.setItem('rf_prog_' + zbAppId, JSON.stringify({ leads: zbAllLeads, status: zbStatus, saved: now }));
     var el = document.getElementById('sc-saved-badge');
-    if (el) { el.style.opacity = '1'; clearTimeout(el._t); el._t = setTimeout(function(){ el.style.opacity = '0'; }, 1800); }
+    if (el) {
+      var t = new Date(now);
+      var ts = t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      el.textContent = '💾 saved ' + ts;
+      el.style.opacity = '1';
+    }
   } catch(e) {}
 }
 
 function zbClearProgress() {
   if (!zbAppId) return;
-  try { localStorage.removeItem('rf_prog_' + zbAppId); } catch(e) {}
+  try {
+    localStorage.removeItem('rf_prog_' + zbAppId);
+    var el = document.getElementById('sc-saved-badge');
+    if (el) el.style.opacity = '0';
+  } catch(e) {}
 }
 
 function zbResumeProgress() {
@@ -2010,7 +2037,7 @@ function zbCopyCode(el) {
         <div style="font-size:12px;color:#4caf50;font-weight:700"><span id="sc-kept">0</span> kept</div>
         <div style="font-size:12px;color:#ff5555;font-weight:700"><span id="sc-skip">0</span> skipped</div>
         <div style="font-size:12px;color:#444"><span id="sc-rem">0</span> remaining</div>
-        <div id="sc-saved-badge" style="font-size:10px;color:#2d6e2d;font-weight:700;opacity:0;transition:opacity .3s;margin-left:auto">💾 saved</div>
+        <div id="sc-saved-badge" style="font-size:11px;color:#4caf50;font-weight:700;opacity:0;transition:opacity .4s;margin-left:auto;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.25);border-radius:6px;padding:3px 8px">💾 saved</div>
       </div>
 
       <!-- CARD VIEW -->
@@ -2144,16 +2171,3 @@ function zbCopyCode(el) {
     </div>
   </div>
 </div>
-
-<!-- Street View Modal -->
-<div id="sv-modal" onclick="if(event.target===this)zbCloseSV()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
-  <div style="width:92vw;max-width:1100px;height:82vh;background:#0a0a0a;border:1px solid #222;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
-      <div style="font-size:13px;font-weight:700;color:#888">🔍 Street View</div>
-      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-family:inherit">✕</button>
-    </div>
-    <iframe id="sv-iframe" style="flex:1;width:100%;border:none;display:block" loading="lazy" allowfullscreen></iframe>
-  </div>
-</div>
-</body>
-</html>
