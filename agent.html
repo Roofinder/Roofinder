@@ -452,6 +452,7 @@ var BUILT_IN_ROUTES = {
 var agentName = '', routeCode = '', routeData = null;
 var statuses = {}, notes = {}, curIdx = -1, curStatus = '';
 var curTab = 'all', firestoreUnsubscribe = null, curView = 'map';
+var agentOwnerCode = '', loginSessionId = null, sessionDoorsWorked = 0;
 var agentMap = null, mapMarkers = {}, mapInitialized = false, coordCache = {};
 
 var STATUS_COLORS = {
@@ -491,17 +492,55 @@ function tryLogin() {
   db.collection('agents').where('name','==',name).where('pin','==',pin).get()
     .then(function(snap) {
       if (snap.empty) { err.textContent='Name or PIN not recognized.'; return; }
+      var agentDoc = snap.docs[0].data();
+      agentOwnerCode = agentDoc.ownerCode || '';
       sessionStorage.setItem('rf_agent', name);
+      sessionStorage.setItem('rf_agent_owner', agentOwnerCode);
       agentName = name;
+      // Write login event to Firestore
+      writeLoginEvent();
       launchApp();
     })
     .catch(function() { err.textContent='Connection error. Try again.'; });
 }
 
+function writeLoginEvent() {
+  if (!agentName) return;
+  sessionDoorsWorked = 0;
+  db.collection('agentLogins').add({
+    agentName:    agentName,
+    ownerCode:    agentOwnerCode,
+    loginAt:      Date.now(),
+    routeId:      '',
+    routeName:    '',
+    doorsWorked:  0,
+    platform:     navigator.userAgent.indexOf('Mobile') >= 0 ? 'mobile' : 'desktop'
+  }).then(function(ref) {
+    loginSessionId = ref.id;
+    sessionStorage.setItem('rf_login_session', ref.id);
+  }).catch(function(){});
+}
+
+function updateLoginActivity(delta) {
+  if (!loginSessionId) return;
+  sessionDoorsWorked += delta;
+  db.collection('agentLogins').doc(loginSessionId).update({
+    doorsWorked: sessionDoorsWorked,
+    routeId:     routeCode || '',
+    routeName:   (routeData && routeData.routeName) || '',
+    lastActive:  Date.now()
+  }).catch(function(){});
+}
+
 // Session restore
 (function() {
   var saved = sessionStorage.getItem('rf_agent');
-  if (saved) { agentName = saved; launchApp(); }
+  if (saved) {
+    agentName = saved;
+    agentOwnerCode = sessionStorage.getItem('rf_agent_owner') || '';
+    loginSessionId = sessionStorage.getItem('rf_login_session') || null;
+    launchApp();
+  }
 })();
 
 // ── Launch App ─────────────────────────────────────────────────────────────────
@@ -514,7 +553,7 @@ function launchApp() {
 
 function startRoute() {
   db.collection('agentRoutes')
-    .where('ownerCode','==','cary-pocket-82')
+    .where('ownerCode','==', agentOwnerCode || 'cary-pocket-82')
     .where('agentName','==',agentName)
     .where('status','==','active')
     .get()
@@ -814,6 +853,7 @@ function saveAndClose() {
       console.log('Sync error:', err);
     });
   }
+  updateLoginActivity(1); // track door worked in session
   var savedIdx = curIdx;
   closeModal();
   renderList(); updateProgress();
