@@ -185,6 +185,10 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
     <input type="password" class="login-input" id="pw-input" placeholder="Enter password" onkeydown="if(event.key==='Enter')tryLogin()"/>
     <button class="login-btn" onclick="tryLogin()">Enter Dashboard</button>
     <div class="login-err" id="login-err">Incorrect password.</div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06);text-align:center">
+      <div style="font-size:11px;color:#444;margin-bottom:8px">Team member?</div>
+      <a href="/builder.html" style="font-size:12px;font-weight:700;color:#4caf50;text-decoration:none">→ Go to Zone Builder</a>
+    </div>
   </div>
 </div>
 
@@ -219,10 +223,10 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
-            <th>Name</th><th>Pocket</th><th>Phone</th><th>Payment</th><th>Status</th><th>Purchased</th><th>Portal</th><th></th>
+            <th>Name</th><th>Zip</th><th>Pocket</th><th>Phone</th><th>Payment</th><th>Status</th><th>Purchased</th><th>Portal</th><th>Zone</th><th></th>
           </tr></thead>
           <tbody id="contractors-tbody">
-            <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No owners yet.</div></div></td></tr>
+            <tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No owners yet.</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -471,7 +475,7 @@ function updateStats() {
 function renderContractors() {
   var tbody = document.getElementById('contractors-tbody');
   if (!contractors.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No contractors yet. Add your first one.</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No contractors yet. Add your first one.</div></div></td></tr>';
     return;
   }
   tbody.innerHTML = contractors.map(function(c) {
@@ -483,14 +487,21 @@ function renderContractors() {
     var portalBtn = portalSlug
       ? '<button class="portal-link" onclick="openOwnerView(\'' + c.id + '\')">View as Owner →</button>'
       : '<span class="cell-dim">no code</span>';
+    var zip = c.targetZip || '';
+    var safeCompany = (c.company||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var buildBtn = zip
+      ? '<button onclick="buildZone(\'' + c.id + '\',\'' + safeCompany + '\',\'' + zip + '\')" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit">🗺 Build Zone</button>'
+      : '<span class="cell-dim">no zip</span>';
     return '<tr>'
       + '<td><div class="cell-name">' + (c.fname||'') + ' ' + (c.lname||'') + '</div><div class="cell-sub">' + (c.company||'') + '</div></td>'
+      + '<td><span style="font-size:12px;font-weight:700;color:#e0e4f0">' + (zip||'—') + '</span></td>'
       + '<td><span class="cell-green">' + (c.pocket||'—') + '</span></td>'
       + '<td>' + (c.phone||'—') + '</td>'
       + '<td>' + payBadge + (c.amount ? ' <span class="cell-dim">$' + parseInt(c.amount).toLocaleString() + '</span>' : '') + '</td>'
       + '<td><span class="badge badge-active">ACTIVE</span></td>'
       + '<td class="cell-dim">' + date + '</td>'
       + '<td>' + portalBtn + '</td>'
+      + '<td>' + buildBtn + '</td>'
       + '<td><button class="btn-danger" onclick="deleteContractor(\'' + c.id + '\')">Remove</button></td>'
       + '</tr>';
   }).join('');
@@ -1001,7 +1012,7 @@ function loadApplications() {
           '</div>' +
           '<div style="display:flex;gap:8px;flex-shrink:0">' +
             (isNew ? '<button class="app-action" data-id="' + doc.id + '" data-status="reviewed" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#aaa;cursor:pointer">Mark Reviewed</button>' : '') +
-            '<button class="app-action" data-id="' + doc.id + '" data-status="approved" data-company="' + (d.company||'').replace(/"/g,'') + '" data-zip="' + (d.targetZip||'') + '" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.08);color:#3b82f6;cursor:pointer">✅ Approve & Build</button>' +
+            '<button class="app-action" data-id="' + doc.id + '" data-status="approved" data-company="' + (d.company||'').replace(/"/g,'') + '" data-zip="' + (d.targetZip||'') + '" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.08);color:#3b82f6;cursor:pointer">✅ Approve</button>' +
             '<button onclick="buildZone(\'' + doc.id + '\',\'' + (d.company||'').replace(/'/g,"\\'") + '\',\'' + (d.targetZip||'') + '\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);color:#4caf50;cursor:pointer">🗺 Build Zone</button>' +
             '<button onclick="deleteApplication(\'' + doc.id + '\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);color:#ef4444;cursor:pointer">Delete</button>' +
           '</div>' +
@@ -1034,12 +1045,12 @@ function updateAppStatus(id, status, company, zip) {
             email: d.email || '',
             pocket: '', portal: '', amount: '',
             payment: 'pending',
-            notes: 'Auto-created from application. Target zip: ' + (d.targetZip || ''),
+            targetZip: d.targetZip || '',
+            notes: 'Auto-created from application.',
             createdAt: Date.now()
           });
         }
       });
-      if (zip) buildZone(id, company || '', zip);
     }
     loadApplications();
   });
@@ -2156,18 +2167,4 @@ function zbCopyCode(el) {
           <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
             <div id="zb-s-routes" style="font-size:24px;font-weight:900;color:#4caf50"></div>
             <div style="font-size:11px;color:#555;margin-top:2px">Routes</div>
-          </div>
-          <div style="background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px">
-            <div id="zb-s-zip" style="font-size:24px;font-weight:900;color:#4caf50"></div>
-            <div style="font-size:11px;color:#555;margin-top:2px">Zip Code</div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-          <button id="zb-continue-btn" onclick="zbContinueScreening()" style="display:none;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer;font-family:inherit">▶ Continue Screening</button>
-          <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">← Back to Admin</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+ 
