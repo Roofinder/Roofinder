@@ -457,7 +457,7 @@ function zbShowStep(n){
   [1,2,3,4,5].forEach(function(i){var p=document.getElementById('zbi-'+i);if(!p)return;p.classList.remove('active','done');if(i<n)p.classList.add('done');else if(i===n)p.classList.add('active');});
   document.getElementById('zb-save-bar').style.display=(n===3)?'block':'none';
   // When returning to map step, refresh marker colors
-  if(n===2&&zbMap)zbRefreshAllMarkers();
+  if(n===2&&zbMap)zbPlotMarkers();
 }
 
 // ── WORKED STATUS PERSISTENCE ──
@@ -476,7 +476,7 @@ function zbShowMapStep(){
   if(!hasCoords){document.getElementById('zb-map-no-coords').style.display='block';document.getElementById('zb-map-container').style.display='none';return;}
   document.getElementById('zb-map-no-coords').style.display='none';
   document.getElementById('zb-map-container').style.display='block';
-  zbLoadMapsAPI(function(){if(zbMap){zbRefreshAllMarkers();return;}zbInitMap();});
+  zbLoadMapsAPI(function(){if(zbMap){zbPlotMarkers();}else{zbInitMap();}});
 }
 
 function zbLoadMapsAPI(cb){
