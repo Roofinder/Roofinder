@@ -175,6 +175,7 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
 #zb-save-status{font-size:11px;color:#444;margin-left:auto;display:flex;align-items:center;gap:6px}
 #zb-save-dot{width:7px;height:7px;border-radius:50%;background:#2a2a2a;flex-shrink:0;transition:background .3s}
 #zb-save-dot.saved{background:#4caf50}#zb-save-dot.saving{background:#ffa500}
+#zb-btn-circle.active,#zb-btn-polygon.active{background:rgba(76,175,80,0.15);border-color:rgba(76,175,80,0.4);color:#4caf50}
 
 /* ACTIVITY */
 .activity-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
@@ -1227,24 +1228,193 @@ function closeZoneBuilder() {
 
 function zbShowStep(n) {
   document.querySelectorAll('.zb-step').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('zb-step' + n).classList.add('active');
-  // Update step indicator
-  [1,2,3,4].forEach(function(i) {
+  var el = document.getElementById('zb-step' + n); if (el) el.classList.add('active');
+  [1,2,3,4,5].forEach(function(i) {
     var pill = document.getElementById('zbi-' + i);
     if (!pill) return;
     pill.classList.remove('active','done');
     if (i < n) pill.classList.add('done');
     else if (i === n) pill.classList.add('active');
   });
-  // Show/hide save bar only during screening (step 2)
-  document.getElementById('zb-save-bar').style.display = (n === 2) ? 'block' : 'none';
+  // Show/hide save bar only during screening (step 3)
+  document.getElementById('zb-save-bar').style.display = (n === 3) ? 'block' : 'none';
+  // When returning to map step, refresh marker colors
+  if (n === 2 && zbMap) zbRefreshAllMarkers();
 }
 
 function zbBack() {
   var cur = document.querySelector('.zb-step.active');
   var id = cur ? cur.id : '';
-  if (id === 'zb-step3') zbShowStep(2);
+  if (id === 'zb-step4') zbShowStep(3);
+  else if (id === 'zb-step3') zbShowStep(2);
   else zbShowStep(1);
+}
+
+/* ── MAP STEP ── */
+var zbMap = null, zbDrawingManager = null, zbMapMarkers = [], zbDrawnShapes = [], zbSelectedLeadIndices = null;
+var zbWorkedStatus = {};
+
+function zbLoadWorkedStatus() { try { var r = localStorage.getItem('rf_worked_' + zbZip); zbWorkedStatus = r ? JSON.parse(r) : {}; } catch(e) { zbWorkedStatus = {}; } }
+function zbSaveWorkedStatus() { try { localStorage.setItem('rf_worked_' + zbZip, JSON.stringify(zbWorkedStatus)); } catch(e) {} }
+
+function zbShowMapStep() {
+  var hasCoords = zbLeads.some(function(l){ return l.lat && l.lng; });
+  document.getElementById('zb-map-total').textContent = zbLeads.length;
+  document.getElementById('zb-map-all-count').textContent = zbLeads.length;
+  var nc2 = document.getElementById('zb-map-all-count2'); if (nc2) nc2.textContent = zbLeads.length;
+  var wk = Object.keys(zbWorkedStatus).length;
+  document.getElementById('zb-worked-summary').textContent = wk ? wk + ' homes already worked' : '';
+  zbShowStep(2);
+  if (!hasCoords) { document.getElementById('zb-map-no-coords').style.display = 'block'; document.getElementById('zb-map-container').style.display = 'none'; return; }
+  document.getElementById('zb-map-no-coords').style.display = 'none';
+  document.getElementById('zb-map-container').style.display = 'block';
+  zbLoadMapsAPI(function() { if (zbMap) { zbRefreshAllMarkers(); } else { zbInitMap(); } });
+}
+
+function zbLoadMapsAPI(cb) {
+  if (window.google && window.google.maps && window.google.maps.drawing) { cb(); return; }
+  window._zbMapsReady = cb;
+  var s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=' + GMAPS_KEY + '&libraries=drawing,geometry&callback=_zbMapsReady';
+  s.async = true; document.head.appendChild(s);
+}
+
+function zbInitMap() {
+  var el = document.getElementById('zb-map-container'); if (!el) return;
+  var hc = zbLeads.filter(function(l){ return l.lat && l.lng; });
+  var center = { lat: 35.7796, lng: -78.6382 };
+  if (hc.length) { center = { lat: hc.reduce(function(s,l){return s+l.lat;},0)/hc.length, lng: hc.reduce(function(s,l){return s+l.lng;},0)/hc.length }; }
+  zbMap = new google.maps.Map(el, { center: center, zoom: 13, styles: zbMapDarkStyle(), mapTypeId: 'roadmap', streetViewControl: false, mapTypeControl: false, fullscreenControl: true });
+  zbDrawingManager = new google.maps.drawing.DrawingManager({ drawingMode: null, drawingControl: false,
+    circleOptions:  { fillColor:'#4caf50', fillOpacity:0.12, strokeColor:'#4caf50', strokeWeight:2, clickable:false, editable:true, zIndex:1 },
+    polygonOptions: { fillColor:'#4caf50', fillOpacity:0.12, strokeColor:'#4caf50', strokeWeight:2, clickable:false, editable:true, zIndex:1 } });
+  zbDrawingManager.setMap(zbMap);
+  google.maps.event.addListener(zbDrawingManager, 'overlaycomplete', function(e) {
+    zbDrawnShapes.push(e.overlay); zbDrawingManager.setDrawingMode(null);
+    document.getElementById('zb-btn-circle').classList.remove('active'); document.getElementById('zb-btn-polygon').classList.remove('active');
+    document.getElementById('zb-draw-hint').textContent = 'Click a draw mode, then click on the map';
+    zbUpdateSelectionFromShapes();
+    google.maps.event.addListener(e.overlay, 'radius_changed', zbUpdateSelectionFromShapes);
+    google.maps.event.addListener(e.overlay, 'center_changed', zbUpdateSelectionFromShapes);
+  });
+  zbPlotMarkers();
+}
+
+function zbMapDarkStyle() { return [{elementType:'geometry',stylers:[{color:'#1a1a1a'}]},{elementType:'labels.text.fill',stylers:[{color:'#757575'}]},{elementType:'labels.text.stroke',stylers:[{color:'#212121'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2a2a2a'}]},{featureType:'road',elementType:'labels.text.fill',stylers:[{color:'#666'}]},{featureType:'road.arterial',elementType:'geometry',stylers:[{color:'#333'}]},{featureType:'road.highway',elementType:'geometry',stylers:[{color:'#3a3a3a'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#0a0f1e'}]},{featureType:'poi',stylers:[{visibility:'off'}]},{featureType:'transit',stylers:[{visibility:'off'}]}]; }
+
+function zbGetMarkerIcon(status, size, highlight, tier) {
+  var color;
+  if (status === 'kept') color = '#4caf50';
+  else if (status === 'skipped') color = '#ff5555';
+  else if (status === 'worked') color = '#555';
+  else if (highlight) color = '#ffa500';
+  else color = tier === 'PRIME' ? '#4caf50' : tier === 'HOT' ? '#ff9800' : '#64b5f6';
+  var stroke = (status === 'kept' || status === 'skipped') ? '#fff' : (highlight ? '#fff' : '#000');
+  return { path: google.maps.SymbolPath.CIRCLE, scale: size || 5, fillColor: color, fillOpacity: highlight ? 1 : (status ? 0.95 : 0.75), strokeColor: stroke, strokeWeight: (status === 'kept' || status === 'skipped') ? 1.5 : 0.5 };
+}
+
+function zbPlotMarkers() {
+  zbMapMarkers.forEach(function(m){ m.marker.setMap(null); }); zbMapMarkers = [];
+  var bounds = new google.maps.LatLngBounds(); var hasAny = false;
+  zbLeads.forEach(function(lead, idx) {
+    if (!lead.lat || !lead.lng) return;
+    var worked = zbWorkedStatus[lead.addr];
+    var marker = new google.maps.Marker({ position: { lat: lead.lat, lng: lead.lng }, map: zbMap, title: lead.addr, icon: zbGetMarkerIcon(worked, 5, false, lead.tier) });
+    (function(_lead, _marker){ google.maps.event.addListener(_marker, 'click', function(){ var iw = new google.maps.InfoWindow({ content: '<div style="color:#000;font-size:12px;font-weight:700">'+_lead.addr+'</div><div style="color:#555;font-size:11px">'+_lead.tier+' · '+_lead.age+'yr · '+(_lead.val||'')+'</div>' }); iw.open(zbMap, _marker); }); })(lead, marker);
+    zbMapMarkers.push({ marker: marker, lead: lead, idx: idx }); bounds.extend({ lat: lead.lat, lng: lead.lng }); hasAny = true;
+  });
+  if (hasAny) zbMap.fitBounds(bounds);
+}
+
+function zbRefreshAllMarkers() {
+  zbMapMarkers.forEach(function(m){ var w = zbWorkedStatus[m.lead.addr] || zbStatus[m.idx]; m.marker.setIcon(zbGetMarkerIcon(w, 5, false, m.lead.tier)); });
+}
+
+function zbUpdateMarkerColor(idx, status) {
+  var m = zbMapMarkers.find(function(m){ return m.idx === idx; });
+  if (m) { m.marker.setIcon(zbGetMarkerIcon(status, 5, false, m.lead.tier)); zbSaveWorkedStatus(); }
+}
+
+function zbSetDrawMode(mode) {
+  if (!zbDrawingManager) return;
+  var gMode = mode === 'circle' ? google.maps.drawing.OverlayType.CIRCLE : google.maps.drawing.OverlayType.POLYGON;
+  zbDrawingManager.setDrawingMode(gMode);
+  document.getElementById('zb-btn-circle').classList.toggle('active', mode === 'circle');
+  document.getElementById('zb-btn-polygon').classList.toggle('active', mode === 'polygon');
+  document.getElementById('zb-draw-hint').textContent = 'Drawing ' + mode + '… click on the map to start';
+}
+
+function zbClearShapes() {
+  zbDrawnShapes.forEach(function(s){ s.setMap(null); }); zbDrawnShapes = []; zbSelectedLeadIndices = null;
+  document.getElementById('zb-map-selection').style.display = 'none'; zbRefreshAllMarkers();
+}
+
+function zbUpdateSelectionFromShapes() {
+  if (!zbDrawnShapes.length || !zbMap) { zbSelectedLeadIndices = null; document.getElementById('zb-map-selection').style.display = 'none'; return; }
+  zbSelectedLeadIndices = [];
+  zbMapMarkers.forEach(function(m) {
+    var pos = m.marker.getPosition();
+    var inside = zbDrawnShapes.some(function(shape) {
+      if (shape instanceof google.maps.Circle) return google.maps.geometry.spherical.computeDistanceBetween(pos, shape.getCenter()) <= shape.getRadius();
+      return google.maps.geometry.poly.containsLocation(pos, shape);
+    });
+    var w = zbWorkedStatus[m.lead.addr] || zbStatus[m.idx];
+    if (inside) { zbSelectedLeadIndices.push(m.idx); m.marker.setIcon(zbGetMarkerIcon(w, 8, true, m.lead.tier)); }
+    else { m.marker.setIcon(zbGetMarkerIcon(w, 4, false, m.lead.tier)); }
+  });
+  document.getElementById('zb-selected-count').textContent = zbSelectedLeadIndices.length;
+  document.getElementById('zb-map-selection').style.display = 'flex';
+}
+
+function zbScreenSelected() {
+  if (!zbSelectedLeadIndices || !zbSelectedLeadIndices.length) return;
+  zbLeads = zbSelectedLeadIndices.map(function(i){ return zbLeads[i]; });
+  zbFromFetch = true; zbStartScreener();
+}
+function zbScreenAll() { zbSelectedLeadIndices = null; zbFromFetch = true; zbStartScreener(); }
+
+function zbGetCentroid(geometry) {
+  if (!geometry) return null;
+  if (geometry.x !== undefined && geometry.y !== undefined) return { lat: geometry.y, lng: geometry.x };
+  if (geometry.rings && geometry.rings[0]) { var ring = geometry.rings[0]; var lat=0,lng=0,n=ring.length; for(var i=0;i<n;i++){lat+=ring[i][1];lng+=ring[i][0];} return {lat:lat/n,lng:lng/n}; }
+  return null;
+}
+
+/* ── REVIEW MODAL ── */
+var zbReviewFilterMode = 'all';
+function zbOpenReview() { zbReviewFilterMode = 'all'; zbSetReviewFilter('all'); document.getElementById('zb-review-modal').style.display = 'block'; zbRenderReview(); }
+function zbCloseReview() { document.getElementById('zb-review-modal').style.display = 'none'; }
+function zbReviewFilter(f) { zbReviewFilterMode = f; zbSetReviewFilter(f); zbRenderReview(); }
+function zbSetReviewFilter(f) { ['all','kept','skipped'].forEach(function(k){ var btn=document.getElementById('rv-f-'+k);if(!btn)return;var active=k===f;btn.style.background=active?'rgba(255,255,255,0.08)':'#111';btn.style.borderColor=active?'rgba(255,255,255,0.15)':'#222';btn.style.color=active?'#fff':'#555';btn.style.fontWeight=active?'800':'600'; }); }
+function zbRenderReview() {
+  var list = document.getElementById('zb-review-list');
+  var items = zbAllLeads.map(function(lead,i){ return {lead:lead,idx:i}; }).filter(function(x){ var s=zbStatus[x.idx]; if(s==='pending')return false; if(zbReviewFilterMode==='kept')return s==='kept'; if(zbReviewFilterMode==='skipped')return s==='skipped'; return true; });
+  document.getElementById('rv-count').textContent = items.length + ' addresses';
+  if (!items.length) { list.innerHTML = '<div style="color:#555;text-align:center;padding:40px;font-size:13px">No ' + (zbReviewFilterMode === 'all' ? 'reviewed' : zbReviewFilterMode) + ' addresses yet.</div>'; return; }
+  list.innerHTML = items.map(function(x) {
+    var s=zbStatus[x.idx]; var tc=x.lead.tier==='PRIME'?'#4caf50':x.lead.tier==='HOT'?'#ff9800':'#64b5f6';
+    var kStyle=s==='kept'?'background:#4caf50;border:1px solid #4caf50;color:#000':'background:#111;border:1px solid #222;color:#555';
+    var xStyle=s==='skipped'?'background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.3);color:#ff5555':'background:#111;border:1px solid #222;color:#555';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid #111">'
+      +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x.lead.addr+'</div>'
+      +'<div style="font-size:11px;color:#555;margin-top:1px">'+(x.lead.owner||'—')+' · <span style="color:'+tc+'">'+x.lead.tier+'</span> · '+x.lead.age+'yr · '+(x.lead.val||'')+'</div></div>'
+      +'<button onclick="zbReviewKeep('+x.idx+')" style="'+kStyle+';font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;flex-shrink:0">✅ Keep</button>'
+      +'<button onclick="zbReviewSkip('+x.idx+')" style="'+xStyle+';font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;flex-shrink:0">❌ Skip</button>'
+      +'</div>';
+  }).join('');
+}
+function zbReviewKeep(idx) { zbStatus[idx]='kept'; zbWorkedStatus[zbAllLeads[idx].addr]='kept'; zbSaveProgress(); zbSaveWorkedStatus(); zbUpdateMarkerColor(idx,'kept'); zbUpdateListRow(idx); zbUpdateStats(); zbRenderReview(); }
+function zbReviewSkip(idx) { zbStatus[idx]='skipped'; zbWorkedStatus[zbAllLeads[idx].addr]='skipped'; zbSaveProgress(); zbSaveWorkedStatus(); zbUpdateMarkerColor(idx,'skipped'); zbUpdateListRow(idx); zbUpdateStats(); zbRenderReview(); }
+function zbExportReview() {
+  if (!window.XLSX) return;
+  var rows = [['#','Address','Owner','Tier','Roof Age','Home Value','Zip','Decision']];
+  var items = zbAllLeads.filter(function(_,i){ return zbStatus[i] !== 'pending'; });
+  if (!items.length) { alert('No decisions to export yet.'); return; }
+  items.forEach(function(lead,i){ rows.push([i+1,lead.addr||'',lead.owner||'',lead.tier||'',lead.age||'',lead.val||'',lead.zip||zbZip||'',zbStatus[zbAllLeads.indexOf(lead)]||'']); });
+  var wb = XLSX.utils.book_new(); var ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [{wch:4},{wch:36},{wch:28},{wch:8},{wch:10},{wch:12},{wch:8},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Review');
+  XLSX.writeFile(wb, 'Zone Review ' + new Date().toISOString().slice(0,10) + '.xlsx');
 }
 
 function zbHandleDrop(e) {
@@ -1375,7 +1545,8 @@ function zbProcessParcel() {
   zbLeads.sort(function(a,b){ return (tierOrder[a.tier]||0) - (tierOrder[b.tier]||0); });
 
   zbFromFetch = true;
-  zbStartScreener();
+  zbLoadWorkedStatus();
+  zbShowMapStep();
 }
 
 function zbUpdateRouteCount() {
@@ -1458,12 +1629,12 @@ function zbStartScreener() {
   }
 
   zbAdvanceTo(0);
-  zbShowStep(2);
+  zbShowStep(3);
   document.addEventListener('keydown', zbScreenerKey);
 }
 
 function zbScreenerKey(e) {
-  if (!document.getElementById('zb-step2').classList.contains('active')) return;
+  if (!document.getElementById('zb-step3').classList.contains('active')) return;
   if (zbListView) return;
   if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
   if (e.key === 'a' || e.key === 'A') zbKeepLead();
@@ -1549,18 +1720,24 @@ function zbShowScreenCard(idx) {
 function zbKeepLead() {
   if (zbScreenIdx >= zbAllLeads.length || zbStatus[zbScreenIdx] !== 'pending') return;
   zbStatus[zbScreenIdx] = 'kept';
+  zbWorkedStatus[zbAllLeads[zbScreenIdx].addr] = 'kept';
   zbUpdateListRow(zbScreenIdx);
   zbUpdateStats();
   zbSaveProgress();
+  zbSaveWorkedStatus();
+  zbUpdateMarkerColor(zbScreenIdx, 'kept');
   zbAdvanceTo(zbScreenIdx + 1);
 }
 
 function zbSkipLead() {
   if (zbScreenIdx >= zbAllLeads.length || zbStatus[zbScreenIdx] !== 'pending') return;
   zbStatus[zbScreenIdx] = 'skipped';
+  zbWorkedStatus[zbAllLeads[zbScreenIdx].addr] = 'skipped';
   zbUpdateListRow(zbScreenIdx);
   zbUpdateStats();
   zbSaveProgress();
+  zbSaveWorkedStatus();
+  zbUpdateMarkerColor(zbScreenIdx, 'skipped');
   zbAdvanceTo(zbScreenIdx + 1);
 }
 
@@ -1917,14 +2094,14 @@ function zbSendBatch() {
     zbLeads.length + ' approved leads in this batch · ' + remaining + ' addresses still unscreened';
   zbUpdateRouteCount();
   document.getElementById('zb-per-route').oninput = zbUpdateRouteCount;
-  zbShowStep(3);
+  zbShowStep(4);
 }
 
 function zbContinueScreening() {
   document.getElementById('sc-card-grid').style.display = 'grid';
   document.getElementById('sc-done').style.display = 'none';
   zbAdvanceTo(zbScreenIdx);
-  zbShowStep(2);
+  zbShowStep(3);
 }
 
 function zbFinishScreening() {
@@ -1951,7 +2128,7 @@ function zbFinishScreening() {
   document.getElementById('zb-lead-summary').textContent = zbLeads.length + ' leads ready to route';
   zbUpdateRouteCount();
   document.getElementById('zb-per-route').oninput = zbUpdateRouteCount;
-  zbShowStep(3);
+  zbShowStep(4);
 }
 
 function zbGetCountyConfig(zip) {
@@ -2012,7 +2189,7 @@ function zbFetchLiveData() {
   function fetchPage(offset) {
     var url = c.endpoint + '/query?where=' + encodeURIComponent(where) +
       '&outFields=' + encodeURIComponent(outFields) +
-      '&returnGeometry=false&f=json&resultRecordCount=' + pageSize +
+      '&returnGeometry=true&returnCentroid=true&outSR=4326&f=json&resultRecordCount=' + pageSize +
       '&resultOffset=' + offset;
     return fetch(url)
       .then(function(r){ return r.json(); })
@@ -2043,6 +2220,7 @@ function zbFetchLiveData() {
         var val  = a[c.valField];
         var age  = curYear - year;
         var tier = age <= 22 ? 'PRIME' : age <= 25 ? 'HOT' : 'WARM';
+        var coords = zbGetCentroid(f.centroid || f.geometry);
         zbLeads.push({
           addr:   addr,
           owner:  (a[c.ownerField] || '').trim(),
@@ -2050,7 +2228,9 @@ function zbFetchLiveData() {
           age:    age,
           val:    val ? '$' + Math.round(val/1000) + 'k' : '',
           street: (a[c.streetField] || '').trim() || addr.replace(/^\d+\s+/,'').trim(),
-          zip:    (a[c.zipField] || zbZip)
+          zip:    (a[c.zipField] || zbZip),
+          lat:    coords ? coords.lat : null,
+          lng:    coords ? coords.lng : null
         });
       });
 
@@ -2062,7 +2242,8 @@ function zbFetchLiveData() {
       // Save which zips were used for this contractor
       try { localStorage.setItem('rf_zips_' + zbAppId, document.getElementById('zb-extra-zips').value); } catch(_e) {}
       zbFromFetch = true;
-      zbStartScreener();
+      zbLoadWorkedStatus();
+      zbShowMapStep();
     })
     .catch(function(e) {
       err.textContent = (e.message || 'Fetch failed') + '. Try CSV upload instead.';
@@ -2127,7 +2308,7 @@ function zbLaunchZone() {
       } else {
         continueBtn.style.display = 'none';
       }
-      zbShowStep(4);
+      zbShowStep(5);
       btn.textContent = 'Launch Zone →'; btn.disabled = false;
     })
     .catch(function(e) {
@@ -2194,11 +2375,60 @@ function zbExportExcel(autoDownload) {
     <div class="zb-step-bar">
       <div class="zb-step-pill active" id="zbi-1"><span class="zb-step-num">1</span>Get Data</div>
       <div class="zb-step-divider"></div>
-      <div class="zb-step-pill" id="zbi-2"><span class="zb-step-num">2</span>Screen</div>
+      <div class="zb-step-pill" id="zbi-2"><span class="zb-step-num">2</span>Map</div>
       <div class="zb-step-divider"></div>
-      <div class="zb-step-pill" id="zbi-3"><span class="zb-step-num">3</span>Configure</div>
+      <div class="zb-step-pill" id="zbi-3"><span class="zb-step-num">3</span>Screen</div>
       <div class="zb-step-divider"></div>
-      <div class="zb-step-pill" id="zbi-4"><span class="zb-step-num">4</span>Done</div>
+      <div class="zb-step-pill" id="zbi-4"><span class="zb-step-num">4</span>Configure</div>
+      <div class="zb-step-divider"></div>
+      <div class="zb-step-pill" id="zbi-5"><span class="zb-step-num">5</span>Done</div>
+    </div>
+
+    <!-- STEP 2: Neighborhood Map -->
+    <div class="zb-step" id="zb-step2">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:16px;font-weight:800;margin-bottom:3px">Map Your Zone</div>
+          <div style="font-size:12px;color:#555"><span id="zb-map-total">0</span> homes loaded · <span id="zb-worked-summary" style="color:#ffa500"></span></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button onclick="zbShowStep(1)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#666;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer">← Back</button>
+          <span id="zb-map-selection" style="display:none;align-items:center;gap:8px">
+            <span style="font-size:12px;font-weight:800;color:#4caf50"><span id="zb-selected-count">0</span> homes selected</span>
+            <button onclick="zbScreenSelected()" style="background:#4caf50;color:#000;font-weight:800;font-size:12px;padding:8px 16px;border:none;border-radius:8px;cursor:pointer">Screen Selected →</button>
+          </span>
+          <button id="zb-map-all-btn" onclick="zbScreenAll()" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer">Screen All <span id="zb-map-all-count">0</span> →</button>
+        </div>
+      </div>
+
+      <!-- No-coords fallback -->
+      <div id="zb-map-no-coords" style="display:none;background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.25);border-radius:10px;padding:20px;margin-bottom:16px;text-align:center">
+        <div style="font-size:13px;font-weight:700;color:#ffa500;margin-bottom:4px">Map Not Available for CSV Uploads</div>
+        <div style="font-size:12px;color:#666">Coordinates aren't available from CSV files. Use Screen All to continue, or use Auto-Fetch next time for the full map experience.</div>
+        <button onclick="zbScreenAll()" style="margin-top:14px;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer">Screen All <span style="font-weight:400">(<span id="zb-map-all-count2">0</span> homes)</span> →</button>
+      </div>
+
+      <!-- Drawing toolbar -->
+      <div id="zb-draw-toolbar" style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#444">Draw Neighborhood</span>
+        <button id="zb-btn-circle" onclick="zbSetDrawMode('circle')" style="background:#111;border:1px solid #222;color:#888;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;cursor:pointer;font-family:inherit;transition:all .15s">⭕ Circle</button>
+        <button id="zb-btn-polygon" onclick="zbSetDrawMode('polygon')" style="background:#111;border:1px solid #222;color:#888;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;cursor:pointer;font-family:inherit;transition:all .15s">🔷 Polygon</button>
+        <button onclick="zbClearShapes()" style="background:#111;border:1px solid #222;color:#666;font-size:12px;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:inherit">✕ Clear</button>
+        <span id="zb-draw-hint" style="font-size:11px;color:#555;margin-left:4px">Click a draw mode, then draw on the map to select a neighborhood</span>
+      </div>
+
+      <!-- Legend -->
+      <div style="display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:50%;background:#4caf50;display:inline-block"></span>PRIME (18–22yr)</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:50%;background:#ff9800;display:inline-block"></span>HOT (23–25yr)</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:50%;background:#64b5f6;display:inline-block"></span>WARM (26+yr)</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:50%;background:#4caf50;outline:2px solid #fff;display:inline-block"></span>Kept</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:50%;background:#ff5555;outline:2px solid #fff;display:inline-block"></span>Skipped</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#666"><span style="width:10px;height:10px;border-radius:50%;background:#555;display:inline-block"></span>Already worked</div>
+      </div>
+
+      <!-- Map -->
+      <div id="zb-map-container" style="height:500px;border-radius:12px;overflow:hidden;border:1px solid #1a1a1a;background:#111"></div>
     </div>
 
     <!-- STEP 1: Get Data -->
@@ -2245,8 +2475,8 @@ function zbExportExcel(autoDownload) {
       </div>
     </div>
 
-    <!-- STEP 2: Lead Screener -->
-    <div class="zb-step" id="zb-step2">
+    <!-- STEP 3: Lead Screener -->
+    <div class="zb-step" id="zb-step3">
       <!-- Top bar -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
         <div>
@@ -2260,6 +2490,8 @@ function zbExportExcel(autoDownload) {
             <button id="sc-view-list-btn" onclick="if(!zbListView)zbToggleView()" style="background:transparent;border:none;color:#555;font-size:11px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit">📋 List</button>
           </div>
           <div style="font-size:13px;color:#888"><span id="sc-idx">0</span> / <span id="sc-total">0</span></div>
+          <button onclick="zbShowStep(2)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#666;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer" title="Go back to the neighborhood map">🗺 Map</button>
+          <button onclick="zbOpenReview()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#888;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer" title="Review and change keep/skip decisions">📋 Review</button>
           <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#666;font-size:12px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer" title="Progress is autosaved — you can reopen anytime">💾 Save & Close</button>
           <button id="sc-send-btn" onclick="zbSendBatch()" style="display:none;background:#4caf50;color:#000;font-weight:800;font-size:12px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:inherit">⚡ Send <span id="sc-send-count">0</span> Approved →</button>
           <button onclick="zbExportExcel(false)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer" title="Download kept leads as Excel">📥 Excel</button>
@@ -2356,9 +2588,9 @@ function zbExportExcel(autoDownload) {
       </div>
     </div>
 
-    <!-- STEP 3: Configure + Launch -->
-    <div class="zb-step" id="zb-step3">
-      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Step 3 — Configure &amp; Launch</div>
+    <!-- STEP 4: Configure + Launch -->
+    <div class="zb-step" id="zb-step4">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Step 4 — Configure &amp; Launch</div>
       <div id="zb-lead-summary" style="font-size:13px;color:#666;margin-bottom:20px"></div>
 
       <!-- Preview table -->
@@ -2389,15 +2621,15 @@ function zbExportExcel(autoDownload) {
       </div>
 
       <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
-        <button onclick="zbShowStep(2)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer">← Back to Screener</button>
+        <button onclick="zbShowStep(3)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 20px;border-radius:8px;cursor:pointer">← Back to Screener</button>
         <button onclick="zbExportExcel(false)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:#888;font-size:13px;font-weight:700;padding:11px 20px;border-radius:8px;cursor:pointer">📥 Download Excel</button>
         <button id="zb-launch-btn" onclick="zbLaunchZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer">Launch Zone →</button>
         <span id="zb-launch-err" style="color:#ff5555;font-size:12px;align-self:center;display:none"></span>
       </div>
     </div>
 
-    <!-- STEP 4: Success -->
-    <div class="zb-step" id="zb-step4">
+    <!-- STEP 5: Success -->
+    <div class="zb-step" id="zb-step5">
       <div style="text-align:center;max-width:480px;margin:60px auto 0">
         <div style="font-size:40px;margin-bottom:20px">✅</div>
         <div style="font-size:22px;font-weight:900;margin-bottom:8px">Zone Is Live!</div>
@@ -2424,6 +2656,7 @@ function zbExportExcel(autoDownload) {
 
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
           <button id="zb-continue-btn" onclick="zbContinueScreening()" style="display:none;background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:11px 28px;border:none;border-radius:8px;cursor:pointer;font-family:inherit">▶ Continue Screening</button>
+          <button onclick="zbShowStep(2)" style="background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.2);color:#4caf50;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">🗺 View Map</button>
           <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:13px;font-weight:600;padding:11px 28px;border-radius:8px;cursor:pointer">← Back to Admin</button>
         </div>
       </div>
@@ -2445,6 +2678,28 @@ function zbExportExcel(autoDownload) {
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div id="zb-review-modal" onclick="if(event.target===this)zbCloseReview()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.85);overflow-y:auto;padding:40px 16px">
+  <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;max-width:640px;margin:0 auto;position:relative">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:16px;font-weight:800">Review Decisions</div>
+        <div id="rv-count" style="font-size:12px;color:#555;margin-top:2px"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:3px;display:flex">
+          <button id="rv-f-all"     onclick="zbReviewFilter('all')"     style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:800;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">All</button>
+          <button id="rv-f-kept"    onclick="zbReviewFilter('kept')"    style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">✅ Kept</button>
+          <button id="rv-f-skipped" onclick="zbReviewFilter('skipped')" style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">❌ Skipped</button>
+        </div>
+        <button onclick="zbExportReview()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer">📥 Export</button>
+        <button onclick="zbCloseReview()" style="background:#222;border:1px solid #333;color:#aaa;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer">✕ Close</button>
+      </div>
+    </div>
+    <div id="zb-review-list" style="max-height:60vh;overflow-y:auto;padding-right:4px"></div>
   </div>
 </div>
 
