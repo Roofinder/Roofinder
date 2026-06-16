@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /owner.html
+Disallow: /agent.html
+
+# AI crawlers — allowed for AI search visibility
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://roofinder.online/sitemap.xml

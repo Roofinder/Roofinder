@@ -1,0 +1,25 @@
+# RooFinder
+> Exclusive canvassing zones for roofing sales teams. Pre-qualified homeowner leads, built-in CRM, door-knocking routes, mobile team app, and live tracking. $999 first month, $2,500/mo. One zone per contractor — available nationwide.
+
+## What We Do
+RooFinder gives roofing companies an exclusive zip code territory of pre-qualified homeowners — filtered by roof age, home value, and owner-occupied status. The platform includes organized routes, a full CRM, a mobile agent app, an owner dashboard, and a live team scoreboard. Zones are built and delivered within 48 hours of signup.
+
+## Key Facts
+- Price: $999 first month, then $2,500/month flat
+- No contracts — cancel anytime
+- One contractor per zip code — exclusive, never shared
+- Zone delivered within 48 hours
+- Works on any phone — no app download required
+- Available for any zip code in the United States
+- Phone: (919) 480-8884
+
+## Pages
+- /: Homepage with zone finder, pricing, and signup
+- /how-it-works.html: Full platform walkthrough across 8 detailed sections
+- /search.html: Zone availability checker by zip code
+- /privacy.html: Privacy policy
+
+## Not Indexed
+- /admin.html: Admin portal (private)
+- /owner.html: Owner dashboard (private)
+- /agent.html: Agent field app (private)
