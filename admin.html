@@ -359,34 +359,34 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
 
         <!-- Street view panel -->
         <div>
-          <div id="train-street-view" style="background:#0a0a0a;border:1px solid #222;border-radius:12px;overflow:hidden;position:relative;min-height:380px;display:flex;align-items:center;justify-content:center">
-            <div id="train-sv-placeholder" style="text-align:center;padding:40px">
-              <div style="font-size:40px;margin-bottom:16px">🏠</div>
-              <div style="font-size:14px;font-weight:700;color:#e0e4f0;margin-bottom:8px">Enter an address above to start</div>
-              <div style="font-size:12px;color:#444;line-height:1.6">The Street View image will load here.<br>Label each roof to train the AI scorer.</div>
+          <!-- Placeholder when no address loaded -->
+          <div id="train-sv-placeholder" style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;min-height:320px;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px">
+            <div>
+              <div style="font-size:48px;margin-bottom:16px">🏠</div>
+              <div style="font-size:14px;font-weight:700;color:#e0e4f0;margin-bottom:8px">Load the queue to get started</div>
+              <div style="font-size:12px;color:#444;line-height:1.6">Each address will appear here.<br>Click the button to open Street View in a new tab.</div>
             </div>
-            <iframe id="train-sv-frame" src="" style="display:none;width:100%;height:520px;border:none" allowfullscreen></iframe>
           </div>
 
-          <!-- Image date warning -->
-          <div id="train-date-warning" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:12px;color:#ef4444;font-weight:600">
-            ⚠️ Image is older than 2024 — label this as <strong>Pass</strong>. Older images don't qualify for AI scoring.
-          </div>
+          <!-- Address loaded — open street view card -->
+          <div id="train-sv-loaded" style="display:none">
+            <div style="background:#0d0d0d;border:1px solid #222;border-radius:12px;padding:28px;text-align:center">
+              <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:10px">CURRENT ADDRESS</div>
+              <div id="train-addr-big" style="font-size:20px;font-weight:800;color:#e0e4f0;margin-bottom:24px;line-height:1.3">—</div>
+              <a id="train-sv-link" href="#" target="_blank" style="display:inline-block;background:#4caf50;color:#000;font-size:14px;font-weight:800;padding:14px 28px;border-radius:10px;text-decoration:none;margin-bottom:12px">
+                🗺 Open Street View →
+              </a>
+              <div style="font-size:11px;color:#444;margin-top:8px">Opens in a new tab — come back here to label</div>
+            </div>
 
-          <!-- Google Maps link -->
-          <div id="train-maps-link" style="display:none;margin-top:10px">
-            <a id="train-gmaps-url" href="#" target="_blank" style="font-size:12px;color:#4caf50;font-weight:600;text-decoration:none">↗ Open in Google Maps Street View</a>
+            <div id="train-date-warning" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:12px;color:#ef4444;font-weight:600">
+              ⚠️ Image may be older than 2024 — consider labeling as <strong>Pass</strong>.
+            </div>
           </div>
         </div>
 
         <!-- Label panel -->
         <div style="display:flex;flex-direction:column;gap:14px">
-
-          <!-- Current address display -->
-          <div id="train-addr-display" style="background:#111;border:1px solid #222;border-radius:10px;padding:14px 16px">
-            <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:6px">REVIEWING</div>
-            <div id="train-addr-text" style="font-size:14px;font-weight:700;color:#e0e4f0;line-height:1.4">No address loaded</div>
-          </div>
 
           <!-- Score buttons -->
           <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:-6px">YOUR CALL</div>
@@ -2744,30 +2744,18 @@ function loadRoofByAddress() {
   var addr = document.getElementById('train-address').value.trim();
   if (!addr) return;
   _trainAddress = addr;
-  document.getElementById('train-addr-text').textContent = addr;
   document.getElementById('train-saved').style.display = 'none';
   document.getElementById('train-notes').value = '';
   document.getElementById('train-date-warning').style.display = 'none';
 
-  var frame = document.getElementById('train-sv-frame');
-  var placeholder = document.getElementById('train-sv-placeholder');
+  // Show loaded card, hide placeholder
+  document.getElementById('train-sv-placeholder').style.display = 'none';
+  document.getElementById('train-sv-loaded').style.display = 'block';
+  document.getElementById('train-addr-big').textContent = addr;
 
-  // Always use the interactive Street View embed — lets you drag, zoom, and pan
-  // (Static API is a flat photo; this embed is fully interactive)
+  // Street View link — opens in new tab (no iframe freeze)
   var encoded = encodeURIComponent(addr);
-  var svUrl = 'https://maps.google.com/maps?q=' + encoded + '&layer=c&cbp=12,90,,0,0&output=svembed';
-  frame.src = svUrl;
-  frame.style.display = 'block';
-  placeholder.style.display = 'none';
-
-  // Open-in-Maps link
-  document.getElementById('train-gmaps-url').href = 'https://www.google.com/maps/search/' + encoded;
-  document.getElementById('train-maps-link').style.display = 'block';
-
-  // Date check via metadata API (only when key is set)
-  if (GMAPS_KEY) {
-    checkStreetViewDate(addr);
-  }
+  document.getElementById('train-sv-link').href = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + encoded + '&q=' + encoded;
 }
 
 function checkStreetViewDate(addr) {
@@ -2788,11 +2776,9 @@ function checkStreetViewDate(addr) {
 
 function loadNextRoof() {
   document.getElementById('train-address').value = '';
-  document.getElementById('train-addr-text').textContent = 'No address loaded';
-  document.getElementById('train-sv-frame').style.display = 'none';
+  document.getElementById('train-sv-loaded').style.display = 'none';
   document.getElementById('train-sv-placeholder').style.display = 'flex';
   document.getElementById('train-date-warning').style.display = 'none';
-  document.getElementById('train-maps-link').style.display = 'none';
   document.getElementById('train-saved').style.display = 'none';
   document.getElementById('train-notes').value = '';
   _trainAddress = '';
@@ -2842,9 +2828,8 @@ function labelRoof(score) {
     savedEl.style.display = 'block';
     _recentLabels.unshift(label);
     renderRecentLabels();
-    document.getElementById('train-sv-frame').style.display = 'none';
+    document.getElementById('train-sv-loaded').style.display = 'none';
     document.getElementById('train-sv-placeholder').style.display = 'flex';
-    document.getElementById('train-maps-link').style.display = 'none';
     document.getElementById('train-date-warning').style.display = 'none';
     if (_addressQueue.length && _queueIndex < _addressQueue.length) {
       _queueIndex++;
@@ -3249,4 +3234,12 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- Review Modal -->
-<div id="zb-review-modal" onclick="if(event.target===this)zbCloseReview()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(
+<div id="zb-review-modal" onclick="if(event.target===this)zbCloseReview()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.85);overflow-y:auto;padding:40px 16px">
+  <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;max-width:640px;margin:0 auto;position:relative">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:16px;font-weight:800">Review Decisions</div>
+        <div id="rv-count" style="font-size:12px;color:#555;margin-top:2px"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div s
