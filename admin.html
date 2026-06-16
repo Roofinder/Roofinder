@@ -223,6 +223,7 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
         <button class="nav-tab" onclick="showPanel('pockets',this)">Pockets</button>
         <button class="nav-tab" onclick="showPanel('activity',this)">Activity</button>
       <button class="nav-tab" onclick="showPanel('applications',this)">Leads <span id="app-badge" style="display:none;background:#4caf50;color:#000;font-size:9px;font-weight:900;padding:2px 6px;border-radius:10px;margin-left:4px">0</span></button>
+        <button class="nav-tab" onclick="showPanel('training',this)">🏠 Roof Training</button>
       </div>
     </div>
     <div class="nav-stat-row">
@@ -304,6 +305,110 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
       <!-- Homeowner Leads List -->
       <div id="hw-list" style="display:none">
         <div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading...</div>
+      </div>
+    </div>
+
+    <!-- ── ROOF TRAINING ── -->
+    <div class="panel" id="panel-training">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:18px;font-weight:800;color:#e0e4f0">Roof Training Session</div>
+          <div style="font-size:12px;color:#555;margin-top:2px">Label roofs to teach the AI what you look for. Your calls become the scoring criteria.</div>
+        </div>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+          <div style="display:flex;gap:10px;font-size:12px;font-weight:700">
+            <span style="color:#ef4444">🔥 <span id="tc-hot">0</span></span>
+            <span style="color:#fb923c">👍 <span id="tc-warm">0</span></span>
+            <span style="color:#3b82f6">❌ <span id="tc-pass">0</span></span>
+            <span style="color:#555">⏭ <span id="tc-skip">0</span></span>
+          </div>
+          <div style="font-size:11px;color:#333">Keys: 1·2·3·4</div>
+          <button onclick="loadNextRoof()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:inherit">↻ Clear</button>
+        </div>
+      </div>
+
+      <!-- Address input row -->
+      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <input id="train-address" placeholder="Enter address to review (e.g. 123 Oak St, Raleigh NC 27511)" style="flex:1;min-width:260px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:#fff;font-size:13px;font-family:inherit;outline:none"/>
+        <button onclick="loadRoofByAddress()" style="background:var(--green,#4caf50);border:none;color:#000;font-size:13px;font-weight:800;padding:11px 20px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap">Load Street View →</button>
+      </div>
+
+      <!-- Main training area -->
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start" id="train-grid">
+
+        <!-- Street view panel -->
+        <div>
+          <div id="train-street-view" style="background:#0a0a0a;border:1px solid #222;border-radius:12px;overflow:hidden;position:relative;min-height:380px;display:flex;align-items:center;justify-content:center">
+            <div id="train-sv-placeholder" style="text-align:center;padding:40px">
+              <div style="font-size:40px;margin-bottom:16px">🏠</div>
+              <div style="font-size:14px;font-weight:700;color:#e0e4f0;margin-bottom:8px">Enter an address above to start</div>
+              <div style="font-size:12px;color:#444;line-height:1.6">The Street View image will load here.<br>Label each roof to train the AI scorer.</div>
+            </div>
+            <iframe id="train-sv-frame" src="" style="display:none;width:100%;height:520px;border:none" allowfullscreen></iframe>
+          </div>
+
+          <!-- Image date warning -->
+          <div id="train-date-warning" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:12px;color:#ef4444;font-weight:600">
+            ⚠️ Image is older than 2024 — label this as <strong>Pass</strong>. Older images don't qualify for AI scoring.
+          </div>
+
+          <!-- Google Maps link -->
+          <div id="train-maps-link" style="display:none;margin-top:10px">
+            <a id="train-gmaps-url" href="#" target="_blank" style="font-size:12px;color:#4caf50;font-weight:600;text-decoration:none">↗ Open in Google Maps Street View</a>
+          </div>
+        </div>
+
+        <!-- Label panel -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- Current address display -->
+          <div id="train-addr-display" style="background:#111;border:1px solid #222;border-radius:10px;padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:6px">REVIEWING</div>
+            <div id="train-addr-text" style="font-size:14px;font-weight:700;color:#e0e4f0;line-height:1.4">No address loaded</div>
+          </div>
+
+          <!-- Score buttons -->
+          <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:-6px">YOUR CALL</div>
+
+          <button id="tbtn-hot" onclick="labelRoof('hot')" class="train-btn" data-score="hot" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.4);color:#ef4444;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
+            🔥 Hot Lead <kbd style="float:right;font-size:10px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:4px;padding:2px 6px;font-family:inherit">1</kbd>
+            <div style="font-size:11px;font-weight:500;color:#ef444488;margin-top:3px">Multiple aging signs — knock this door first</div>
+          </button>
+
+          <button id="tbtn-warm" onclick="labelRoof('warm')" class="train-btn" data-score="warm" style="background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.4);color:#fb923c;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
+            👍 Warm <kbd style="float:right;font-size:10px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:4px;padding:2px 6px;font-family:inherit">2</kbd>
+            <div style="font-size:11px;font-weight:500;color:#fb923c88;margin-top:3px">Some wear visible — worth a knock</div>
+          </button>
+
+          <button id="tbtn-pass" onclick="labelRoof('pass')" class="train-btn" data-score="pass" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
+            ❌ Pass <kbd style="float:right;font-size:10px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:4px;padding:2px 6px;font-family:inherit">3</kbd>
+            <div style="font-size:11px;font-weight:500;color:#3b82f688;margin-top:3px">Newer roof — skip for now</div>
+          </button>
+
+          <button id="tbtn-skip" onclick="labelRoof('skip')" class="train-btn" data-score="skip" style="background:rgba(255,255,255,0.03);border:1px solid #222;color:#555;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
+            ⏭ Skip <kbd style="float:right;font-size:10px;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:2px 6px;font-family:inherit">4</kbd>
+            <div style="font-size:11px;font-weight:500;color:#333;margin-top:3px">Can't see roof / image too old</div>
+          </button>
+
+          <!-- Notes -->
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:6px">WHAT DID YOU SEE? (optional)</div>
+            <textarea id="train-notes" placeholder="e.g. black streaking on north slope, granule loss near gutters…" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid #222;border-radius:8px;padding:10px 12px;color:#ccc;font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:72px;box-sizing:border-box"></textarea>
+          </div>
+
+          <!-- Confirm save toast -->
+          <div id="train-saved" style="display:none;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#4caf50;text-align:center">
+            ✓ Saved — load next address to continue
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent labels -->
+      <div style="margin-top:28px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:12px">RECENT LABELS</div>
+        <div id="train-recent" style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:13px;color:#333">No labels yet this session.</div>
+        </div>
       </div>
     </div>
   </main>
@@ -2471,6 +2576,182 @@ function zbExportExcel(autoDownload) {
   var dateStr = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, safeName + ' — Kept Leads ' + dateStr + '.xlsx');
 }
+
+// ── ROOF TRAINING ──────────────────────────────────────────────
+var _trainAddress = '';
+var _recentLabels = [];
+var _trainScores = { hot: 0, warm: 0, pass: 0, skip: 0 };
+var GMAPS_KEY = ''; // paste your key here once you have it
+
+function loadRoofByAddress() {
+  var addr = document.getElementById('train-address').value.trim();
+  if (!addr) return;
+  _trainAddress = addr;
+  document.getElementById('train-addr-text').textContent = addr;
+  document.getElementById('train-saved').style.display = 'none';
+  document.getElementById('train-notes').value = '';
+  document.getElementById('train-date-warning').style.display = 'none';
+
+  var frame = document.getElementById('train-sv-frame');
+  var placeholder = document.getElementById('train-sv-placeholder');
+
+  // Always use the interactive Street View embed — lets you drag, zoom, and pan
+  // (Static API is a flat photo; this embed is fully interactive)
+  var encoded = encodeURIComponent(addr);
+  var svUrl = 'https://maps.google.com/maps?q=' + encoded + '&layer=c&cbp=12,90,,0,0&output=svembed';
+  frame.src = svUrl;
+  frame.style.display = 'block';
+  placeholder.style.display = 'none';
+
+  // Open-in-Maps link
+  document.getElementById('train-gmaps-url').href = 'https://www.google.com/maps/search/' + encoded;
+  document.getElementById('train-maps-link').style.display = 'block';
+
+  // Date check via metadata API (only when key is set)
+  if (GMAPS_KEY) {
+    checkStreetViewDate(addr);
+  }
+}
+
+function checkStreetViewDate(addr) {
+  if (!GMAPS_KEY) return;
+  var url = 'https://maps.googleapis.com/maps/api/streetview/metadata?location=' + encodeURIComponent(addr) + '&key=' + GMAPS_KEY;
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.date) {
+        var year = parseInt(data.date.slice(0, 4));
+        if (year < 2024) {
+          document.getElementById('train-date-warning').style.display = 'block';
+        }
+      }
+    })
+    .catch(function() {});
+}
+
+function loadNextRoof() {
+  document.getElementById('train-address').value = '';
+  document.getElementById('train-addr-text').textContent = 'No address loaded';
+  document.getElementById('train-sv-frame').style.display = 'none';
+  document.getElementById('train-sv-placeholder').style.display = 'flex';
+  document.getElementById('train-date-warning').style.display = 'none';
+  document.getElementById('train-maps-link').style.display = 'none';
+  document.getElementById('train-saved').style.display = 'none';
+  document.getElementById('train-notes').value = '';
+  _trainAddress = '';
+  clearBtnHighlight();
+}
+
+function highlightBtn(score) {
+  // Clear all
+  ['hot','warm','pass','skip'].forEach(function(s) {
+    var btn = document.getElementById('tbtn-' + s);
+    if (!btn) return;
+    btn.style.opacity = s === score ? '1' : '0.35';
+    btn.style.transform = s === score ? 'scale(1.02)' : 'scale(1)';
+  });
+}
+
+function clearBtnHighlight() {
+  ['hot','warm','pass','skip'].forEach(function(s) {
+    var btn = document.getElementById('tbtn-' + s);
+    if (!btn) return;
+    btn.style.opacity = '1';
+    btn.style.transform = 'scale(1)';
+  });
+}
+
+function labelRoof(score) {
+  if (!_trainAddress) {
+    alert('Load an address first.');
+    return;
+  }
+  highlightBtn(score);
+  var notes = document.getElementById('train-notes').value.trim();
+  var label = {
+    address: _trainAddress,
+    score: score,
+    notes: notes,
+    labeledAt: new Date().toISOString(),
+    labeledBy: 'dalton'
+  };
+
+  // Save to Firestore
+  db.collection('roof_training').add(label)
+    .then(function() {
+      _trainScores[score]++;
+      document.getElementById('tc-' + score).textContent = _trainScores[score];
+      var savedEl = document.getElementById('train-saved');
+      savedEl.textContent = '✓ Saved as ' + score.toUpperCase() + ' — type next address below';
+      savedEl.style.display = 'block';
+      _recentLabels.unshift(label);
+      renderRecentLabels();
+
+      // Close map immediately, then auto-advance and focus
+      document.getElementById('train-sv-frame').style.display = 'none';
+      document.getElementById('train-sv-placeholder').style.display = 'flex';
+      document.getElementById('train-maps-link').style.display = 'none';
+      document.getElementById('train-date-warning').style.display = 'none';
+
+      setTimeout(function() {
+        loadNextRoof();
+        var inp = document.getElementById('train-address');
+        if (inp) inp.focus();
+      }, 1200);
+    })
+    .catch(function(err) {
+      clearBtnHighlight();
+      alert('Save failed: ' + err.message);
+    });
+}
+
+function renderRecentLabels() {
+  var container = document.getElementById('train-recent');
+  var scoreColors = { hot: '#ef4444', warm: '#fb923c', pass: '#3b82f6', skip: '#555' };
+  var scoreIcons = { hot: '🔥', warm: '👍', pass: '❌', skip: '⏭' };
+
+  if (!_recentLabels.length) {
+    container.innerHTML = '<div style="font-size:13px;color:#333">No labels yet this session.</div>';
+    return;
+  }
+
+  container.innerHTML = _recentLabels.slice(0, 8).map(function(l) {
+    var color = scoreColors[l.score] || '#555';
+    var icon = scoreIcons[l.score] || '?';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#0f0f0f;border:1px solid #1a1a1a;border-radius:8px">' +
+      '<span style="font-size:16px">' + icon + '</span>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:600;color:#ccc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + l.address + '</div>' +
+        (l.notes ? '<div style="font-size:11px;color:#555;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + l.notes + '</div>' : '') +
+      '</div>' +
+      '<span style="font-size:11px;font-weight:800;color:' + color + ';text-transform:uppercase">' + l.score + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+// Keyboard shortcuts + Enter on address field
+document.addEventListener('DOMContentLoaded', function() {
+  var addrInput = document.getElementById('train-address');
+  if (addrInput) {
+    addrInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') loadRoofByAddress();
+    });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    // Only fire when training panel is active and focus isn't in a text input
+    var panel = document.getElementById('panel-training');
+    if (!panel || !panel.classList.contains('active')) return;
+    var tag = document.activeElement ? document.activeElement.tagName : '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+    var map = { '1': 'hot', '2': 'warm', '3': 'pass', '4': 'skip' };
+    if (map[e.key]) {
+      e.preventDefault();
+      labelRoof(map[e.key]);
+    }
+  });
+});
 
 </script>
 
