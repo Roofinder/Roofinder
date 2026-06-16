@@ -359,29 +359,22 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
 
         <!-- Street view panel -->
         <div>
-          <!-- Placeholder when no address loaded -->
-          <div id="train-sv-placeholder" style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;min-height:320px;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px">
+          <div id="train-sv-placeholder" style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px">
             <div>
               <div style="font-size:48px;margin-bottom:16px">🏠</div>
-              <div style="font-size:14px;font-weight:700;color:#e0e4f0;margin-bottom:8px">Load the queue to get started</div>
-              <div style="font-size:12px;color:#444;line-height:1.6">Each address will appear here.<br>Click the button to open Street View in a new tab.</div>
+              <div style="font-size:14px;font-weight:700;color:#e0e4f0;margin-bottom:8px">Click ⚡ Load 50 Sample Raleigh Homes to start</div>
+              <div style="font-size:12px;color:#444">Street View loads here automatically for each home</div>
             </div>
           </div>
-
-          <!-- Address loaded — open street view card -->
           <div id="train-sv-loaded" style="display:none">
-            <div style="background:#0d0d0d;border:1px solid #222;border-radius:12px;padding:28px;text-align:center">
-              <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:10px">CURRENT ADDRESS</div>
-              <div id="train-addr-big" style="font-size:20px;font-weight:800;color:#e0e4f0;margin-bottom:24px;line-height:1.3">—</div>
-              <a id="train-sv-link" href="#" target="_blank" style="display:inline-block;background:#4caf50;color:#000;font-size:14px;font-weight:800;padding:14px 28px;border-radius:10px;text-decoration:none;margin-bottom:12px">
-                🗺 Open Street View →
-              </a>
-              <div style="font-size:11px;color:#444;margin-top:8px">Opens in a new tab — come back here to label</div>
+            <div style="background:#0d0d0d;border:1px solid #222;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+              <div id="train-addr-big" style="font-size:13px;font-weight:700;color:#e0e4f0"></div>
+              <a id="train-sv-link" href="#" target="_blank" style="font-size:11px;color:#4caf50;font-weight:700;text-decoration:none;white-space:nowrap;margin-left:12px">↗ Open in Maps</a>
             </div>
-
-            <div id="train-date-warning" style="display:none;margin-top:10px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:12px;color:#ef4444;font-weight:600">
-              ⚠️ Image may be older than 2024 — consider labeling as <strong>Pass</strong>.
-            </div>
+            <iframe id="train-sv-frame" src="" style="width:100%;height:480px;border:none;border-radius:10px;display:block"></iframe>
+          </div>
+          <div id="train-date-warning" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:12px;color:#ef4444;font-weight:600">
+            ⚠️ Image may be older than 2024 — label as <strong>Pass</strong>.
           </div>
         </div>
 
@@ -2753,9 +2746,11 @@ function loadRoofByAddress() {
   document.getElementById('train-sv-loaded').style.display = 'block';
   document.getElementById('train-addr-big').textContent = addr;
 
-  // Street View link — opens in new tab (no iframe freeze)
+  // Inline Street View iframe
   var encoded = encodeURIComponent(addr);
-  document.getElementById('train-sv-link').href = 'https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=' + encoded + '&q=' + encoded;
+  var iframeSrc = 'https://www.google.com/maps/embed/v1/streetview?key=AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U&location=' + encoded + '&heading=210&pitch=10&fov=80';
+  document.getElementById('train-sv-frame').src = iframeSrc;
+  document.getElementById('train-sv-link').href = 'https://www.google.com/maps/search/?api=1&query=' + encoded;
 }
 
 function checkStreetViewDate(addr) {
@@ -3242,4 +3237,5 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="rv-count" style="font-size:12px;color:#555;margin-top:2px"></div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <div s
+        <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:3px;display:flex">
+          <button id="rv-f-all"     onclick="zbReviewFilter('all')"     style="background:rgb
