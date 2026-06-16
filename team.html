@@ -415,6 +415,8 @@ function tmOpenBuilder(){
   if(!tmMember)return;
   zbAppId=tmMember.appId;zbZip=tmMember.assignedZip;zbCompany=tmMember.company;
   zbRawCSV='';zbMidSession=false;zbTotalSent=0;zbKeptLeads=[];zbAllLeads=[];zbScreenIdx=0;
+  if(zbMap){zbMapMarkers.forEach(function(m){m.marker.setMap(null);});zbMapMarkers=[];}
+  zbMap=null;zbDrawingManager=null;zbDrawnShapes=[];zbSelectedLeadIndices=null;
   document.getElementById('zb-title').textContent=tmMember.company||'Zone Builder';
   document.getElementById('zb-subtitle').textContent=tmMember.assignedZip?'Assigned Zip: '+tmMember.assignedZip:'';
   document.getElementById('zb-zip-label').textContent=tmMember.assignedZip;

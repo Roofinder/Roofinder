@@ -1181,6 +1181,9 @@ var zbRawCSV = '';
 function buildZone(id, company, zip) {
   zbAppId = id; zbZip = zip; zbCompany = company; zbRawCSV = '';
   zbMidSession = false; zbTotalSent = 0; zbKeptLeads = []; zbAllLeads = []; zbScreenIdx = 0;
+  // Reset map so zbInitMap() always runs fresh (fixes drawing manager + tile rendering)
+  if (zbMap) { zbMapMarkers.forEach(function(m){ m.marker.setMap(null); }); zbMapMarkers = []; }
+  zbMap = null; zbDrawingManager = null; zbDrawnShapes = []; zbSelectedLeadIndices = null;
   document.getElementById('zb-title').textContent = company;
   document.getElementById('zb-subtitle').textContent = 'Zip Code: ' + zip;
   document.getElementById('zb-zip-label').textContent = zip;
@@ -1300,7 +1303,9 @@ function zbInitMap() {
     google.maps.event.addListener(e.overlay, 'radius_changed', zbUpdateSelectionFromShapes);
     google.maps.event.addListener(e.overlay, 'center_changed', zbUpdateSelectionFromShapes);
   });
-  zbPlotMarkers();
+  // Trigger resize so map picks up container dimensions, then plot after tiles load
+  setTimeout(function() { google.maps.event.trigger(zbMap, 'resize'); }, 50);
+  google.maps.event.addListenerOnce(zbMap, 'idle', zbPlotMarkers);
 }
 
 function zbMapDarkStyle() { return [{elementType:'geometry',stylers:[{color:'#1a1a1a'}]},{elementType:'labels.text.fill',stylers:[{color:'#757575'}]},{elementType:'labels.text.stroke',stylers:[{color:'#212121'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2a2a2a'}]},{featureType:'road',elementType:'labels.text.fill',stylers:[{color:'#666'}]},{featureType:'road.arterial',elementType:'geometry',stylers:[{color:'#333'}]},{featureType:'road.highway',elementType:'geometry',stylers:[{color:'#3a3a3a'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#0a0f1e'}]},{featureType:'poi',stylers:[{visibility:'off'}]},{featureType:'transit',stylers:[{visibility:'off'}]}]; }
