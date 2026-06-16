@@ -374,22 +374,22 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
   <div class="nav-inner">
     <a href="#" class="nav-logo"><img src="logo.png" height="38" alt="RooFinder" style="display:block"></a>
     <div class="nav-links">
-      <a href="#territory">Pricing</a>
-
-      <a href="blog/">Blog</a>
-      <a href="#homeowners" class="nav-link-glow">For Homeowners</a>
-      <a href="how-it-works.html" style="background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);color:var(--green);padding:5px 12px;border-radius:6px;font-weight:700">Info Sheet</a>
       <a href="owner.html" class="nav-link-glow">Contractors Login</a>
+      <a href="how-it-works.html" style="background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);color:var(--green);padding:5px 12px;border-radius:6px;font-weight:700">Info Sheet</a>
+      <a href="#territory">Pricing</a>
+      <a href="blog/">Blog</a>
+      <a href="homeowners.html" class="nav-link-glow">For Homeowners</a>
     </div>
     <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);color:var(--green);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Get Access →</a>
     <a href="owner.html" class="nav-mobile-login">Contractors Login</a>
     <button class="nav-mobile-toggle" onclick="toggleMobileNav(this)">☰</button>
   </div>
   <div id="mobile-nav" style="display:none;padding:16px 24px 20px;border-top:1px solid rgba(255,255,255,0.06)">
+    <a href="owner.html" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">Contractors Login</a>
+    <a href="how-it-works.html" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Info Sheet</a>
     <a href="#territory" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Pricing</a>
     <a href="blog/" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Blog</a>
-    <a href="#homeowners" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">For Homeowners</a>
-    <a href="owner.html" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">Contractors Login</a>
+    <a href="homeowners.html" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">For Homeowners</a>
     <a href="#cta" style="display:block;margin-top:12px;background:var(--green);color:#000;font-size:13px;font-weight:800;padding:12px 20px;border-radius:6px;text-align:center" onclick="toggleMobileNav()">Get Access →</a>
   </div>
 </nav>
@@ -541,39 +541,6 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
   </div>
 </section>
 
-<!-- HOMEOWNERS SECTION -->
-<section id="homeowners" style="border-top:1px solid var(--border);padding:100px 24px;background:radial-gradient(ellipse 60% 50% at 50% 100%,rgba(76,175,80,0.05) 0%,transparent 70%)">
-  <div style="max-width:680px;margin:0 auto;text-align:center">
-    <div class="section-eyebrow">For Homeowners</div>
-    <h2 class="section-title" style="margin-bottom:16px">Need a new roof?<br>We'll connect you with<br><span style="color:var(--green)">the best team in your area.</span></h2>
-    <p style="font-size:16px;color:var(--gray-light);line-height:1.65;max-width:520px;margin:0 auto 48px">RooFinder works with elite roofing contractors across the country. Drop your info below and we'll make sure the right team reaches out — no spam, no pressure, just a straight answer on your roof.</p>
-    <form id="homeowner-form" onsubmit="submitHomeownerForm(event)" style="display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto;text-align:left">
-      <input type="text" placeholder="Your name" id="hw-name" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <input type="tel" placeholder="Your phone number" id="hw-phone" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <input type="text" placeholder="Your zip code" id="hw-zip" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <select id="hw-timeline" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#aaa;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'">
-        <option value="" disabled selected>When do you need your roof looked at?</option>
-        <option value="asap" style="background:#111;color:#fff">As soon as possible</option>
-        <option value="1month" style="background:#111;color:#fff">Within the next month</option>
-        <option value="3months" style="background:#111;color:#fff">Within 3 months</option>
-        <option value="justlooking" style="background:#111;color:#fff">Just getting estimates</option>
-      </select>
-      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:15px;font-weight:800;border:none;cursor:pointer;width:100%;background:var(--green)">Connect Me With a Roofer →</button>
-      <p style="font-size:11px;color:#444;text-align:center;margin-top:4px">Free · No obligation · We only work with vetted contractors</p>
-    </form>
-    <div id="homeowner-success" style="display:none;padding:28px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:10px;margin-top:16px;text-align:center;max-width:440px;margin-left:auto;margin-right:auto">
-      <div style="font-size:32px;margin-bottom:12px">🏠</div>
-      <div style="font-size:18px;font-weight:900;color:var(--green);margin-bottom:8px">You're all set!</div>
-      <div style="font-size:14px;color:var(--gray-light);line-height:1.6">We'll have the top-rated contractor in your area reach out within 24 hours. No pressure — just a straight look at your roof.</div>
-    </div>
-    <div style="margin-top:48px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap">
-      <div style="text-align:center"><div style="font-size:28px;font-weight:800;color:#fff">24 hrs</div><div style="font-size:11px;color:var(--gray);margin-top:4px;letter-spacing:.5px">AVG RESPONSE TIME</div></div>
-      <div style="text-align:center"><div style="font-size:28px;font-weight:800;color:#fff">Vetted</div><div style="font-size:11px;color:var(--gray);margin-top:4px;letter-spacing:.5px">CONTRACTORS ONLY</div></div>
-      <div style="text-align:center"><div style="font-size:28px;font-weight:800;color:#fff">Free</div><div style="font-size:11px;color:var(--gray);margin-top:4px;letter-spacing:.5px">NO COST TO YOU</div></div>
-    </div>
-  </div>
-</section>
-
 <!-- CTA BAND -->
 <section id="cta" style="border-top:1px solid var(--border);text-align:center;padding:120px 24px;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(76,175,80,0.08) 0%,transparent 70%)">
   <div style="max-width:600px;margin:0 auto">
@@ -613,27 +580,6 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
 
 <script>
 var API_KEY = 'AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U';
-var HW_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/homeowner_leads';
-
-function submitHomeownerForm(e) {
-  e.preventDefault();
-  var btn = e.target.querySelector('button[type="submit"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-  var body = JSON.stringify({ fields: {
-    name:      { stringValue: (document.getElementById('hw-name').value   || '').trim() },
-    phone:     { stringValue: (document.getElementById('hw-phone').value  || '').trim() },
-    zip:       { stringValue: (document.getElementById('hw-zip').value    || '').trim() },
-    timeline:  { stringValue: (document.getElementById('hw-timeline').value || '').trim() },
-    type:      { stringValue: 'homeowner_lead' },
-    status:    { stringValue: 'new' },
-    createdAt: { stringValue: new Date().toISOString() }
-  }});
-  fetch(HW_URL + '?key=' + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
-    .finally(function() {
-      document.getElementById('homeowner-form').style.display = 'none';
-      document.getElementById('homeowner-success').style.display = 'block';
-    });
-}
 
 var APP_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/applications';
 

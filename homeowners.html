@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="canonical" href="https://roofinder.online/homeowners"/>
+<title>For Homeowners — RooFinder</title>
+<meta name="description" content="Need a new roof? RooFinder connects you with the best vetted roofing contractor in your area. Free, no obligation, no spam."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#000;
+  --white:#fff;
+  --green:#4caf50;
+  --gray:#888;
+  --gray-light:#bbb;
+  --border:rgba(255,255,255,0.08);
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#111}
+::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(0,0,0,0.7)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.nav-logo{font-size:18px;font-weight:800;letter-spacing:-0.5px}
+.nav-logo span{color:var(--green)}
+.nav-back{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--gray-light);transition:color .2s}
+.nav-back:hover{color:var(--white)}
+.nav-cta{background:var(--green);color:#000;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;border-radius:6px;transition:background .2s;white-space:nowrap}
+.nav-cta:hover{background:#5cc760}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:100px 24px 80px;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(76,175,80,0.07) 0%,transparent 70%)}
+.hero-eyebrow{font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--green);margin-bottom:20px;animation:fadeUp .5s ease both}
+.hero-headline{font-size:clamp(38px,6vw,72px);font-weight:900;letter-spacing:-2px;line-height:1.05;margin-bottom:24px;animation:fadeUp .55s .1s ease both}
+.hero-headline span{color:var(--green)}
+.hero-sub{font-size:17px;color:var(--gray-light);line-height:1.65;max-width:520px;margin:0 auto 48px;animation:fadeUp .55s .18s ease both}
+
+.form-wrap{max-width:440px;margin:0 auto;animation:fadeUp .55s .26s ease both}
+.form-wrap input,
+.form-wrap select{width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s;margin-bottom:12px;display:block}
+.form-wrap input::placeholder{color:#555}
+.form-wrap select{color:#aaa;appearance:none;-webkit-appearance:none}
+.form-wrap input:focus,
+.form-wrap select:focus{border-color:rgba(76,175,80,0.5)}
+.submit-btn{width:100%;background:var(--green);color:#000;font-size:15px;font-weight:800;padding:16px;border:none;border-radius:8px;cursor:pointer;transition:background .2s;font-family:inherit}
+.submit-btn:hover{background:#5cc760}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed}
+.form-note{font-size:11px;color:#444;text-align:center;margin-top:8px}
+
+.success-box{display:none;padding:28px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:10px;margin-top:16px;text-align:center}
+.success-icon{font-size:32px;margin-bottom:12px}
+.success-title{font-size:18px;font-weight:900;color:var(--green);margin-bottom:8px}
+.success-body{font-size:14px;color:var(--gray-light);line-height:1.6}
+
+.trust-row{display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:56px;animation:fadeUp .55s .34s ease both}
+.trust-item{text-align:center}
+.trust-num{font-size:28px;font-weight:800;color:#fff}
+.trust-lbl{font-size:11px;color:var(--gray);margin-top:4px;letter-spacing:.5px}
+
+footer{border-top:1px solid rgba(255,255,255,0.06);padding:40px 24px 28px;text-align:center}
+.footer-logo{font-size:18px;font-weight:900;letter-spacing:-0.5px;margin-bottom:6px}
+.footer-sub{font-size:11px;color:#333}
+
+@media(max-width:600px){
+  .trust-row{gap:28px}
+  .nav-back{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">ROOF<span>FINDER</span></a>
+    <a href="/" class="nav-back">← Back to main site</a>
+    <a href="/#cta" class="nav-cta">For Contractors →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <div class="hero-eyebrow">For Homeowners</div>
+    <h1 class="hero-headline">Need a new roof?<br>We'll connect you with<br><span>the best team in your area.</span></h1>
+    <p class="hero-sub">RooFinder works with elite roofing contractors across the country. Drop your info below and we'll make sure the right team reaches out — no spam, no pressure, just a straight answer on your roof.</p>
+
+    <div class="form-wrap">
+      <form id="homeowner-form" onsubmit="submitHomeownerForm(event)">
+        <input type="text" placeholder="Your name" id="hw-name" required/>
+        <input type="tel" placeholder="Your phone number" id="hw-phone" required/>
+        <input type="text" placeholder="Your zip code" id="hw-zip" required maxlength="5"/>
+        <select id="hw-timeline">
+          <option value="" disabled selected>When do you need your roof looked at?</option>
+          <option value="asap">As soon as possible</option>
+          <option value="1month">Within the next month</option>
+          <option value="3months">Within 3 months</option>
+          <option value="justlooking">Just getting estimates</option>
+        </select>
+        <button type="submit" class="submit-btn">Connect Me With a Roofer →</button>
+        <p class="form-note">Free · No obligation · We only work with vetted contractors</p>
+      </form>
+
+      <div id="homeowner-success" class="success-box">
+        <div class="success-icon">🏠</div>
+        <div class="success-title">You're all set!</div>
+        <div class="success-body">We'll have the top-rated contractor in your area reach out within 24 hours. No pressure — just a straight look at your roof.</div>
+      </div>
+    </div>
+
+    <div class="trust-row">
+      <div class="trust-item"><div class="trust-num">24 hrs</div><div class="trust-lbl">AVG RESPONSE TIME</div></div>
+      <div class="trust-item"><div class="trust-num">Vetted</div><div class="trust-lbl">CONTRACTORS ONLY</div></div>
+      <div class="trust-item"><div class="trust-num">Free</div><div class="trust-lbl">NO COST TO YOU</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">ROOFINDER</div>
+  <div style="font-size:11px;color:#333;font-style:italic;margin:10px 0 6px">"I am the way, the truth, and the life." — John 14:6</div>
+  <div class="footer-sub">&copy; 2025 RooFinder. All rights reserved.</div>
+</footer>
+
+<script>
+var API_KEY = 'AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U';
+var HW_URL = 'https://firestore.googleapis.com/v1/projects/roofinder-1c01f/databases/(default)/documents/homeowner_leads';
+
+function submitHomeownerForm(e) {
+  e.preventDefault();
+  var btn = e.target.querySelector('button[type="submit"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  var body = JSON.stringify({ fields: {
+    name:      { stringValue: (document.getElementById('hw-name').value   || '').trim() },
+    phone:     { stringValue: (document.getElementById('hw-phone').value  || '').trim() },
+    zip:       { stringValue: (document.getElementById('hw-zip').value    || '').trim() },
+    timeline:  { stringValue: (document.getElementById('hw-timeline').value || '').trim() },
+    type:      { stringValue: 'homeowner_lead' },
+    status:    { stringValue: 'new' },
+    createdAt: { stringValue: new Date().toISOString() }
+  }});
+  fetch(HW_URL + '?key=' + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
+    .finally(function() {
+      document.getElementById('homeowner-form').style.display = 'none';
+      document.getElementById('homeowner-success').style.display = 'block';
+    });
+}
+</script>
+</body>
+</html>
