@@ -145,11 +145,31 @@ function submitHomeownerForm(e) {
     status:    { stringValue: 'new' },
     createdAt: { stringValue: new Date().toISOString() }
   }});
-  fetch(HW_URL + '?key=' + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body })
-    .finally(function() {
-      document.getElementById('homeowner-form').style.display = 'none';
-      document.getElementById('homeowner-success').style.display = 'block';
-    });
+  var name     = (document.getElementById('hw-name').value    || '').trim();
+  var phone    = (document.getElementById('hw-phone').value   || '').trim();
+  var zip      = (document.getElementById('hw-zip').value     || '').trim();
+  var timeline = (document.getElementById('hw-timeline').value || '').trim();
+
+  // Save to Firestore
+  fetch(HW_URL + '?key=' + API_KEY, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
+
+  // Send email notification via Formsubmit
+  fetch('https://formsubmit.co/ajax/hello@roofinder.online', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      _subject: '🏠 New Homeowner Lead — ' + zip,
+      Name: name,
+      Phone: phone,
+      Zip: zip,
+      Timeline: timeline,
+      _template: 'table',
+      _captcha: 'false'
+    })
+  }).finally(function() {
+    document.getElementById('homeowner-form').style.display = 'none';
+    document.getElementById('homeowner-success').style.display = 'block';
+  });
 }
 </script>
 </body>
