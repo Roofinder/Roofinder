@@ -605,11 +605,7 @@ function loadQueueByZip() {
   if (btn) { btn.textContent = 'Loading…'; btn.disabled = true; }
 
   var query = '[out:json][timeout:30];(node["addr:housenumber"]["addr:postcode"="' + zip + '"];way["addr:housenumber"]["addr:postcode"="' + zip + '"];);out center;';
-  fetch('https://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'data=' + encodeURIComponent(query)
-  })
+  fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query))
   .then(function(r) { return r.json(); })
   .then(function(data) {
     var seen = {};
@@ -3212,4 +3208,5 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 <!-- Pre-load Google Maps with drawing library so zbLoadMapsAPI polling finds it immediately -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0&libraries=drawin
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0&libraries=drawing,geometry" async defer></script>
+</body></html>                                                             
