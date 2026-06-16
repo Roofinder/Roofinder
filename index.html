@@ -872,8 +872,115 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
   var opts = document.getElementById('rf-chat-options');
   var inputRow = document.getElementById('rf-chat-input-row');
   var input = document.getElementById('rf-chat-input');
-  var state = { step: 0, name: '', market: '', teamSize: '' };
+  var history = [];
+  var busy = false;
 
+  var OPENER = "Hey 👋 I'm Knox. Quick question — are you running a roofing sales team right now?";
+  var QUICK_REPLIES = ["Yes, I have a team", "Just me right now", "I'm just exploring"];
+
+  /* ── helpers ── */
+  function addMsg(text, who) {
+    var el = document.createElement('div');
+    el.className = 'rf-msg ' + who;
+    el.textContent = text;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping() {
+    var t = document.createElement('div');
+    t.className = 'rf-typing'; t.id = 'rf-typing';
+    t.innerHTML = '<span></span><span></span><span></span>';
+    msgs.appendChild(t); msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function removeTyping() {
+    var t = document.getElementById('rf-typing');
+    if (t) t.remove();
+  }
+
+  function clearOpts() { opts.innerHTML = ''; }
+
+  function showQuickReplies(replies) {
+    clearOpts();
+    replies.forEach(function(r) {
+      var b = document.createElement('button');
+      b.className = 'rf-opt'; b.textContent = r;
+      b.onclick = function() { sendMessage(r); };
+      opts.appendChild(b);
+    });
+  }
+
+  /* ── API call ── */
+  function sendMessage(text) {
+    if (busy) return;
+    busy = true;
+    clearOpts();
+    inputRow.style.display = 'none';
+    addMsg(text, 'user');
+    history.push({ role: 'user', content: text });
+    showTyping();
+
+    fetch('/api/knox', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      removeTyping();
+      var reply = data.reply || "Sorry, something went wrong. Try again!";
+      addMsg(reply, 'bot');
+      history.push({ role: 'assistant', content: reply });
+      inputRow.style.display = 'flex';
+      input.focus();
+      busy = false;
+    })
+    .catch(function() {
+      removeTyping();
+      addMsg("Hmm, hit a snag. Refresh and try again!", 'bot');
+      busy = false;
+    });
+  }
+
+  function rfSendInput() {
+    var val = input.value.trim();
+    if (!val || busy) return;
+    input.value = '';
+    sendMessage(val);
+  }
+  window.rfSendInput = rfSendInput;
+
+  /* ── open/close ── */
+  window.rfOpenChat = function() {
+    document.getElementById('rf-chat-bubble').style.display = 'none';
+    document.getElementById('rf-chat-window').style.display = 'flex';
+    if (msgs.children.length === 0) {
+      setTimeout(function() {
+        showTyping();
+        setTimeout(function() {
+          removeTyping();
+          addMsg(OPENER, 'bot');
+          history.push({ role: 'assistant', content: OPENER });
+          showQuickReplies(QUICK_REPLIES);
+        }, 700);
+      }, 200);
+    }
+  };
+
+  window.rfCloseChat = function() {
+    document.getElementById('rf-chat-window').style.display = 'none';
+    document.getElementById('rf-chat-bubble').style.display = 'flex';
+  };
+
+  // Auto-shake after 18s
+  setTimeout(function() {
+    if (document.getElementById('rf-chat-window').style.display !== 'flex') {
+      document.getElementById('rf-chat-bubble').style.animation = 'rf-shake .4s ease';
+    }
+  }, 18000);
+
+  // dummy — no longer used
   var flow = [
     // step 0 — greeting
     { bot: ["Hey 👋 I'm Knox, RooFinder's sales assistant.", "Quick question — are you running a roofing sales team right now?"],
