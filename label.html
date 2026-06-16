@@ -42,6 +42,16 @@
   .export-btn { margin-top: 16px; background: #1a1a1a; border: 1px solid #333; color: #aaa; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-family: inherit; }
   .export-btn:hover { background: #222; color: #fff; }
   .empty { background: #111; border: 2px dashed #222; border-radius: 12px; height: 440px; display: flex; align-items: center; justify-content: center; color: #444; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+  .ai-box { border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; border: 1px solid #222; background: #0d0d0d; }
+  .ai-box.loading { border-color: #222; }
+  .ai-box.hot  { border-color: rgba(239,68,68,.5);  background: rgba(239,68,68,.06); }
+  .ai-box.warm { border-color: rgba(251,146,60,.4); background: rgba(251,146,60,.05); }
+  .ai-box.pass { border-color: rgba(59,130,246,.35); background: rgba(59,130,246,.05); }
+  .ai-box.skip { border-color: #2a2a2a; background: #0d0d0d; }
+  .ai-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #555; margin-bottom: 8px; }
+  .ai-verdict { font-size: 18px; font-weight: 900; margin-bottom: 6px; }
+  .ai-reasoning { font-size: 12px; color: #888; line-height: 1.5; }
+  .ai-confidence { font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-top: 6px; }
 </style>
 </head>
 <body>
@@ -62,6 +72,14 @@
 
   <div id="map-placeholder" class="empty">Hit START below to begin</div>
   <iframe id="map-frame" class="map-frame" style="display:none" src="" allowfullscreen></iframe>
+
+  <!-- AI Score Box -->
+  <div class="ai-box loading" id="ai-box" style="display:none">
+    <div class="ai-label">🤖 AI ROOF ANALYSIS</div>
+    <div class="ai-verdict" id="ai-verdict">Analyzing roof...</div>
+    <div class="ai-reasoning" id="ai-reasoning"></div>
+    <div class="ai-confidence" id="ai-confidence"></div>
+  </div>
 
   <div class="toast" id="toast"></div>
 
@@ -141,9 +159,11 @@ var idx = 0;
 var labels = JSON.parse(localStorage.getItem('roof_labels') || '[]');
 var started = false;
 var currentLabel = null;
+var currentAiResult = null;
 
 var scoreColor = { hot:'#ef4444', warm:'#fb923c', pass:'#3b82f6', skip:'#666' };
 var scoreIcon  = { hot:'🔥', warm:'👍', pass:'❌', skip:'⏭' };
+var scoreLabel = { hot:'🔥 HOT LEAD', warm:'👍 WARM LEAD', pass:'❌ PASS', skip:'⏭ SKIP — Can\'t assess' };
 
 function mainAction() {
   if (!started) {
@@ -178,6 +198,7 @@ function loadAddress(i) {
   document.getElementById('notes').value = '';
   document.getElementById('toast').style.display = 'none';
   currentLabel = null;
+  currentAiResult = null;
   clearSelected();
 
   // Map embed
@@ -186,79 +207,39 @@ function loadAddress(i) {
   document.getElementById('map-frame').style.display = 'block';
   document.getElementById('map-placeholder').style.display = 'none';
 
+  // AI analysis
+  scoreWithAI(addr);
+
   updateProgress();
 }
 
-function label(score) {
-  currentLabel = score;
-  clearSelected();
-  var map = { hot: 0, warm: 1, pass: 2, skip: 3 };
-  document.querySelectorAll('.btn')[map[score]].classList.add('selected');
-  document.querySelectorAll('.btn').forEach(function(b, i) {
-    b.style.opacity = i === map[score] ? '1' : '.4';
-  });
-  showToast(scoreIcon[score] + ' ' + score.toUpperCase() + ' selected — hit NEXT HOME to save & advance');
-}
+function scoreWithAI(addr) {
+  var box = document.getElementById('ai-box');
+  var verdict = document.getElementById('ai-verdict');
+  var reasoning = document.getElementById('ai-reasoning');
+  var confidence = document.getElementById('ai-confidence');
 
-function clearSelected() {
-  document.querySelectorAll('.btn').forEach(function(b) {
-    b.classList.remove('selected');
-    b.style.opacity = '1';
-  });
-}
+  box.className = 'ai-box loading';
+  box.style.display = 'block';
+  verdict.textContent = '⏳ Analyzing roof from Street View...';
+  verdict.style.color = '#555';
+  reasoning.textContent = '';
+  confidence.textContent = '';
 
-function saveLabel(score) {
-  var entry = {
-    address: ADDRESSES[idx],
-    score: score,
-    notes: document.getElementById('notes').value.trim(),
-    savedAt: new Date().toISOString()
-  };
-  labels.push(entry);
-  localStorage.setItem('roof_labels', JSON.stringify(labels));
-  renderLog();
-}
-
-function showToast(msg) {
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-}
-
-function updateProgress() {
-  var done = labels.length;
-  var total = ADDRESSES.length;
-  var pct = Math.round(done / total * 100);
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-txt').textContent = done + ' / ' + total + ' labeled';
-}
-
-function renderLog() {
-  if (!labels.length) return;
-  document.getElementById('log-section').style.display = 'block';
-  document.getElementById('log-rows').innerHTML = labels.slice().reverse().map(function(l) {
-    return '<div class="log-row">' +
-      '<span class="log-score" style="color:' + (scoreColor[l.score]||'#666') + '">' + (scoreIcon[l.score]||'?') + ' ' + l.score.toUpperCase() + '</span>' +
-      '<span class="log-addr">' + l.address + '</span>' +
-      (l.notes ? '<span style="color:#555;font-size:11px">' + l.notes + '</span>' : '') +
-    '</div>';
-  }).join('');
-  updateProgress();
-}
-
-function exportCSV() {
-  if (!labels.length) { alert('No labels yet.'); return; }
-  var rows = [['Address','Score','Notes','Saved At']];
-  labels.forEach(function(l) { rows.push([l.address, l.score, l.notes || '', l.savedAt]); });
-  var csv = rows.map(function(r) { return r.map(function(c) { return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
-  var a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'roof-labels-' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-}
-
-// Load existing progress on page open
-if (labels.length) renderLog();
-</script>
-</body>
-</html>
+  fetch('/api/score-roof', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ address: addr })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    currentAiResult = data;
+    var score = data.score || 'skip';
+    var color = scoreColor[score] || '#666';
+    box.className = 'ai-box ' + score;
+    verdict.textContent = scoreLabel[score] || score.toUpperCase();
+    verdict.style.color = color;
+    reasoning.textContent = data.reasoning || '';
+    var conf = data.confidence || 'low';
+    confidence.textContent = 'Confidence: ' + conf.toUpperCase();
+    confidence.style.color = conf === 'high' ? '#4caf50' : conf === 'medium' ? '#fb923
