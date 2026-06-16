@@ -561,16 +561,19 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
 
 <script>
 // ── Firebase ─────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U",
-  authDomain: "roofinder-1c01f.firebaseapp.com",
-  projectId: "roofinder-1c01f",
-  storageBucket: "roofinder-1c01f.firebasestorage.app",
-  messagingSenderId: "620983726110",
-  appId: "1:620983726110:web:6088bd5c53a9a8e0b27e0f"
-};
-firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
+var db = null;
+try {
+  const firebaseConfig = {
+    apiKey: "AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U",
+    authDomain: "roofinder-1c01f.firebaseapp.com",
+    projectId: "roofinder-1c01f",
+    storageBucket: "roofinder-1c01f.firebasestorage.app",
+    messagingSenderId: "620983726110",
+    appId: "1:620983726110:web:6088bd5c53a9a8e0b27e0f"
+  };
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+} catch(e) { console.warn('Firebase init failed:', e); }
 
 // ── Auth ─────────────────────────────────────────────────────────
 var ADMIN_PW = 'ROOFADMIN1';
@@ -2200,8 +2203,4 @@ function zbRenderListView() {
     for (var p = 0; p < totalPages; p++) {
       var opt = document.createElement('option');
       opt.value = p; opt.textContent = p + 1;
-      if (p === zbListPage) opt.selected = true;
-      sel.appendChild(opt);
-    }
-  }
-  var ptEl = document.g
+      if (p === 
