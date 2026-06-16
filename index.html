@@ -266,6 +266,53 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 .pc-sold-stamp::before{content:'';position:absolute;width:100%;height:5px;background:rgba(180,20,20,.18);transform:rotate(-35deg);border-radius:2px}
 .pc-sold-stamp-text{font-size:19px;font-weight:900;letter-spacing:4px;color:rgba(180,20,20,.22);text-transform:uppercase;z-index:1}
 .cc-sold{color:#e06060;font-size:11px;font-weight:700}
+
+/* ── ANIMATIONS ── */
+/* Hero entrance */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.hero-eyebrow{animation:fadeUp .55s ease both}
+.hero-headline{animation:fadeUp .65s .08s ease both}
+.hero-sub{animation:fadeUp .65s .18s ease both}
+#zip-search-box{animation:fadeUp .65s .28s ease both}
+.hero-proof{animation:fadeUp .55s .38s ease both}
+.hero-stats{animation:fadeUp .55s .46s ease both}
+
+/* Pulsing green dot */
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,.5)}60%{box-shadow:0 0 0 7px rgba(76,175,80,0)}}
+.hero-proof-dot{animation:pulse-ring 2.2s ease infinite}
+
+/* Scroll-reveal */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* Staggered children */
+.reveal-stagger > *{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease}
+.reveal-stagger.visible > *:nth-child(1){opacity:1;transform:none;transition-delay:0s}
+.reveal-stagger.visible > *:nth-child(2){opacity:1;transform:none;transition-delay:.1s}
+.reveal-stagger.visible > *:nth-child(3){opacity:1;transform:none;transition-delay:.2s}
+.reveal-stagger.visible > *:nth-child(4){opacity:1;transform:none;transition-delay:.3s}
+
+/* Step card hover */
+.step-simple{transition:background .25s,border-color .25s}
+.step-simple:hover{background:rgba(76,175,80,0.04)}
+.steps-simple:hover .step-simple:not(:hover){opacity:.75;transition:opacity .25s}
+
+/* Button shimmer */
+@keyframes btn-shine{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.btn-primary,.nav-cta[href="#cta"],#zip-search-btn{position:relative;overflow:hidden}
+.btn-primary::after,.nav-cta[href="#cta"]::after,#zip-search-btn::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);transition:left .45s ease;pointer-events:none}
+.btn-primary:hover::after,.nav-cta[href="#cta"]:hover::after,#zip-search-btn:hover::after{left:150%}
+
+/* Nav scroll shadow */
+nav{transition:box-shadow .3s}
+nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
+
+/* Pricing card glow */
+.tier-card[style*="rgba(76,175,80"]{transition:box-shadow .3s}
+.tier-card[style*="rgba(76,175,80"]:hover{box-shadow:0 0 40px rgba(76,175,80,.1)}
+
+/* CTA form inputs focus ring animation */
+@keyframes border-pulse{0%{box-shadow:0 0 0 0 rgba(76,175,80,.3)}100%{box-shadow:0 0 0 4px rgba(76,175,80,0)}}
 </style>
 <meta property="og:title" content="RooFinder — Own Your Roofing Zone"/>
 <meta property="og:description" content="Lock down your zip code. Pre-qualified leads, built-in CRM, daily routes, and a mobile app for your team. $2,500/mo. Cancel anytime."/>
@@ -383,23 +430,23 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
     </div>
     <div class="hero-stats">
       <div>
-        <div class="hero-stat-num">Zip</div>
-        <div class="hero-stat-lbl">Exclusive Territory</div>
-      </div>
-      <div style="width:1px;height:40px;background:var(--border)"></div>
-      <div>
-        <div class="hero-stat-num" style="font-size:20px">Full System</div>
-        <div class="hero-stat-lbl">CRM + Routes + App</div>
-      </div>
-      <div style="width:1px;height:40px;background:var(--border)"></div>
-      <div>
-        <div class="hero-stat-num">Any Zip</div>
-        <div class="hero-stat-lbl">In the US</div>
+        <div class="hero-stat-num">300+</div>
+        <div class="hero-stat-lbl">Pre-Qualified Homes</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
         <div class="hero-stat-num">48 hr</div>
         <div class="hero-stat-lbl">Zone Built For You</div>
+      </div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div>
+        <div class="hero-stat-num">1 Zone</div>
+        <div class="hero-stat-lbl">Per Contractor</div>
+      </div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div>
+        <div class="hero-stat-num" style="color:var(--green)">$999</div>
+        <div class="hero-stat-lbl">To Get Started</div>
       </div>
     </div>
   </div>
@@ -407,12 +454,12 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 
 <!-- HOW IT WORKS -->
 <section id="how-it-works">
-  <div class="section-inner">
+  <div class="section-inner reveal">
     <div class="section-eyebrow">How It Works</div>
     <h2 class="section-title">From Sign-Up to Canvassing<br>in 48 Hours.</h2>
     <p class="section-sub">Claim your territory, get your leads, deploy your team, and start closing.</p>
 
-    <div class="steps-simple">
+    <div class="steps-simple reveal-stagger">
       <div class="step-simple">
         <div class="step-simple-num">1</div>
         <div class="step-simple-title">Claim Your Zone</div>
@@ -443,7 +490,7 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 
 <!-- PRICING -->
 <section id="territory">
-  <div class="section-inner">
+  <div class="section-inner reveal">
     <div class="section-eyebrow">Pricing</div>
     <h2 class="section-title">One System. Everything Included.</h2>
     <p class="section-sub">Your neighborhood zone, your CRM, your routes, your mobile team app — one flat monthly price. No duct-taping three different tools together.</p>
@@ -720,6 +767,21 @@ function claimZone() {
     }
   }
 }
+
+// ── Scroll animations ────────────────────────────────────────────────
+(function(){
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); }
+    });
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal, .reveal-stagger').forEach(function(el){ obs.observe(el); });
+
+  // Nav scroll shadow
+  window.addEventListener('scroll', function(){
+    document.querySelector('nav').classList.toggle('scrolled', window.scrollY > 10);
+  }, {passive:true});
+})();
 
 // Allow pressing Enter in the zip input to trigger search
 (function() {
