@@ -411,9 +411,12 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
           </div>
 
           <!-- Confirm save toast -->
-          <div id="train-saved" style="display:none;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#4caf50;text-align:center">
-            ✓ Saved — load next address to continue
-          </div>
+          <div id="train-saved" style="display:none;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#4caf50;text-align:center"></div>
+
+          <!-- NEXT BUTTON -->
+          <button onclick="nextHome()" style="width:100%;margin-top:8px;background:#ffffff;color:#000;font-size:18px;font-weight:900;padding:20px;border:none;border-radius:12px;cursor:pointer;font-family:inherit;letter-spacing:1px">
+            ➡ NEXT HOME
+          </button>
         </div>
       </div>
 
@@ -2799,6 +2802,23 @@ function clearBtnHighlight() {
   });
 }
 
+function nextHome() {
+  if (!_addressQueue.length) { alert('Load the queue first — click "⚡ Load 50 Sample Raleigh Homes"'); return; }
+  var nextIdx = _queueIndex + 1;
+  if (nextIdx >= _addressQueue.length) {
+    alert('You reached the end of the queue! All ' + _addressQueue.length + ' homes done.');
+    return;
+  }
+  _queueIndex = nextIdx;
+  updateQueueProgress();
+  document.getElementById('train-address').value = _addressQueue[_queueIndex];
+  document.getElementById('train-notes').value = '';
+  document.getElementById('train-saved').style.display = 'none';
+  document.getElementById('train-date-warning').style.display = 'none';
+  _trainAddress = _addressQueue[_queueIndex];
+  loadRoofByAddress();
+}
+
 function labelRoof(score) {
   // Read address straight from DOM — never trust the variable
   var addr = document.getElementById('train-address').value.trim();
@@ -3250,16 +3270,4 @@ document.addEventListener('DOMContentLoaded', function() {
           <button id="rv-f-skipped" onclick="zbReviewFilter('skipped')" style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">❌ Skipped</button>
         </div>
         <button onclick="zbExportReview()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer">📥 Export</button>
-        <button onclick="zbCloseReview()" style="background:#222;border:1px solid #333;color:#aaa;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer">✕ Close</button>
-      </div>
-    </div>
-    <div id="zb-review-list" style="max-height:60vh;overflow-y:auto;padding-right:4px"></div>
-  </div>
-</div>
-
-<!-- Street View Modal -->
-<div id="sv-modal" onclick="if(event.target===this)zbCloseSV()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
-  <div style="width:92vw;max-width:1100px;height:82vh;background:#0a0a0a;border:1px solid #222;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
-      <div style="font-size:13px;font-weight:700;color:#888">🔍 Street View</div>
-      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-fami
+        <button onclick="zbCloseReview()" style="background:#222;border:1px solid #333;color:#aaa;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer">✕ Close</butt
