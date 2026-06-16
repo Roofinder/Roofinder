@@ -15,6 +15,26 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+    <url>
+          <loc>https://roofinder.online/blog/</loc>
+          <changefreq>weekly</changefreq>
+          <priority>0.8</priority>
+    </url>
+    <url>
+          <loc>https://roofinder.online/blog/door-to-door-roofing-guide.html</loc>
+          <changefreq>monthly</changefreq>
+          <priority>0.7</priority>
+    </url>
+    <url>
+          <loc>https://roofinder.online/blog/best-roofing-crm-2026.html</loc>
+          <changefreq>monthly</changefreq>
+          <priority>0.7</priority>
+    </url>
+    <url>
+          <loc>https://roofinder.online/blog/how-to-build-roofing-team.html</loc>
+          <changefreq>monthly</changefreq>
+          <priority>0.7</priority>
+    </url>
   <url>
     <loc>https://roofinder.online/privacy.html</loc>
     <changefreq>yearly</changefreq>
