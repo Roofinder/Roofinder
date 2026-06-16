@@ -1,6 +1,6 @@
 const https = require('https');
 
-function httpsGet(url) {
+function httpsGet(url, timeoutMs) {
   return new Promise((resolve, reject) => {
     const req = https.get(url, (res) => {
       const chunks = [];
@@ -8,7 +8,7 @@ function httpsGet(url) {
       res.on('end', () => resolve({ status: res.statusCode, buffer: Buffer.concat(chunks) }));
     });
     req.on('error', reject);
-    req.setTimeout(15000, () => { req.destroy(); reject(new Error('timeout')); });
+    req.setTimeout(timeoutMs || 8000, () => { req.destroy(); reject(new Error('timeout')); });
   });
 }
 
@@ -22,7 +22,7 @@ function httpsPost(hostname, path, headers, body) {
       res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() }));
     });
     req.on('error', reject);
-    req.setTimeout(45000, () => { req.destroy(); reject(new Error('Claude timeout')); });
+    req.setTimeout(8000, () => { req.destroy(); reject(new Error('Claude timeout')); });
     req.write(buf);
     req.end();
   });
@@ -41,82 +41,77 @@ module.exports = async function handler(req, res) {
   const GMAPS_KEY = process.env.GOOGLE_MAPS_KEY;
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
   if (!GMAPS_KEY || !ANTHROPIC_KEY) {
-    return res.status(500).json({ error: 'Missing API keys in Vercel env vars' });
+    return res.status(500).json({ error: 'Missing API keys' });
   }
 
   try {
     // Step 1: Geocode
-    const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GMAPS_KEY}`;
-    const geoResp = await httpsGet(geoUrl);
+    const geoUrl = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address) + '&key=' + GMAPS_KEY;
+    const geoResp = await httpsGet(geoUrl, 5000);
     const geoData = JSON.parse(geoResp.buffer.toString());
     if (!geoData.results || !geoData.results.length) {
       return res.status(200).json({ score: 'skip', confidence: 'low', reasoning: 'Could not locate address.', address, image_count: 0 });
     }
-    const { lat, lng } = geoData.results[0].geometry.location;
+    const lat = geoData.results[0].geometry.location.lat;
+    const lng = geoData.results[0].geometry.location.lng;
 
-    // Step 2: Fetch Street View images (4 angles to stay fast)
+    // Step 2: Fetch 3 Street View images (small size, fast)
     const shots = [
-      { heading: 0,   pitch: 20, label: 'North' },
-      { heading: 90,  pitch: 20, label: 'East'  },
-      { heading: 180, pitch: 20, label: 'South' },
-      { heading: 270, pitch: 20, label: 'West'  },
-      { heading: 45,  pitch: 35, label: 'Roof NE' },
-      { heading: 225, pitch: 35, label: 'Roof SW' },
+      { heading: 0,   pitch: 25, label: 'North' },
+      { heading: 120, pitch: 25, label: 'SE'    },
+      { heading: 240, pitch: 25, label: 'SW'    },
     ];
 
-    const imageResults = await Promise.all(shots.map(async (shot) => {
-      const url = `https://maps.googleapis.com/maps/api/streetview?size=400x300&location=${lat},${lng}&heading=${shot.heading}&pitch=${shot.pitch}&fov=90&key=${GMAPS_KEY}&return_error_code=true`;
-      try {
-        const r = await httpsGet(url);
-        if (r.status === 404 || r.buffer.length < 5000) return null;
-        const b64 = r.buffer.toString('base64');
-        return { ...shot, b64 };
-      } catch (e) { return null; }
+    const imageResults = await Promise.all(shots.map(function(shot) {
+      const url = 'https://maps.googleapis.com/maps/api/streetview?size=320x240&location=' + lat + ',' + lng + '&heading=' + shot.heading + '&pitch=' + shot.pitch + '&fov=90&key=' + GMAPS_KEY + '&return_error_code=true';
+      return httpsGet(url, 5000).then(function(r) {
+        if (r.status === 404 || r.buffer.length < 4000) return null;
+        return { label: shot.label, b64: r.buffer.toString('base64') };
+      }).catch(function() { return null; });
     }));
 
-    const validImages = imageResults.filter(Boolean);
-    if (!validImages.length) {
+    const valid = imageResults.filter(Boolean);
+    if (!valid.length) {
       return res.status(200).json({ score: 'skip', confidence: 'low', reasoning: 'No Street View imagery for this address.', address, image_count: 0 });
     }
 
-    // Step 3: Send to Claude
+    // Step 3: Claude Haiku (fastest model)
     const content = [];
-    validImages.forEach((img) => {
-      content.push({ type: 'text', text: `[View: ${img.label}]` });
+    valid.forEach(function(img) {
+      content.push({ type: 'text', text: '[' + img.label + ']' });
       content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: img.b64 } });
     });
-    content.push({ type: 'text', text: `You are an expert roofing sales analyst in Raleigh, NC. You received ${validImages.length} Street View images of a home. Assess the roof condition like an experienced door-to-door rep:\n\nLook for: dark algae/moss streaking, granule loss, curling/missing shingles, sagging roofline, storm damage, age 15+ years, damaged flashing.\n\nSCORE:\nHOT — Multiple clear damage signs. Needs a roof now.\nWARM — Some wear/aging. Worth a knock.\nPASS — New or recently replaced roof.\nSKIP — Can't see roof clearly.\n\nRespond ONLY with valid JSON:\n{"score":"hot|warm|pass|skip","confidence":"high|medium|low","best_angle":"label","reasoning":"2-3 sentences of specific observations"}` });
+    content.push({ type: 'text', text: 'Roof condition for a Raleigh NC home. Score as roofing sales rep would:\nHOT=clear damage/wear needs roof now\nWARM=aging worth knocking\nPASS=new/good roof\nSKIP=can\'t see roof\n\nJSON only: {"score":"hot|warm|pass|skip","confidence":"high|medium|low","best_angle":"label","reasoning":"1-2 sentences"}' });
 
-    const claudeBody = JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 300, messages: [{ role: 'user', content }] });
+    const claudeBody = JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200, messages: [{ role: 'user', content: content }] });
     const claudeResp = await httpsPost('api.anthropic.com', '/v1/messages', {
       'x-api-key': ANTHROPIC_KEY,
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json'
     }, claudeBody);
 
-    if (claudeResp.status !== 200) throw new Error(`Claude API ${claudeResp.status}: ${claudeResp.body.slice(0,200)}`);
-    const claudeData = JSON.parse(claudeResp.body);
-    const raw = (claudeData.content && claudeData.content[0] && claudeData.content[0].text || '{}').trim();
-    let parsed;
-    try { parsed = JSON.parse(raw); }
-    catch {
-      const m = raw.match(/\{[\s\S]*\}/);
-      try { parsed = m ? JSON.parse(m[0]) : {}; }
-      catch { parsed = { score: 'skip', confidence: 'low', reasoning: raw.slice(0, 200) }; }
+    if (claudeResp.status !== 200) throw new Error('Claude ' + claudeResp.status + ': ' + claudeResp.body.slice(0, 150));
+    const cd = JSON.parse(claudeResp.body);
+    const raw = ((cd.content && cd.content[0] && cd.content[0].text) || '{}').trim();
+    var parsed;
+    try { parsed = JSON.parse(raw); } catch(e) {
+      var m = raw.match(/\{[\s\S]*\}/);
+      try { parsed = m ? JSON.parse(m[0]) : {}; } catch(e2) { parsed = { score: 'skip', confidence: 'low', reasoning: raw.slice(0, 150) }; }
     }
 
     return res.status(200).json({
-      ...parsed,
-      address, lat, lng,
-      image_count: validImages.length,
-      previews: validImages.slice(0, 4).map(img => ({
-        label: img.label,
-        url: `data:image/jpeg;base64,${img.b64}`
-      }))
+      score: parsed.score || 'skip',
+      confidence: parsed.confidence || 'low',
+      best_angle: parsed.best_angle || '',
+      reasoning: parsed.reasoning || '',
+      address: address,
+      lat: lat, lng: lng,
+      image_count: valid.length,
+      previews: valid.map(function(img) { return { label: img.label, url: 'data:image/jpeg;base64,' + img.b64 }; })
     });
 
   } catch (err) {
-    console.error('score-roof error:', err.message);
+    console.error('score-roof:', err.message);
     return res.status(500).json({ error: err.message });
   }
 };
