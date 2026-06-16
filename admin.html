@@ -333,6 +333,7 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
           <input id="train-zip" placeholder="e.g. 27511" maxlength="5" style="width:120px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;letter-spacing:2px"/>
           <button onclick="loadQueueByZip()" style="background:#4caf50;border:none;color:#000;font-size:13px;font-weight:800;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap">Load Queue →</button>
+          <button onclick="loadSampleQueue()" style="background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.4);color:#fb923c;font-size:12px;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap">⚡ Load 50 Sample Raleigh Homes</button>
           <div id="train-queue-status" style="font-size:12px;color:#555">No queue loaded</div>
         </div>
         <!-- Progress bar -->
@@ -597,6 +598,73 @@ try {
 // ── Zip Queue ────────────────────────────────────────────────────
 var _addressQueue = [];
 var _queueIndex = 0;
+
+function loadSampleQueue() {
+  // 50 Wake County residential homes $300k–$800k pulled from county assessor records
+  var sample = [
+    '1913 OLD GREENFIELD RD, Raleigh, NC 27604',
+    '1108 RENEWAL PL, Raleigh, NC 27603',
+    '7025 RACINE WAY, Raleigh, NC 27615',
+    '4508 PRINTER LN, Raleigh, NC 27613',
+    '5508 NEUSE WOOD DR, Raleigh, NC 27616',
+    '1410 JOE LOUIS AVE, Raleigh, NC 27610',
+    '7724 SILVER VIEW LN, Raleigh, NC 27613',
+    '2212 OXFORD HILLS DR, Raleigh, NC 27608',
+    '3604 IRON SIGHT CT, Raleigh, NC 27616',
+    '5303 RIVER REACH DR, Raleigh, NC 27616',
+    '4536 DILFORD DR, Raleigh, NC 27604',
+    '1405 BALLYCLARE CT, Raleigh, NC 27614',
+    '6212 TREVOR CT, Raleigh, NC 27613',
+    '3501 KENSETT WAY, Raleigh, NC 27616',
+    '9204 CUB TRL, Raleigh, NC 27615',
+    '4093 ELK CREEK LN, Raleigh, NC 27612',
+    '5300 STREAM STONE WAY, Raleigh, NC 27616',
+    '6318 PERRY CREEK RD, Raleigh, NC 27616',
+    '7413 WILDERNESS RD, Raleigh, NC 27613',
+    '111 MONTGOMERY ST, Raleigh, NC 27607',
+    '3210 HAYLING DR, Raleigh, NC 27610',
+    '5432 ALAFIA CT, Raleigh, NC 27616',
+    '2416 PEPPERFIELD DR, Raleigh, NC 27604',
+    '2624 CROFTON SPRINGS DR, Raleigh, NC 27615',
+    '106 DONALD ROSS DR, Raleigh, NC 27610',
+    '5334 RIVER REACH DR, Raleigh, NC 27616',
+    '1104 BERWYN WAY, Raleigh, NC 27615',
+    '1716 TEALWOOD PL, Raleigh, NC 27615',
+    '2306 OAKWOOD MEADOWS CT, Raleigh, NC 27604',
+    '4514 QUEEN PIERRETTE ST, Raleigh, NC 27610',
+    '2932 CANDLEHURST LN, Raleigh, NC 27616',
+    '3613 LION RIDGE CT, Raleigh, NC 27612',
+    '2657 PIVOT RIDGE DR, Raleigh, NC 27616',
+    '700 KIMBROUGH ST, Raleigh, NC 27608',
+    '4929 TROUT CREST CT, Raleigh, NC 27604',
+    '701 LOCUST LN, Raleigh, NC 27603',
+    '6013 OLD HORSEMAN TRL, Raleigh, NC 27613',
+    '6104 BALLOU CT, Raleigh, NC 27609',
+    '11100 CREEDMOOR RD, Raleigh, NC 27614',
+    '12117 INGLEHURST DR, Raleigh, NC 27613',
+    '2307 OAKWOOD MEADOWS CT, Raleigh, NC 27604',
+    '8352 PRIMANTI BLVD, Raleigh, NC 27612',
+    '6301 BELLE CREST DR, Raleigh, NC 27612',
+    '4313 DUTCH GARDEN CT, Raleigh, NC 27613',
+    '3104 MANOR RIDGE DR, Raleigh, NC 27603',
+    '1117 COUNTRY BROOKE DR, Raleigh, NC 27615',
+    '5421 ROCK SERVICE STATION RD, Raleigh, NC 27603',
+    '1620 DAIL DR, Raleigh, NC 27604',
+    '4508 PRINTER LN, Raleigh, NC 27613',
+    '6212 TREVOR CT, Raleigh, NC 27613'
+  ];
+  // Shuffle
+  for (var i = sample.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = sample[i]; sample[i] = sample[j]; sample[j] = t;
+  }
+  _addressQueue = sample;
+  _queueIndex = 0;
+  document.getElementById('train-progress-wrap').style.display = 'block';
+  document.getElementById('train-queue-status').textContent = sample.length + ' homes loaded from Wake County records ($300k–$800k)';
+  updateQueueProgress();
+  loadFromQueue();
+}
 
 function loadQueueByZip() {
   var zip = document.getElementById('train-zip').value.trim();
@@ -3178,35 +3246,3 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Review Modal -->
 <div id="zb-review-modal" onclick="if(event.target===this)zbCloseReview()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.85);overflow-y:auto;padding:40px 16px">
   <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;max-width:640px;margin:0 auto;position:relative">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-      <div>
-        <div style="font-size:16px;font-weight:800">Review Decisions</div>
-        <div id="rv-count" style="font-size:12px;color:#555;margin-top:2px"></div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:3px;display:flex">
-          <button id="rv-f-all"     onclick="zbReviewFilter('all')"     style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:800;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">All</button>
-          <button id="rv-f-kept"    onclick="zbReviewFilter('kept')"    style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">✅ Kept</button>
-          <button id="rv-f-skipped" onclick="zbReviewFilter('skipped')" style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">❌ Skipped</button>
-        </div>
-        <button onclick="zbExportReview()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer">📥 Export</button>
-        <button onclick="zbCloseReview()" style="background:#222;border:1px solid #333;color:#aaa;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer">✕ Close</button>
-      </div>
-    </div>
-    <div id="zb-review-list" style="max-height:60vh;overflow-y:auto;padding-right:4px"></div>
-  </div>
-</div>
-
-<!-- Street View Modal -->
-<div id="sv-modal" onclick="if(event.target===this)zbCloseSV()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
-  <div style="width:92vw;max-width:1100px;height:82vh;background:#0a0a0a;border:1px solid #222;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
-      <div style="font-size:13px;font-weight:700;color:#888">🔍 Street View</div>
-      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-family:inherit">✕</button>
-    </div>
-    <iframe id="sv-iframe" style="flex:1;width:100%;border:none;display:block" loading="lazy" allowfullscreen></iframe>
-  </div>
-</div>
-<!-- Pre-load Google Maps with drawing library so zbLoadMapsAPI polling finds it immediately -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0&libraries=drawing,geometry" async defer></script>
-</body></html>                                                             
