@@ -75,10 +75,14 @@
 
   <!-- AI Score Box -->
   <div class="ai-box loading" id="ai-box" style="display:none">
-    <div class="ai-label">🤖 AI ROOF ANALYSIS</div>
+    <div class="ai-label">🤖 AI ROOF ANALYSIS — <span id="ai-img-count"></span></div>
     <div class="ai-verdict" id="ai-verdict">Analyzing roof...</div>
     <div class="ai-reasoning" id="ai-reasoning"></div>
-    <div class="ai-confidence" id="ai-confidence"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="ai-previews"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+      <div class="ai-confidence" id="ai-confidence"></div>
+      <div id="ai-best-angle" style="font-size:10px;color:#555;font-weight:700"></div>
+    </div>
   </div>
 
   <div class="toast" id="toast"></div>
@@ -237,9 +241,4 @@ function scoreWithAI(addr) {
     var score = data.score || 'skip';
     var color = scoreColor[score] || '#666';
     box.className = 'ai-box ' + score;
-    verdict.textContent = scoreLabel[score] || score.toUpperCase();
-    verdict.style.color = color;
-    reasoning.textContent = data.reasoning || '';
-    var conf = data.confidence || 'low';
-    confidence.textContent = 'Confidence: ' + conf.toUpperCase();
-    confidence.style.color = conf === 'high' ? '#4caf50' : conf === 'medium' ? '#fb923
+    verdict.textCont
