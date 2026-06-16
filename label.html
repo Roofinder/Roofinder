@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Roof Labeler</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #e0e4f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+  .top { background: #111; border-bottom: 1px solid #222; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .top h1 { font-size: 16px; font-weight: 800; }
+  .progress-bar-wrap { background: #222; border-radius: 99px; height: 8px; width: 220px; }
+  .progress-bar-fill { background: #4caf50; height: 8px; border-radius: 99px; transition: width .3s; }
+  .progress-txt { font-size: 12px; color: #666; margin-top: 4px; text-align: right; }
+  .main { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .addr-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .addr-text { font-size: 22px; font-weight: 900; color: #fff; line-height: 1.2; }
+  .map-link { background: #1a1a1a; border: 1px solid #333; color: #4caf50; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; text-decoration: none; white-space: nowrap; }
+  .map-link:hover { background: #222; }
+  .map-frame { width: 100%; height: 440px; border: none; border-radius: 12px; margin-bottom: 16px; display: block; background: #111; }
+  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .btn { border: none; border-radius: 10px; font-size: 16px; font-weight: 800; padding: 18px; cursor: pointer; font-family: inherit; transition: opacity .1s, transform .1s; }
+  .btn:active { transform: scale(.97); }
+  .btn-hot  { background: rgba(239,68,68,.15); border: 2px solid rgba(239,68,68,.5); color: #ef4444; }
+  .btn-warm { background: rgba(251,146,60,.12); border: 2px solid rgba(251,146,60,.4); color: #fb923c; }
+  .btn-pass { background: rgba(59,130,246,.1);  border: 2px solid rgba(59,130,246,.35); color: #3b82f6; }
+  .btn-skip { background: rgba(255,255,255,.04); border: 2px solid #333; color: #666; }
+  .btn.selected { opacity: 1; transform: scale(1.02); filter: brightness(1.4); }
+  .btn:not(.selected) { opacity: .55; }
+  .btn-all { opacity: 1 !important; }
+  textarea { width: 100%; background: #111; border: 1px solid #252525; border-radius: 8px; padding: 10px 12px; color: #ccc; font-size: 13px; font-family: inherit; outline: none; resize: vertical; min-height: 64px; margin-bottom: 12px; }
+  textarea::placeholder { color: #444; }
+  .next-btn { width: 100%; background: #fff; color: #000; font-size: 20px; font-weight: 900; padding: 22px; border: none; border-radius: 12px; cursor: pointer; font-family: inherit; letter-spacing: .5px; }
+  .next-btn:hover { background: #e0e0e0; }
+  .next-btn:active { transform: scale(.99); }
+  .toast { display: none; background: rgba(76,175,80,.15); border: 1px solid rgba(76,175,80,.4); border-radius: 8px; padding: 10px 14px; font-size: 13px; font-weight: 700; color: #4caf50; text-align: center; margin-bottom: 12px; }
+  .log { margin-top: 28px; }
+  .log h2 { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #444; margin-bottom: 10px; }
+  .log-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 8px; margin-bottom: 6px; font-size: 12px; }
+  .log-score { font-weight: 800; min-width: 50px; }
+  .log-addr { color: #888; flex: 1; }
+  .export-btn { margin-top: 16px; background: #1a1a1a; border: 1px solid #333; color: #aaa; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .export-btn:hover { background: #222; color: #fff; }
+  .empty { background: #111; border: 2px dashed #222; border-radius: 12px; height: 440px; display: flex; align-items: center; justify-content: center; color: #444; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>🏠 Roof Labeler</h1>
+  <div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="progress-txt" id="prog-txt">0 / 50</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="addr-box">
+    <div class="addr-text" id="addr-display">Click START to load the queue</div>
+    <a id="maps-link" href="#" target="_blank" class="map-link">🗺 Street View ↗</a>
+  </div>
+
+  <div id="map-placeholder" class="empty">Hit START below to begin</div>
+  <iframe id="map-frame" class="map-frame" style="display:none" src="" allowfullscreen></iframe>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="buttons" id="label-buttons" style="opacity:.4;pointer-events:none">
+    <button class="btn btn-hot  btn-all" onclick="label('hot')">🔥 HOT LEAD<br><span style="font-size:11px;font-weight:500;opacity:.7">Needs roof now</span></button>
+    <button class="btn btn-warm btn-all" onclick="label('warm')">👍 WARM LEAD<br><span style="font-size:11px;font-weight:500;opacity:.7">Worth a knock</span></button>
+    <button class="btn btn-pass btn-all" onclick="label('pass')">❌ PASS<br><span style="font-size:11px;font-weight:500;opacity:.7">New roof / no damage</span></button>
+    <button class="btn btn-skip btn-all" onclick="label('skip')">⏭ SKIP<br><span style="font-size:11px;font-weight:500;opacity:.7">Can't see roof</span></button>
+  </div>
+
+  <textarea id="notes" placeholder="Optional notes (what you saw, condition, etc.)"></textarea>
+
+  <button class="next-btn" id="main-btn" onclick="mainAction()">▶ START</button>
+
+  <div class="log" id="log-section" style="display:none">
+    <h2>LABELED SO FAR</h2>
+    <div id="log-rows"></div>
+    <button class="export-btn" onclick="exportCSV()">⬇ Download CSV</button>
+  </div>
+</div>
+
+<script>
+var ADDRESSES = [
+  '114 BABERTON DR, Raleigh, NC 27502',
+  '106 CITRUS PL, Raleigh, NC 27519',
+  '3153 SUNCREST VILLAGE LN, Raleigh, NC 27616',
+  '2113 HIDDEN CEDAR CT, Raleigh, NC 27604',
+  '4417 THORNBURY DR, Raleigh, NC 27604',
+  '6412 CEDAR FORK DR, Raleigh, NC 27616',
+  '8412 LEDGE ROCK DR, Raleigh, NC 27613',
+  '2317 WELLSLEY DR, Raleigh, NC 27615',
+  '5708 ROSCOMMON DR, Raleigh, NC 27613',
+  '3204 AUTUMN RIDGE LN, Raleigh, NC 27604',
+  '8104 STONEHENGE MKT RD, Raleigh, NC 27613',
+  '4204 MILLBANK RD, Raleigh, NC 27612',
+  '2616 STERLING MANOR DR, Raleigh, NC 27615',
+  '5217 CHELWOOD CT, Raleigh, NC 27613',
+  '3108 WYNDHAM HILL DR, Raleigh, NC 27615',
+  '6217 LONG ACRE DR, Raleigh, NC 27615',
+  '4312 ASHBY DOWNS CT, Raleigh, NC 27612',
+  '2204 GLENWOOD RIDGE DR, Raleigh, NC 27612',
+  '7416 ROWAN OAK LN, Raleigh, NC 27615',
+  '5312 ASHLEY OAKS DR, Raleigh, NC 27613',
+  '3804 PRESTWICK LN, Raleigh, NC 27612',
+  '6108 FOXGLOVE LN, Raleigh, NC 27613',
+  '4516 CHESWICK PLACE DR, Raleigh, NC 27613',
+  '2508 LANGDON FARM RD, Raleigh, NC 27613',
+  '8208 LEYLAND DR, Raleigh, NC 27613',
+  '5104 CLAREMONT RD, Raleigh, NC 27612',
+  '3412 PINEHURST BLVD, Raleigh, NC 27612',
+  '7204 KILDARE DR, Raleigh, NC 27615',
+  '4108 PLANTATION DR, Raleigh, NC 27612',
+  '6304 EDENBERRY DR, Raleigh, NC 27612',
+  '2712 SHELBOURNE DR, Raleigh, NC 27615',
+  '5608 WESTLAND DR, Raleigh, NC 27613',
+  '3616 GLENMORE DR, Raleigh, NC 27612',
+  '8016 FOXHALL DR, Raleigh, NC 27613',
+  '4904 BAYWOOD DR, Raleigh, NC 27612',
+  '7112 DOVER HILLS DR, Raleigh, NC 27613',
+  '2904 THORNBURY PL, Raleigh, NC 27604',
+  '6016 KILDAIRE FARM RD, Raleigh, NC 27606',
+  '3704 GLENRIDGE DR, Raleigh, NC 27612',
+  '5408 MILLWOOD DR, Raleigh, NC 27613',
+  '4708 TRAWICK RD, Raleigh, NC 27616',
+  '2308 WESTBROOK DR, Raleigh, NC 27612',
+  '7308 CREEDMOOR RD, Raleigh, NC 27613',
+  '4012 SYCAMORE DR, Raleigh, NC 27612',
+  '6608 STONEHENGE DR, Raleigh, NC 27613',
+  '3016 MEDFIELD RD, Raleigh, NC 27612',
+  '5812 PARKSIDE DR, Raleigh, NC 27612',
+  '2104 SAWMILL RD, Raleigh, NC 27615',
+  '7604 LEADMINE RD, Raleigh, NC 27615',
+  '4604 HARPS MILL RD, Raleigh, NC 27615'
+];
+
+var idx = 0;
+var labels = JSON.parse(localStorage.getItem('roof_labels') || '[]');
+var started = false;
+var currentLabel = null;
+
+var scoreColor = { hot:'#ef4444', warm:'#fb923c', pass:'#3b82f6', skip:'#666' };
+var scoreIcon  = { hot:'🔥', warm:'👍', pass:'❌', skip:'⏭' };
+
+function mainAction() {
+  if (!started) {
+    started = true;
+    document.getElementById('main-btn').textContent = '➡ NEXT HOME';
+    document.getElementById('label-buttons').style.opacity = '1';
+    document.getElementById('label-buttons').style.pointerEvents = 'auto';
+    loadAddress(0);
+    return;
+  }
+  // NEXT — save whatever label was selected (or skip if none)
+  var score = currentLabel || 'skip';
+  saveLabel(score);
+  var nextIdx = idx + 1;
+  if (nextIdx >= ADDRESSES.length) {
+    document.getElementById('addr-display').textContent = '✅ All ' + ADDRESSES.length + ' homes done!';
+    document.getElementById('map-frame').style.display = 'none';
+    document.getElementById('map-placeholder').style.display = 'flex';
+    document.getElementById('map-placeholder').textContent = '✅ Queue complete!';
+    document.getElementById('main-btn').textContent = '⬇ Download CSV';
+    document.getElementById('main-btn').onclick = exportCSV;
+    return;
+  }
+  idx = nextIdx;
+  loadAddress(idx);
+}
+
+function loadAddress(i) {
+  var addr = ADDRESSES[i];
+  document.getElementById('addr-display').textContent = addr;
+  document.getElementById('maps-link').href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+  document.getElementById('notes').value = '';
+  document.getElementById('toast').style.display = 'none';
+  currentLabel = null;
+  clearSelected();
+
+  // Map embed
+  var src = 'https://maps.google.com/maps?q=' + encodeURIComponent(addr) + '&output=embed&z=18';
+  document.getElementById('map-frame').src = src;
+  document.getElementById('map-frame').style.display = 'block';
+  document.getElementById('map-placeholder').style.display = 'none';
+
+  updateProgress();
+}
+
+function label(score) {
+  currentLabel = score;
+  clearSelected();
+  var map = { hot: 0, warm: 1, pass: 2, skip: 3 };
+  document.querySelectorAll('.btn')[map[score]].classList.add('selected');
+  document.querySelectorAll('.btn').forEach(function(b, i) {
+    b.style.opacity = i === map[score] ? '1' : '.4';
+  });
+  showToast(scoreIcon[score] + ' ' + score.toUpperCase() + ' selected — hit NEXT HOME to save & advance');
+}
+
+function clearSelected() {
+  document.querySelectorAll('.btn').forEach(function(b) {
+    b.classList.remove('selected');
+    b.style.opacity = '1';
+  });
+}
+
+function saveLabel(score) {
+  var entry = {
+    address: ADDRESSES[idx],
+    score: score,
+    notes: document.getElementById('notes').value.trim(),
+    savedAt: new Date().toISOString()
+  };
+  labels.push(entry);
+  localStorage.setItem('roof_labels', JSON.stringify(labels));
+  renderLog();
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+}
+
+function updateProgress() {
+  var done = labels.length;
+  var total = ADDRESSES.length;
+  var pct = Math.round(done / total * 100);
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-txt').textContent = done + ' / ' + total + ' labeled';
+}
+
+function renderLog() {
+  if (!labels.length) return;
+  document.getElementById('log-section').style.display = 'block';
+  document.getElementById('log-rows').innerHTML = labels.slice().reverse().map(function(l) {
+    return '<div class="log-row">' +
+      '<span class="log-score" style="color:' + (scoreColor[l.score]||'#666') + '">' + (scoreIcon[l.score]||'?') + ' ' + l.score.toUpperCase() + '</span>' +
+      '<span class="log-addr">' + l.address + '</span>' +
+      (l.notes ? '<span style="color:#555;font-size:11px">' + l.notes + '</span>' : '') +
+    '</div>';
+  }).join('');
+  updateProgress();
+}
+
+function exportCSV() {
+  if (!labels.length) { alert('No labels yet.'); return; }
+  var rows = [['Address','Score','Notes','Saved At']];
+  labels.forEach(function(l) { rows.push([l.address, l.score, l.notes || '', l.savedAt]); });
+  var csv = rows.map(function(r) { return r.map(function(c) { return '"' + String(c).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'roof-labels-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// Load existing progress on page open
+if (labels.length) renderLog();
+</script>
+</body>
+</html>
