@@ -53,7 +53,7 @@ textarea::placeholder { color: #444; }
   <h1>Roof Labeler</h1>
   <div>
     <div class="pw"><div class="pf" id="pf" style="width:0%"></div></div>
-    <div class="pt" id="pt">0 / 50 labeled</div>
+    <div class="pt" id="pt">0 / 60 labeled</div>
   </div>
 </div>
 <div class="main">
@@ -67,7 +67,7 @@ textarea::placeholder { color: #444; }
     <div class="ailbl">AI ROOF ANALYSIS &mdash; <span id="aic2"></span></div>
     <div class="aiv" id="aiv">Analyzing...</div>
     <div class="air" id="air"></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px" id="aipv"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px" id="aipv"></div>
     <div style="display:flex;justify-content:space-between;margin-top:8px">
       <div class="aic" id="aiconf"></div>
       <div id="aibest" style="font-size:10px;color:#555;font-weight:700"></div>
@@ -247,12 +247,13 @@ function scoreAI(addr) {
     cel.style.color = cf==='high'?'#4caf50':cf==='medium'?'#fb923c':'#555';
     if (d.best_angle) document.getElementById('aibest').textContent = 'Best: ' + d.best_angle;
     if (d.previews && d.previews.length) {
-      document.getElementById('aipv').innerHTML = d.previews.map(function(p) {
-        return '<div style="position:relative;flex:1;min-width:80px">' +
-          '<img src="' + p.url + '" style="width:100%;height:64px;object-fit:cover;border-radius:6px">' +
-          '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);font-size:9px;font-weight:700;color:#fff;padding:2px 4px;border-radius:0 0 6px 6px;text-align:center">' + p.label + '</div>' +
-          '</div>';
-      }).join('');
+      document.getElementById('aipv').innerHTML = '<div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#444;margin-bottom:8px;text-transform:uppercase">What AI Saw</div>' +
+        d.previews.map(function(p) {
+          return '<div style="position:relative;width:100%">' +
+            '<img src="' + p.url + '" style="width:100%;height:200px;object-fit:cover;border-radius:8px;display:block">' +
+            '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:11px;font-weight:800;color:#fff;padding:12px 10px 8px;border-radius:0 0 8px 8px;letter-spacing:.5px">' + p.label + ' angle</div>' +
+            '</div>';
+        }).join('');
     }
   })
   .catch(function(e){ box.style.display='none'; });
