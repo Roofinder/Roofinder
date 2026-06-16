@@ -2833,40 +2833,45 @@ function labelRoof(score) {
     labeledBy: 'dalton'
   };
 
-  // Save to Firestore
-  db.collection('roof_training').add(label)
-    .then(function() {
-      _trainScores[score]++;
-      document.getElementById('tc-' + score).textContent = _trainScores[score];
-      var savedEl = document.getElementById('train-saved');
-      savedEl.textContent = '✓ Saved as ' + score.toUpperCase() + ' — type next address below';
-      savedEl.style.display = 'block';
-      _recentLabels.unshift(label);
-      renderRecentLabels();
+  // Advance UI immediately — don't wait on Firestore
+  function advanceQueue() {
+    _trainScores[score]++;
+    document.getElementById('tc-' + score).textContent = _trainScores[score];
+    var savedEl = document.getElementById('train-saved');
+    savedEl.textContent = '✓ Saved as ' + score.toUpperCase();
+    savedEl.style.display = 'block';
+    _recentLabels.unshift(label);
+    renderRecentLabels();
+    document.getElementById('train-sv-frame').style.display = 'none';
+    document.getElementById('train-sv-placeholder').style.display = 'flex';
+    document.getElementById('train-maps-link').style.display = 'none';
+    document.getElementById('train-date-warning').style.display = 'none';
+    if (_addressQueue.length && _queueIndex < _addressQueue.length) {
+      _queueIndex++;
+      updateQueueProgress();
+      setTimeout(function() { loadFromQueue(); }, 500);
+    } else {
+      setTimeout(function() {
+        loadNextRoof();
+        var inp = document.getElementById('train-address');
+        if (inp) inp.focus();
+      }, 500);
+    }
+  }
 
-      // Close map immediately, then auto-advance and focus
-      document.getElementById('train-sv-frame').style.display = 'none';
-      document.getElementById('train-sv-placeholder').style.display = 'flex';
-      document.getElementById('train-maps-link').style.display = 'none';
-      document.getElementById('train-date-warning').style.display = 'none';
+  // Save to Firestore if available, always advance
+  if (db) {
+    db.collection('roof_training').add(label)
+      .then(function() { advanceQueue(); })
+      .catch(function(err) { console.warn('Firestore save failed:', err); advanceQueue(); });
+  } else {
+    // No Firestore — store locally and advance
+    var saved = JSON.parse(localStorage.getItem('rf_training_local') || '[]');
+    saved.push(label);
+    localStorage.setItem('rf_training_local', JSON.stringify(saved));
+    advanceQueue();
+  }
 
-      // If in queue mode, auto-advance; otherwise focus manual input
-      if (_addressQueue.length && _queueIndex < _addressQueue.length) {
-        _queueIndex++;
-        updateQueueProgress();
-        setTimeout(function() { loadFromQueue(); }, 600);
-      } else {
-        setTimeout(function() {
-          loadNextRoof();
-          var inp = document.getElementById('train-address');
-          if (inp) inp.focus();
-        }, 600);
-      }
-    })
-    .catch(function(err) {
-      clearBtnHighlight();
-      alert('Save failed: ' + err.message);
-    });
 }
 
 function renderRecentLabels() {
@@ -3244,5 +3249,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- Review Modal -->
-<div id="zb-review-modal" onclick="if(event.target===this)zbCloseReview()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.85);overflow-y:auto;padding:40px 16px">
-  <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;max-width:640px;margin:0 auto;posi
+<div id="zb-review-modal" onclick="if(event.target===this)zbCloseReview()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(
