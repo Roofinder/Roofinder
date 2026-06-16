@@ -1277,12 +1277,12 @@ function zbShowMapStep() {
 
 function zbLoadMapsAPI(cb) {
   if (window.google && window.google.maps && window.google.maps.drawing) { cb(); return; }
-  if (window._zbMapsLoading) { window._zbMapsReady = cb; return; } // already loading, just swap cb
-  window._zbMapsLoading = true;
-  window._zbMapsReady = cb;
-  var s = document.createElement('script');
-  s.src = 'https://maps.googleapis.com/maps/api/js?key=' + GMAPS_KEY + '&libraries=drawing,geometry&callback=_zbMapsReady';
-  s.async = true; document.head.appendChild(s);
+  // Maps not ready yet — poll every 50ms (pre-load script is in <body>)
+  var _t = setInterval(function() {
+    if (window.google && window.google.maps && window.google.maps.drawing) {
+      clearInterval(_t); cb();
+    }
+  }, 50);
 }
 
 function zbInitMap() {
@@ -1306,6 +1306,9 @@ function zbInitMap() {
   // Trigger resize so map picks up container dimensions, then plot after tiles load
   setTimeout(function() { google.maps.event.trigger(zbMap, 'resize'); }, 50);
   google.maps.event.addListenerOnce(zbMap, 'idle', zbPlotMarkers);
+  // Fallback: if idle never fires or markers not plotted, force after 1.5s
+  setTimeout(function() { if (zbMap && zbMapMarkers.length === 0 && zbLeads.length) { zbPlotMarkers(); } }, 1500);
+  setTimeout(function() { if (zbMap && zbMapMarkers.length === 0 && zbLeads.length) { zbPlotMarkers(); } }, 3000);
 }
 
 function zbMapDarkStyle() { return [{elementType:'geometry',stylers:[{color:'#1a1a1a'}]},{elementType:'labels.text.fill',stylers:[{color:'#757575'}]},{elementType:'labels.text.stroke',stylers:[{color:'#212121'}]},{featureType:'road',elementType:'geometry',stylers:[{color:'#2a2a2a'}]},{featureType:'road',elementType:'labels.text.fill',stylers:[{color:'#666'}]},{featureType:'road.arterial',elementType:'geometry',stylers:[{color:'#333'}]},{featureType:'road.highway',elementType:'geometry',stylers:[{color:'#3a3a3a'}]},{featureType:'water',elementType:'geometry',stylers:[{color:'#0a0f1e'}]},{featureType:'poi',stylers:[{visibility:'off'}]},{featureType:'transit',stylers:[{visibility:'off'}]}]; }
@@ -2720,4 +2723,6 @@ function zbExportExcel(autoDownload) {
     <iframe id="sv-iframe" style="flex:1;width:100%;border:none;display:block" loading="lazy" allowfullscreen></iframe>
   </div>
 </div>
+<!-- Pre-load Google Maps with drawing library so zbLoadMapsAPI polling finds it immediately -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0&libraries=drawing,geometry" async defer></script>
 </body></html>
