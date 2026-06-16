@@ -10,78 +10,69 @@ export default async function handler(req, res) {
 
   const GMAPS_KEY = process.env.GOOGLE_MAPS_KEY;
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
-
   if (!GMAPS_KEY || !ANTHROPIC_KEY) {
-    return res.status(500).json({ error: 'Missing API keys in environment' });
+    return res.status(500).json({ error: 'Missing API keys — set GOOGLE_MAPS_KEY and ANTHROPIC_API_KEY in Vercel environment variables' });
   }
 
   try {
-    // Pull 3 Street View angles for better coverage
-    const angles = [180, 225, 270];
-    const images = [];
+    // ── Step 1: Geocode address to lat/lng ──────────────────────
+    const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GMAPS_KEY}`;
+    const geoRes = await fetch(geoUrl);
+    const geoData = await geoRes.json();
 
-    for (const heading of angles) {
-      const svUrl = `https://maps.googleapis.com/maps/api/streetview?size=640x480&location=${encodeURIComponent(address)}&heading=${heading}&pitch=15&fov=90&key=${GMAPS_KEY}`;
-      const imgRes = await fetch(svUrl);
-      if (!imgRes.ok) continue;
-      const buf = await imgRes.arrayBuffer();
-      const b64 = Buffer.from(buf).toString('base64');
-      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-      images.push({ type: 'image', source: { type: 'base64', media_type: contentType, data: b64 } });
+    if (!geoData.results?.length) {
+      return res.status(200).json({ score: 'skip', confidence: 'low', reasoning: 'Could not locate this address.', address, images: [] });
     }
 
-    if (!images.length) {
-      return res.status(200).json({ score: 'skip', confidence: 'low', reasoning: 'No Street View imagery available for this address.', address });
-    }
+    const { lat, lng } = geoData.results[0].geometry.location;
 
-    // Build message with all images + prompt
-    const content = [
-      ...images,
-      {
-        type: 'text',
-        text: `You are an expert roofing sales analyst for a door-to-door roofing company in the Raleigh, NC area. You are looking at Street View images of a home.
-
-Analyze the ROOF ONLY. Score it for door-to-door roofing sales outreach:
-
-HOT — High priority. Visible signs of serious wear or damage: dark algae/moss streaking, missing or lifted shingles, obvious granule loss, sagging sections, visible storm damage. Roof age looks 15–25+ years. Knock this door first.
-
-WARM — Worth pursuing. Some visible wear, aging shingles, minor streaking, or roof looks like it's approaching end of life in the next few years. Worth a knock.
-
-PASS — Skip for now. Roof looks newer or recently replaced. No visible issues. Not a good prospect.
-
-SKIP — Cannot assess. Roof is obscured by trees, wrong angle, or image quality too low to evaluate.
-
-Respond ONLY with valid JSON, nothing else:
-{"score":"hot|warm|pass|skip","confidence":"high|medium|low","reasoning":"One or two sentences describing exactly what you saw on the roof that led to this score."}`
-      }
+    // ── Step 2: Pull 8 angles — full sweep around the home ──────
+    // 8 headings (every 45°) × 2 pitches = comprehensive roof view
+    const shots = [
+      { heading: 0,   pitch: 10,  label: 'North'       },
+      { heading: 45,  pitch: 10,  label: 'NE'          },
+      { heading: 90,  pitch: 10,  label: 'East'        },
+      { heading: 135, pitch: 10,  label: 'SE'          },
+      { heading: 180, pitch: 10,  label: 'South'       },
+      { heading: 225, pitch: 10,  label: 'SW'          },
+      { heading: 270, pitch: 10,  label: 'West'        },
+      { heading: 315, pitch: 10,  label: 'NW'          },
+      { heading: 0,   pitch: 35,  label: 'Roof (N)'    },
+      { heading: 90,  pitch: 35,  label: 'Roof (E)'    },
+      { heading: 180, pitch: 35,  label: 'Roof (S)'    },
+      { heading: 270, pitch: 35,  label: 'Roof (W)'    },
     ];
 
-    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-6',
-        max_tokens: 300,
-        messages: [{ role: 'user', content }]
-      })
-    });
+    const imageResults = await Promise.all(shots.map(async (shot) => {
+      const url = `https://maps.googleapis.com/maps/api/streetview?size=640x400&location=${lat},${lng}&heading=${shot.heading}&pitch=${shot.pitch}&fov=90&key=${GMAPS_KEY}&return_error_code=true`;
+      try {
+        const r = await fetch(url);
+        // Google returns a grey "no imagery" image — check content-length
+        if (!r.ok || r.status === 404) return null;
+        const buf = await r.arrayBuffer();
+        // Skip if too small (grey placeholder is ~3-4KB)
+        if (buf.byteLength < 5000) return null;
+        const b64 = Buffer.from(buf).toString('base64');
+        return { ...shot, b64, url: `data:image/jpeg;base64,${b64}` };
+      } catch { return null; }
+    }));
 
-    const claudeData = await claudeRes.json();
-    if (!claudeRes.ok) throw new Error(claudeData.error?.message || 'Claude API error');
+    const validImages = imageResults.filter(Boolean);
 
-    const raw = claudeData.content?.[0]?.text || '{}';
-    let parsed;
-    try { parsed = JSON.parse(raw); }
-    catch { parsed = { score: 'skip', confidence: 'low', reasoning: raw }; }
+    if (!validImages.length) {
+      return res.status(200).json({
+        score: 'skip', confidence: 'low',
+        reasoning: 'No Street View imagery available for this address.',
+        address, images: []
+      });
+    }
 
-    return res.status(200).json({ ...parsed, address });
+    // ── Step 3: Send all images to Claude ───────────────────────
+    const content = [];
 
-  } catch (err) {
-    console.error('score-roof error:', err);
-    return res.status(500).json({ error: err.message });
-  }
-}
+    // Add each image with its label
+    validImages.forEach((img) => {
+      content.push({ type: 'text', text: `[View: ${img.label}]` });
+      content.push({
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/jpeg', data: img.b64 
