@@ -2800,57 +2800,65 @@ function clearBtnHighlight() {
 }
 
 function labelRoof(score) {
-  if (!_trainAddress) {
-    alert('Load an address first.');
+  // Read address straight from DOM — never trust the variable
+  var addr = document.getElementById('train-address').value.trim();
+  if (!addr) {
+    alert('No address loaded. Click "⚡ Load 50 Sample Raleigh Homes" first.');
     return;
   }
-  highlightBtn(score);
-  var notes = document.getElementById('train-notes').value.trim();
+
+  // Save to localStorage right now, synchronously
   var label = {
-    address: _trainAddress,
+    address: addr,
     score: score,
-    notes: notes,
+    notes: document.getElementById('train-notes').value.trim(),
     labeledAt: new Date().toISOString(),
     labeledBy: 'dalton'
   };
+  var allSaved = JSON.parse(localStorage.getItem('rf_training_local') || '[]');
+  allSaved.push(label);
+  localStorage.setItem('rf_training_local', JSON.stringify(allSaved));
 
-  // Advance UI immediately — don't wait on Firestore
-  function advanceQueue() {
-    _trainScores[score]++;
-    document.getElementById('tc-' + score).textContent = _trainScores[score];
-    var savedEl = document.getElementById('train-saved');
-    savedEl.textContent = '✓ Saved as ' + score.toUpperCase();
-    savedEl.style.display = 'block';
-    _recentLabels.unshift(label);
-    renderRecentLabels();
-    document.getElementById('train-sv-loaded').style.display = 'none';
-    document.getElementById('train-sv-placeholder').style.display = 'flex';
+  // Update counter + highlight
+  _trainScores[score] = (_trainScores[score] || 0) + 1;
+  var cEl = document.getElementById('tc-' + score);
+  if (cEl) cEl.textContent = _trainScores[score];
+  highlightBtn(score);
+
+  // Show saved confirmation
+  var savedEl = document.getElementById('train-saved');
+  if (savedEl) { savedEl.textContent = '✓ ' + score.toUpperCase() + ' saved'; savedEl.style.display = 'block'; }
+
+  // Log to recent labels
+  _trainAddress = addr;
+  _recentLabels.unshift(label);
+  renderRecentLabels();
+
+  // Advance queue — completely synchronous, no setTimeout
+  var nextIdx = _queueIndex + 1;
+  if (_addressQueue.length > 0 && nextIdx < _addressQueue.length) {
+    _queueIndex = nextIdx;
+    updateQueueProgress();
+    document.getElementById('train-notes').value = '';
     document.getElementById('train-date-warning').style.display = 'none';
-    if (_addressQueue.length && _queueIndex < _addressQueue.length) {
-      _queueIndex++;
-      updateQueueProgress();
-      setTimeout(function() { loadFromQueue(); }, 500);
-    } else {
-      setTimeout(function() {
-        loadNextRoof();
-        var inp = document.getElementById('train-address');
-        if (inp) inp.focus();
-      }, 500);
-    }
+    document.getElementById('train-address').value = _addressQueue[_queueIndex];
+    _trainAddress = _addressQueue[_queueIndex];
+    loadRoofByAddress();
+  } else if (_addressQueue.length > 0 && nextIdx >= _addressQueue.length) {
+    _queueIndex = nextIdx;
+    updateQueueProgress();
+    alert('Queue complete! All ' + _addressQueue.length + ' homes labeled. Your data is saved.');
+    _addressQueue = [];
+    _queueIndex = 0;
+    var pw = document.getElementById('train-progress-wrap');
+    if (pw) pw.style.display = 'none';
+    loadNextRoof();
+  } else {
+    loadNextRoof();
   }
 
-  // Advance immediately — never wait on network
-  var saved = JSON.parse(localStorage.getItem('rf_training_local') || '[]');
-  saved.push(label);
-  localStorage.setItem('rf_training_local', JSON.stringify(saved));
-  advanceQueue();
-
-  // Fire-and-forget Firestore sync in background
-  if (db) {
-    db.collection('roof_training').add(label)
-      .catch(function(err) { console.warn('Firestore background sync failed:', err); });
-  }
-
+  // Background Firestore — fire and forget, never blocks
+  if (db) db.collection('roof_training').add(label).catch(function(){});
 }
 
 function renderRecentLabels() {
@@ -3254,11 +3262,4 @@ document.addEventListener('DOMContentLoaded', function() {
   <div style="width:92vw;max-width:1100px;height:82vh;background:#0a0a0a;border:1px solid #222;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
       <div style="font-size:13px;font-weight:700;color:#888">🔍 Street View</div>
-      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-family:inherit">✕</button>
-    </div>
-    <iframe id="sv-iframe" style="flex:1;width:100%;border:none;display:block" loading="lazy" allowfullscreen></iframe>
-  </div>
-</div>
-<!-- Pre-load Google Maps with drawing library so zbLoadMapsAPI polling finds it immediately -->
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0&libraries=drawing,geometry" async defer></script>
-</body></html>                                                                    
+      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-fami
