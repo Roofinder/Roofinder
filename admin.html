@@ -222,7 +222,7 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
         <button class="nav-tab active" onclick="showPanel('contractors',this)">Owners</button>
         <button class="nav-tab" onclick="showPanel('pockets',this)">Pockets</button>
         <button class="nav-tab" onclick="showPanel('activity',this)">Activity</button>
-      <button class="nav-tab" onclick="showPanel('applications',this)">Applications <span id="app-badge" style="display:none;background:#4caf50;color:#000;font-size:9px;font-weight:900;padding:2px 6px;border-radius:10px;margin-left:4px">0</span></button>
+      <button class="nav-tab" onclick="showPanel('applications',this)">Leads <span id="app-badge" style="display:none;background:#4caf50;color:#000;font-size:9px;font-weight:900;padding:2px 6px;border-radius:10px;margin-left:4px">0</span></button>
       </div>
     </div>
     <div class="nav-stat-row">
@@ -287,12 +287,22 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
     <div class="panel" id="panel-applications">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div>
-          <div style="font-size:18px;font-weight:800;color:#e0e4f0">Applications</div>
-          <div style="font-size:12px;color:#555;margin-top:2px">Inbound zone applications from roofinder.online</div>
+          <div style="font-size:18px;font-weight:800;color:#e0e4f0">Leads Dashboard</div>
+          <div style="font-size:12px;color:#555;margin-top:2px">Contractor applications &amp; homeowner leads from roofinder.online</div>
         </div>
-        <button onclick="loadApplications()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer">↻ Refresh</button>
+        <button onclick="refreshLeadsTab()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer">↻ Refresh</button>
       </div>
+      <!-- Sub-tabs -->
+      <div style="display:flex;gap:6px;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:0">
+        <button id="leads-tab-contractors" onclick="switchLeadsTab('contractors')" style="font-size:12px;font-weight:700;padding:8px 16px;border:none;background:none;color:#4caf50;border-bottom:2px solid #4caf50;cursor:pointer;font-family:inherit;letter-spacing:.5px">CONTRACTOR APPS <span id="app-badge-sub" style="background:#4caf5022;color:#4caf50;font-size:9px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:4px">0</span></button>
+        <button id="leads-tab-homeowners" onclick="switchLeadsTab('homeowners')" style="font-size:12px;font-weight:700;padding:8px 16px;border:none;background:none;color:#555;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;letter-spacing:.5px">HOMEOWNER LEADS <span id="hw-badge-sub" style="display:none;background:#f59e0b22;color:#f59e0b;font-size:9px;font-weight:900;padding:2px 6px;border-radius:8px;margin-left:4px">0</span></button>
+      </div>
+      <!-- Contractor Apps List -->
       <div id="app-list">
+        <div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading...</div>
+      </div>
+      <!-- Homeowner Leads List -->
+      <div id="hw-list" style="display:none">
         <div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading...</div>
       </div>
     </div>
@@ -457,13 +467,36 @@ if (localStorage.getItem('rf_admin_auth') === '1') {
 }
 
 // ── Nav ──────────────────────────────────────────────────────────
+var _activeLeadsTab = 'contractors';
 function showPanel(name, btn) {
-  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active');   if (name === 'applications') loadApplications();
-});
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
+  if (name === 'applications') { loadApplications(); if (_activeLeadsTab === 'homeowners') loadHomeownerLeads(); }
   if (name === 'activity') loadActivity();
+}
+function switchLeadsTab(tab) {
+  _activeLeadsTab = tab;
+  var appList = document.getElementById('app-list');
+  var hwList = document.getElementById('hw-list');
+  var tabC = document.getElementById('leads-tab-contractors');
+  var tabH = document.getElementById('leads-tab-homeowners');
+  if (tab === 'contractors') {
+    appList.style.display = ''; hwList.style.display = 'none';
+    tabC.style.color = '#4caf50'; tabC.style.borderBottom = '2px solid #4caf50';
+    tabH.style.color = '#555'; tabH.style.borderBottom = '2px solid transparent';
+    loadApplications();
+  } else {
+    appList.style.display = 'none'; hwList.style.display = '';
+    tabH.style.color = '#f59e0b'; tabH.style.borderBottom = '2px solid #f59e0b';
+    tabC.style.color = '#555'; tabC.style.borderBottom = '2px solid transparent';
+    loadHomeownerLeads();
+  }
+}
+function refreshLeadsTab() {
+  if (_activeLeadsTab === 'contractors') loadApplications();
+  else loadHomeownerLeads();
 }
 
 // ── Data ─────────────────────────────────────────────────────────
@@ -481,19 +514,35 @@ function initDashboard() {
     updateStats();
   });
 
-  // Real-time unread badge on Applications tab
-  db.collection('applications').where('status','==','new').onSnapshot(function(snap) {
+  // Real-time badge: contractor apps
+  var _appNewCount = 0, _hwNewCount = 0;
+  function updateLeadsBadge() {
+    var total = _appNewCount + _hwNewCount;
     var badge = document.getElementById('app-badge');
-    var count = snap.size;
-    if (count > 0) {
-      badge.textContent = count;
+    if (total > 0) {
+      badge.textContent = total;
       badge.style.display = 'inline';
       badge.style.background = '#ff5555';
-      document.title = '(' + count + ' New) RooFinder Admin';
+      document.title = '(' + total + ' New) RooFinder Admin';
     } else {
       badge.style.display = 'none';
       document.title = 'RooFinder Admin';
     }
+    var appSubBadge = document.getElementById('app-badge-sub');
+    if (appSubBadge) { appSubBadge.textContent = _appNewCount; }
+    var hwSubBadge = document.getElementById('hw-badge-sub');
+    if (hwSubBadge) {
+      if (_hwNewCount > 0) { hwSubBadge.textContent = _hwNewCount; hwSubBadge.style.display = 'inline'; }
+      else { hwSubBadge.style.display = 'none'; }
+    }
+  }
+  db.collection('applications').where('status','==','new').onSnapshot(function(snap) {
+    _appNewCount = snap.size;
+    updateLeadsBadge();
+  });
+  db.collection('homeowner_leads').where('status','==','new').onSnapshot(function(snap) {
+    _hwNewCount = snap.size;
+    updateLeadsBadge();
   });
 }
 
@@ -1170,6 +1219,64 @@ function updateAppStatus(id, status, company, zip) {
 function deleteApplication(id) {
   if (!confirm('Delete this application? This cannot be undone.')) return;
   db.collection('applications').doc(id).delete().then(loadApplications);
+}
+
+/* ── HOMEOWNER LEADS ── */
+function loadHomeownerLeads() {
+  var list = document.getElementById('hw-list');
+  list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading...</div>';
+  db.collection('homeowner_leads').orderBy('createdAt', 'desc').get().then(function(snap) {
+    if (snap.empty) {
+      list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">No homeowner leads yet.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      var isNew = d.status === 'new' || !d.status;
+      var statusColor = isNew ? '#f59e0b' : '#555';
+      var statusLabel = isNew ? 'NEW' : 'REVIEWED';
+      var date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '--';
+      var timelineMap = { asap:'ASAP', '1month':'Within 1 Month', '3months':'Within 3 Months', justlooking:'Just Getting Estimates' };
+      var timelineLabel = timelineMap[d.timeline] || d.timeline || '--';
+      var card = document.createElement('div');
+      card.style.cssText = 'background:#111;border:1px solid ' + (isNew ? 'rgba(245,158,11,0.3)' : '#222') + ';border-radius:12px;padding:20px 22px;margin-bottom:12px';
+      card.innerHTML =
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+              '<div style="font-size:16px;font-weight:800;color:#e0e4f0">' + (d.name || 'Homeowner') + '</div>' +
+              '<span style="font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:6px;background:' + statusColor + '22;color:' + statusColor + '">' + statusLabel + '</span>' +
+              '<span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(76,175,80,0.08);color:#4caf50;border:1px solid rgba(76,175,80,0.2)">🏠 HOMEOWNER</span>' +
+            '</div>' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">' +
+              '<div style="font-size:12px;color:#666">Phone: <a href="tel:' + (d.phone||'') + '" style="color:#4caf50;font-weight:600">' + (d.phone||'--') + '</a></div>' +
+              '<div style="font-size:12px;color:#666">Zip: <strong style="color:#e0e4f0">' + (d.zip||'--') + '</strong></div>' +
+              '<div style="font-size:12px;color:#666">Timeline: <strong style="color:#e0e4f0">' + timelineLabel + '</strong></div>' +
+              '<div style="font-size:11px;color:#444">' + date + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:8px;flex-shrink:0">' +
+            (isNew ? '<button onclick="updateHwStatus(\'' + doc.id + '\',\'reviewed\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#aaa;cursor:pointer;font-family:inherit">Mark Reviewed</button>' : '') +
+            '<a href="sms:' + (d.phone||'') + '" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(76,175,80,0.4);background:rgba(76,175,80,0.08);color:#4caf50;text-decoration:none">📱 Text</a>' +
+            '<a href="tel:' + (d.phone||'') + '" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.08);color:#3b82f6;text-decoration:none">📞 Call</a>' +
+            '<button onclick="deleteHwLead(\'' + doc.id + '\')" style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);color:#ef4444;cursor:pointer;font-family:inherit">Delete</button>' +
+          '</div>' +
+        '</div>';
+      list.appendChild(card);
+    });
+  }).catch(function(err) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:#ff5555;font-size:13px">Error: ' + err.message + '</div>';
+  });
+}
+
+function updateHwStatus(id, status) {
+  db.collection('homeowner_leads').doc(id).update({ status: status }).then(loadHomeownerLeads);
+}
+
+function deleteHwLead(id) {
+  if (!confirm('Delete this homeowner lead? This cannot be undone.')) return;
+  db.collection('homeowner_leads').doc(id).delete().then(loadHomeownerLeads);
 }
 
 /* ── ZONE BUILDER ── */
