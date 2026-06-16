@@ -281,6 +281,10 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 @keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,.5)}60%{box-shadow:0 0 0 7px rgba(76,175,80,0)}}
 .hero-proof-dot{animation:pulse-ring 2.2s ease infinite}
 
+/* Nav link glow pulse */
+@keyframes nav-glow{0%,100%{text-shadow:0 0 0 rgba(76,175,80,0)}50%{text-shadow:0 0 10px rgba(76,175,80,0.7)}}
+.nav-link-glow{animation:nav-glow 2.4s ease-in-out infinite;color:var(--green)!important;font-weight:700}
+
 /* Scroll-reveal */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
 .reveal.visible{opacity:1;transform:none}
@@ -340,7 +344,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
     "name": "Exclusive Roofing Canvassing Zone",
     "price": "999",
     "priceCurrency": "USD",
-    "description": "First month — exclusive zip code territory with 300+ pre-qualified homes, CRM, routes, and team app. $2,500/mo thereafter."
+    "description": "First month — exclusive zip code territory with hundreds of pre-qualified homes, CRM, routes, and team app. $2,500/mo thereafter."
   },
   "sameAs": []
 }
@@ -370,24 +374,22 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
   <div class="nav-inner">
     <a href="#" class="nav-logo"><img src="logo.png" height="38" alt="RooFinder" style="display:block"></a>
     <div class="nav-links">
-      <a href="#how-it-works">How It Works</a>
       <a href="#territory">Pricing</a>
-      
+
       <a href="blog/">Blog</a>
-      <a href="#homeowners" style="color:#bbb">For Homeowners</a>
+      <a href="#homeowners" class="nav-link-glow">For Homeowners</a>
       <a href="how-it-works.html" style="background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);color:var(--green);padding:5px 12px;border-radius:6px;font-weight:700">Info Sheet</a>
-      <a href="owner.html" style="color:var(--green)">Contractors Login</a>
+      <a href="owner.html" class="nav-link-glow">Contractors Login</a>
     </div>
     <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);color:var(--green);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Get Access →</a>
     <a href="owner.html" class="nav-mobile-login">Contractors Login</a>
     <button class="nav-mobile-toggle" onclick="toggleMobileNav(this)">☰</button>
   </div>
   <div id="mobile-nav" style="display:none;padding:16px 24px 20px;border-top:1px solid rgba(255,255,255,0.06)">
-    <a href="#how-it-works" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">How It Works</a>
     <a href="#territory" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Pricing</a>
     <a href="blog/" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Blog</a>
-    <a href="#homeowners" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">For Homeowners</a>
-    <a href="owner.html" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:var(--green);letter-spacing:.5px" onclick="toggleMobileNav()">Contractors Login</a>
+    <a href="#homeowners" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">For Homeowners</a>
+    <a href="owner.html" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">Contractors Login</a>
     <a href="#cta" style="display:block;margin-top:12px;background:var(--green);color:#000;font-size:13px;font-weight:800;padding:12px 20px;border-radius:6px;text-align:center" onclick="toggleMobileNav()">Get Access →</a>
   </div>
 </nav>
@@ -397,9 +399,9 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">Available Nationwide</div>
-    <h1 class="hero-headline">Own Your Zone.<br>Run Your Team.<br><span>Anywhere.</span></h1>
-    <p class="hero-sub">Claim an exclusive zone of satellite-assessed homeowner leads — then manage your entire canvassing team from one dashboard. Routes, CRM, live rep tracking, and storm alerts. One platform, one price.</p>
+    <div class="hero-eyebrow">The Future of Roofing Sales</div>
+    <h1 class="hero-headline">Shared Leads.<br>Random Doors.<br><span>Not Anymore.</span></h1>
+    <p class="hero-sub">Most crews are knocking whatever doors their gut says — competing with three other companies for the same worn-out leads, with no system and no visibility. RooFinder locks in your exclusive zone of pre-qualified homes and gives you everything to run your team from the door to the close.</p>
 
     <!-- ZIP SEARCH -->
     <div id="zip-search-box">
@@ -431,8 +433,8 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
     </div>
     <div class="hero-stats">
       <div>
-        <div class="hero-stat-num">300+</div>
-        <div class="hero-stat-lbl">Pre-Qualified Homes</div>
+        <div class="hero-stat-num">100s</div>
+        <div class="hero-stat-lbl">Pre-Qualified Homes Per Zone</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
@@ -464,7 +466,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
       <div class="step-simple">
         <div class="step-simple-num">1</div>
         <div class="step-simple-title">Claim Your Zone</div>
-        <div class="step-simple-body">Pick your zip, pay $999, and your exclusive territory is locked. 300+ pre-qualified homes built and loaded within 48 hours.</div>
+        <div class="step-simple-body">Pick your zip, pay $999, and your exclusive territory is locked. Hundreds of pre-qualified homes built and loaded within 48 hours.</div>
       </div>
       <div class="step-simple">
         <div class="step-simple-num">2</div>
