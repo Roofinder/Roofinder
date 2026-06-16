@@ -2839,17 +2839,16 @@ function labelRoof(score) {
     }
   }
 
-  // Save to Firestore if available, always advance
+  // Advance immediately — never wait on network
+  var saved = JSON.parse(localStorage.getItem('rf_training_local') || '[]');
+  saved.push(label);
+  localStorage.setItem('rf_training_local', JSON.stringify(saved));
+  advanceQueue();
+
+  // Fire-and-forget Firestore sync in background
   if (db) {
     db.collection('roof_training').add(label)
-      .then(function() { advanceQueue(); })
-      .catch(function(err) { console.warn('Firestore save failed:', err); advanceQueue(); });
-  } else {
-    // No Firestore — store locally and advance
-    var saved = JSON.parse(localStorage.getItem('rf_training_local') || '[]');
-    saved.push(label);
-    localStorage.setItem('rf_training_local', JSON.stringify(saved));
-    advanceQueue();
+      .catch(function(err) { console.warn('Firestore background sync failed:', err); });
   }
 
 }
@@ -3238,4 +3237,28 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:3px;display:flex">
-          <button id="rv-f-all"     onclick="zbReviewFilter('all')"     style="background:rgb
+          <button id="rv-f-all"     onclick="zbReviewFilter('all')"     style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;font-size:11px;font-weight:800;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">All</button>
+          <button id="rv-f-kept"    onclick="zbReviewFilter('kept')"    style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">✅ Kept</button>
+          <button id="rv-f-skipped" onclick="zbReviewFilter('skipped')" style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">❌ Skipped</button>
+        </div>
+        <button onclick="zbExportReview()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer">📥 Export</button>
+        <button onclick="zbCloseReview()" style="background:#222;border:1px solid #333;color:#aaa;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer">✕ Close</button>
+      </div>
+    </div>
+    <div id="zb-review-list" style="max-height:60vh;overflow-y:auto;padding-right:4px"></div>
+  </div>
+</div>
+
+<!-- Street View Modal -->
+<div id="sv-modal" onclick="if(event.target===this)zbCloseSV()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
+  <div style="width:92vw;max-width:1100px;height:82vh;background:#0a0a0a;border:1px solid #222;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
+      <div style="font-size:13px;font-weight:700;color:#888">🔍 Street View</div>
+      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-family:inherit">✕</button>
+    </div>
+    <iframe id="sv-iframe" style="flex:1;width:100%;border:none;display:block" loading="lazy" allowfullscreen></iframe>
+  </div>
+</div>
+<!-- Pre-load Google Maps with drawing library so zbLoadMapsAPI polling finds it immediately -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0&libraries=drawing,geometry" async defer></script>
+</body></html>                                                                    
