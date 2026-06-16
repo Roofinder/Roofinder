@@ -223,7 +223,6 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
         <button class="nav-tab" onclick="showPanel('pockets',this)">Pockets</button>
         <button class="nav-tab" onclick="showPanel('activity',this)">Activity</button>
       <button class="nav-tab" onclick="showPanel('applications',this)">Leads <span id="app-badge" style="display:none;background:#4caf50;color:#000;font-size:9px;font-weight:900;padding:2px 6px;border-radius:10px;margin-left:4px">0</span></button>
-        <button class="nav-tab" onclick="showPanel('training',this)">🏠 Roof Training</button>
       </div>
     </div>
     <div class="nav-stat-row">
@@ -308,126 +307,6 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
       </div>
     </div>
 
-    <!-- ── ROOF TRAINING ── -->
-    <div class="panel" id="panel-training">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
-        <div>
-          <div style="font-size:18px;font-weight:800;color:#e0e4f0">Roof Training Session</div>
-          <div style="font-size:12px;color:#555;margin-top:2px">Label roofs to teach the AI what you look for. Your calls become the scoring criteria.</div>
-        </div>
-        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
-          <div style="display:flex;gap:10px;font-size:12px;font-weight:700">
-            <span style="color:#ef4444">🔥 <span id="tc-hot">0</span></span>
-            <span style="color:#fb923c">👍 <span id="tc-warm">0</span></span>
-            <span style="color:#3b82f6">❌ <span id="tc-pass">0</span></span>
-            <span style="color:#555">⏭ <span id="tc-skip">0</span></span>
-          </div>
-          <div style="font-size:11px;color:#333">Keys: 1·2·3·4</div>
-          <button onclick="loadNextRoof()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:7px 14px;border-radius:7px;cursor:pointer;font-family:inherit">↻ Clear</button>
-        </div>
-      </div>
-
-      <!-- Zip code queue -->
-      <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-radius:10px;padding:16px;margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:10px">LOAD QUEUE BY ZIP CODE</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-          <input id="train-zip" placeholder="e.g. 27511" maxlength="5" style="width:120px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:inherit;outline:none;letter-spacing:2px"/>
-          <button onclick="loadQueueByZip()" style="background:#4caf50;border:none;color:#000;font-size:13px;font-weight:800;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap">Load Queue →</button>
-          <button onclick="loadSampleQueue()" style="background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.4);color:#fb923c;font-size:12px;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap">⚡ Load 50 Sample Raleigh Homes</button>
-          <div id="train-queue-status" style="font-size:12px;color:#555">No queue loaded</div>
-        </div>
-        <!-- Progress bar -->
-        <div id="train-progress-wrap" style="display:none;margin-top:12px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-            <span style="font-size:11px;color:#555">Progress</span>
-            <span id="train-progress-text" style="font-size:11px;font-weight:700;color:#4caf50">0 / 0</span>
-          </div>
-          <div style="background:#1a1a1a;border-radius:100px;height:4px;overflow:hidden">
-            <div id="train-progress-bar" style="background:#4caf50;height:100%;width:0%;transition:width .3s;border-radius:100px"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Manual address input -->
-      <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
-        <input id="train-address" placeholder="Or enter a single address manually…" style="flex:1;min-width:260px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:#fff;font-size:13px;font-family:inherit;outline:none"/>
-        <button onclick="loadRoofByAddress()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:#ccc;font-size:13px;font-weight:700;padding:11px 18px;border-radius:8px;cursor:pointer;font-family:inherit;white-space:nowrap">Load →</button>
-      </div>
-
-      <!-- Main training area -->
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start" id="train-grid">
-
-        <!-- Street view panel -->
-        <div>
-          <div id="train-sv-placeholder" style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;min-height:360px;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px">
-            <div>
-              <div style="font-size:48px;margin-bottom:16px">🏠</div>
-              <div style="font-size:14px;font-weight:700;color:#e0e4f0;margin-bottom:8px">Click ⚡ Load 50 Sample Raleigh Homes to start</div>
-              <div style="font-size:12px;color:#444">Street View loads here automatically for each home</div>
-            </div>
-          </div>
-          <div id="train-sv-loaded" style="display:none">
-            <div style="background:#0d0d0d;border:1px solid #222;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
-              <div id="train-addr-big" style="font-size:13px;font-weight:700;color:#e0e4f0"></div>
-              <a id="train-sv-link" href="#" target="_blank" style="font-size:11px;color:#4caf50;font-weight:700;text-decoration:none;white-space:nowrap;margin-left:12px">↗ Open in Maps</a>
-            </div>
-            <iframe id="train-sv-frame" src="" style="width:100%;height:480px;border:none;border-radius:10px;display:block"></iframe>
-          </div>
-          <div id="train-date-warning" style="display:none;margin-top:8px;padding:10px 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;font-size:12px;color:#ef4444;font-weight:600">
-            ⚠️ Image may be older than 2024 — label as <strong>Pass</strong>.
-          </div>
-        </div>
-
-        <!-- Label panel -->
-        <div style="display:flex;flex-direction:column;gap:14px">
-
-          <!-- Score buttons -->
-          <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:-6px">YOUR CALL</div>
-
-          <button id="tbtn-hot" onclick="labelRoof('hot')" class="train-btn" data-score="hot" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.4);color:#ef4444;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
-            🔥 Hot Lead <kbd style="float:right;font-size:10px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:4px;padding:2px 6px;font-family:inherit">1</kbd>
-            <div style="font-size:11px;font-weight:500;color:#ef444488;margin-top:3px">Multiple aging signs — knock this door first</div>
-          </button>
-
-          <button id="tbtn-warm" onclick="labelRoof('warm')" class="train-btn" data-score="warm" style="background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.4);color:#fb923c;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
-            👍 Warm <kbd style="float:right;font-size:10px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:4px;padding:2px 6px;font-family:inherit">2</kbd>
-            <div style="font-size:11px;font-weight:500;color:#fb923c88;margin-top:3px">Some wear visible — worth a knock</div>
-          </button>
-
-          <button id="tbtn-pass" onclick="labelRoof('pass')" class="train-btn" data-score="pass" style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.3);color:#3b82f6;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
-            ❌ Pass <kbd style="float:right;font-size:10px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);border-radius:4px;padding:2px 6px;font-family:inherit">3</kbd>
-            <div style="font-size:11px;font-weight:500;color:#3b82f688;margin-top:3px">Newer roof — skip for now</div>
-          </button>
-
-          <button id="tbtn-skip" onclick="labelRoof('skip')" class="train-btn" data-score="skip" style="background:rgba(255,255,255,0.03);border:1px solid #222;color:#555;font-size:14px;font-weight:800;padding:16px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s;width:100%">
-            ⏭ Skip <kbd style="float:right;font-size:10px;background:#1a1a1a;border:1px solid #333;border-radius:4px;padding:2px 6px;font-family:inherit">4</kbd>
-            <div style="font-size:11px;font-weight:500;color:#333;margin-top:3px">Can't see roof / image too old</div>
-          </button>
-
-          <!-- Notes -->
-          <div>
-            <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:6px">WHAT DID YOU SEE? (optional)</div>
-            <textarea id="train-notes" placeholder="e.g. black streaking on north slope, granule loss near gutters…" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid #222;border-radius:8px;padding:10px 12px;color:#ccc;font-size:12px;font-family:inherit;outline:none;resize:vertical;min-height:72px;box-sizing:border-box"></textarea>
-          </div>
-
-          <!-- Confirm save toast -->
-          <div id="train-saved" style="display:none;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:700;color:#4caf50;text-align:center"></div>
-
-          <!-- NEXT BUTTON -->
-          <button onclick="nextHome()" style="width:100%;margin-top:8px;background:#ffffff;color:#000;font-size:18px;font-weight:900;padding:20px;border:none;border-radius:12px;cursor:pointer;font-family:inherit;letter-spacing:1px">
-            ➡ NEXT HOME
-          </button>
-        </div>
-      </div>
-
-      <!-- Recent labels -->
-      <div style="margin-top:28px">
-        <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:12px">RECENT LABELS</div>
-        <div id="train-recent" style="display:flex;flex-direction:column;gap:8px">
-          <div style="font-size:13px;color:#333">No labels yet this session.</div>
-        </div>
-      </div>
-    </div>
   </main>
 </div>
 
@@ -3270,4 +3149,23 @@ document.addEventListener('DOMContentLoaded', function() {
           <button id="rv-f-skipped" onclick="zbReviewFilter('skipped')" style="background:#111;border:1px solid #222;color:#555;font-size:11px;font-weight:600;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit">❌ Skipped</button>
         </div>
         <button onclick="zbExportReview()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer">📥 Export</button>
-        <button onclick="zbCloseReview()" style="background:#222;border:1px solid #333;color:#aaa;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer">✕ Close</butt
+        <button onclick="zbCloseReview()" style="background:#222;border:1px solid #333;color:#aaa;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer">✕ Close</button>
+      </div>
+    </div>
+    <div id="zb-review-list" style="max-height:60vh;overflow-y:auto;padding-right:4px"></div>
+  </div>
+</div>
+
+<!-- Street View Modal -->
+<div id="sv-modal" onclick="if(event.target===this)zbCloseSV()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;align-items:center;justify-content:center">
+  <div style="width:92vw;max-width:1100px;height:82vh;background:#0a0a0a;border:1px solid #222;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1a1a1a;flex-shrink:0">
+      <div style="font-size:13px;font-weight:700;color:#888">🔍 Street View</div>
+      <button onclick="zbCloseSV()" style="background:#111;border:1px solid #222;color:#888;font-size:18px;width:32px;height:32px;border-radius:50%;cursor:pointer;line-height:1;font-family:inherit">✕</button>
+    </div>
+    <iframe id="sv-iframe" style="flex:1;width:100%;border:none;display:block" loading="lazy" allowfullscreen></iframe>
+  </div>
+</div>
+<!-- Pre-load Google Maps with drawing library so zbLoadMapsAPI polling finds it immediately -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkqYs8ke_NDdjK57qY3B2-ekJglmuD0k0&libraries=drawing,geometry" async defer></script>
+</body></html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
