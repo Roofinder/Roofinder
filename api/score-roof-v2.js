@@ -48,7 +48,7 @@ function bearing(lat1, lng1, lat2, lng2) {
 }
 
 function svUrl(key, lat, lng, heading, pitch, fov) {
-  let u = 'https://maps.googleapis.com/maps/api/streetview?size=400x400&location=' + lat + ',' + lng +
+  let u = 'https://maps.googleapis.com/maps/api/streetview?size=640x640&location=' + lat + ',' + lng +
     '&pitch=' + pitch + '&fov=' + fov + '&key=' + key + '&return_error_code=true';
   if (heading != null) u += '&heading=' + heading;   // omit -> Google auto-aims at location
   return u;
