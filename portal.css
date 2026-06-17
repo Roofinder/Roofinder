@@ -1,0 +1,124 @@
+/* ============================================================
+   RooFinder — Shared Portal Design System
+   Loaded LAST in <head> so it harmonizes admin / owner / agent.
+   Defines: design tokens + new interactive components
+   (toasts, confirm sheets, slide-in panels, count-up, drag,
+    progress rings, live pulse, leaderboard, skeletons).
+   ============================================================ */
+
+:root{
+  --rf-green:#4caf50;
+  --rf-green-bright:#5cc760;
+  --rf-green-soft:rgba(76,175,80,.12);
+  --rf-green-line:rgba(76,175,80,.28);
+  --rf-amber:#ffa500;
+  --rf-purple:#a855f7;
+  --rf-blue:#60a0ff;
+  --rf-red:#ff5555;
+  --rf-radius:12px;
+  --rf-radius-lg:16px;
+  --rf-shadow:0 12px 40px rgba(0,0,0,.45);
+  --rf-ease:cubic-bezier(.22,1,.36,1);
+}
+
+/* ── Toasts ─────────────────────────────────────────────── */
+#rf-toast-wrap{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:9000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:92vw}
+.rf-toast{display:flex;align-items:center;gap:10px;background:#15171f;border:1px solid rgba(255,255,255,.1);color:#e8ecf5;font-size:13.5px;font-weight:600;padding:12px 18px;border-radius:100px;box-shadow:var(--rf-shadow);pointer-events:auto;opacity:0;transform:translateY(14px) scale(.96);transition:opacity .28s var(--rf-ease),transform .28s var(--rf-ease);font-family:inherit}
+.rf-toast.in{opacity:1;transform:translateY(0) scale(1)}
+.rf-toast .rf-toast-ic{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0}
+.rf-toast.ok    .rf-toast-ic{background:var(--rf-green);color:#04210a}
+.rf-toast.info  .rf-toast-ic{background:var(--rf-blue);color:#031229}
+.rf-toast.warn  .rf-toast-ic{background:var(--rf-amber);color:#241600}
+.rf-toast.err   .rf-toast-ic{background:var(--rf-red);color:#2a0000}
+.rf-toast .rf-toast-undo{background:none;border:none;color:var(--rf-green);font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;padding:0 2px;margin-left:4px}
+
+/* ── Confirm / action sheet (replaces native confirm & alert) ── */
+#rf-sheet-scrim{position:fixed;inset:0;z-index:8800;background:rgba(0,0,0,.62);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .22s ease}
+#rf-sheet-scrim.in{opacity:1}
+.rf-sheet{background:#14161f;border:1px solid rgba(255,255,255,.1);border-radius:var(--rf-radius-lg);width:100%;max-width:420px;padding:26px 26px 22px;box-shadow:var(--rf-shadow);transform:translateY(18px) scale(.97);transition:transform .26s var(--rf-ease)}
+#rf-sheet-scrim.in .rf-sheet{transform:translateY(0) scale(1)}
+.rf-sheet-ic{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.rf-sheet-ic.danger{background:rgba(255,85,85,.12);border:1px solid rgba(255,85,85,.3)}
+.rf-sheet-ic.ask{background:var(--rf-green-soft);border:1px solid var(--rf-green-line)}
+.rf-sheet-title{font-size:17px;font-weight:800;letter-spacing:-.2px;margin-bottom:6px;color:#fff}
+.rf-sheet-msg{font-size:13.5px;line-height:1.55;color:#9aa3b6;margin-bottom:22px}
+.rf-sheet-actions{display:flex;gap:10px;justify-content:flex-end}
+.rf-btn{font-family:inherit;font-weight:800;font-size:13px;padding:11px 20px;border-radius:9px;border:none;cursor:pointer;transition:transform .12s ease,background .18s ease,opacity .18s}
+.rf-btn:active{transform:scale(.96)}
+.rf-btn-ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#cfd4e0}
+.rf-btn-ghost:hover{background:rgba(255,255,255,.1)}
+.rf-btn-green{background:var(--rf-green);color:#04210a}
+.rf-btn-green:hover{background:var(--rf-green-bright)}
+.rf-btn-danger{background:var(--rf-red);color:#2a0000}
+.rf-btn-danger:hover{filter:brightness(1.08)}
+
+/* ── Slide-in panel (right drawer) ──────────────────────── */
+#rf-drawer-scrim{position:fixed;inset:0;z-index:8600;background:rgba(0,0,0,.55);display:none;opacity:0;transition:opacity .25s ease}
+#rf-drawer-scrim.in{opacity:1}
+#rf-drawer{position:fixed;top:0;right:0;height:100%;width:min(440px,94vw);background:#101219;border-left:1px solid rgba(255,255,255,.1);z-index:8650;transform:translateX(100%);transition:transform .32s var(--rf-ease);display:flex;flex-direction:column;box-shadow:var(--rf-shadow)}
+#rf-drawer.in{transform:translateX(0)}
+.rf-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 22px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.rf-drawer-title{font-size:16px;font-weight:800}
+.rf-drawer-x{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#aaa;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:15px;font-family:inherit}
+.rf-drawer-x:hover{color:#fff;background:rgba(255,255,255,.12)}
+.rf-drawer-body{flex:1;overflow-y:auto;padding:22px}
+
+/* ── Count-up & live pulse ──────────────────────────────── */
+.rf-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--rf-green);position:relative}
+.rf-live-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--rf-green);opacity:.6;animation:rf-ping 1.8s var(--rf-ease) infinite}
+@keyframes rf-ping{0%{transform:scale(.7);opacity:.7}70%,100%{transform:scale(2.1);opacity:0}}
+.rf-tick{display:inline-block}
+.rf-flash{animation:rf-flash .9s ease}
+@keyframes rf-flash{0%{color:var(--rf-green-bright)}100%{}}
+
+/* ── Progress ring ──────────────────────────────────────── */
+.rf-ring{transform:rotate(-90deg)}
+.rf-ring circle{fill:none;stroke-linecap:round}
+.rf-ring .rf-ring-bg{stroke:rgba(255,255,255,.08)}
+.rf-ring .rf-ring-fg{stroke:var(--rf-green);transition:stroke-dashoffset .8s var(--rf-ease)}
+
+/* ── Drag-to-reorder ────────────────────────────────────── */
+.rf-drag-item{transition:transform .18s var(--rf-ease),box-shadow .18s,opacity .18s}
+.rf-drag-item.rf-dragging{opacity:.92;box-shadow:var(--rf-shadow);transform:scale(1.02);cursor:grabbing;z-index:10;position:relative}
+.rf-drag-item.rf-drag-over{box-shadow:inset 0 3px 0 -1px var(--rf-green)}
+.rf-drag-handle{cursor:grab;color:#5a627a;font-size:15px;line-height:1;letter-spacing:-2px;user-select:none;touch-action:none}
+.rf-drag-handle:active{cursor:grabbing}
+
+/* ── Leaderboard ────────────────────────────────────────── */
+.rf-board{display:flex;flex-direction:column;gap:8px}
+.rf-board-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 16px;transition:border-color .2s,transform .2s var(--rf-ease)}
+.rf-board-row:hover{border-color:rgba(255,255,255,.16)}
+.rf-board-rank{font-size:14px;font-weight:900;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.05);color:#8890a8}
+.rf-board-row.top1 .rf-board-rank{background:linear-gradient(135deg,#ffd54a,#f9a825);color:#3a2600}
+.rf-board-row.top2 .rf-board-rank{background:linear-gradient(135deg,#e2e8f0,#94a3b8);color:#1e293b}
+.rf-board-row.top3 .rf-board-rank{background:linear-gradient(135deg,#e6a36b,#b87333);color:#2a1500}
+.rf-board-name{font-weight:700;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rf-board-sub{font-size:11px;color:#6b7390}
+.rf-board-metric{text-align:right;flex-shrink:0}
+.rf-board-metric .v{font-size:18px;font-weight:900;color:var(--rf-green);line-height:1}
+.rf-board-metric .l{font-size:9px;color:#5a627a;text-transform:uppercase;letter-spacing:.5px}
+.rf-board-bar{height:4px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:6px}
+.rf-board-bar i{display:block;height:100%;background:linear-gradient(90deg,#2d6b30,var(--rf-green));border-radius:3px;transition:width .8s var(--rf-ease)}
+
+/* ── Conversion funnel ──────────────────────────────────── */
+.rf-funnel{display:flex;flex-direction:column;gap:10px}
+.rf-funnel-row{display:flex;align-items:center;gap:14px}
+.rf-funnel-meta{width:108px;flex-shrink:0;text-align:right}
+.rf-funnel-meta .l{font-size:11.5px;color:#9aa3b6;font-weight:600;line-height:1.2}
+.rf-funnel-meta .p{font-size:10px;color:#5a627a;font-weight:700;margin-top:1px}
+.rf-funnel-track{flex:1;min-width:0;background:rgba(255,255,255,.035);border-radius:11px;overflow:hidden}
+.rf-funnel-bar{height:42px;border-radius:11px;display:flex;align-items:center;padding:0 15px;font-weight:800;font-size:15px;min-width:0;width:0;transition:width .9s var(--rf-ease);white-space:nowrap;overflow:hidden}
+.rf-funnel-bar.s1{background:linear-gradient(90deg,#2d6b30,#4caf50);color:#04210a}
+.rf-funnel-bar.s2{background:linear-gradient(90deg,#b9821a,#ffc107);color:#241600}
+.rf-funnel-bar.s3{background:linear-gradient(90deg,#7a2fb0,#a855f7);color:#fff}
+.rf-conv-chip{font-size:12px;font-weight:800;letter-spacing:.3px;padding:6px 13px;border-radius:100px;background:var(--rf-green-soft);border:1px solid var(--rf-green-line);color:var(--rf-green);white-space:nowrap}
+
+/* ── Skeleton shimmer ───────────────────────────────────── */
+.rf-skel{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 37%,rgba(255,255,255,.04) 63%);background-size:400% 100%;animation:rf-shimmer 1.4s ease infinite;border-radius:8px}
+@keyframes rf-shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+/* ── Reduced motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce){
+  .rf-live-dot::after,.rf-skel{animation:none}
+  *{transition-duration:.01ms !important}
+}
