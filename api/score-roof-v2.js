@@ -10,7 +10,7 @@
 //  Two-pass: Pass 1 locates roof + picks angle; re-zoom that angle; Pass 2 = HOT/PASS.
 //  Decisive HOT/PASS, ignores snow/debris/shadows, returns image_date.
 const https = require('https');
-const VERSION = 'v2.4-aim';
+const VERSION = 'v2.5-washed';
 
 function httpsGet(url, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -164,13 +164,18 @@ module.exports = async function handler(req, res) {
       { type: 'text', text: '[' + zoom.label + ']' },
       { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: zoom.b64 } },
       { type: 'text', text:
-        'You are a roofing sales rep judging ONLY this roof in Raleigh NC.\n' +
-        'Choose ONE:\n' +
-        '- "hot": the roof CLEARLY needs replacement NOW — missing/cracked/curling/lifting shingles; heavy dark streaking (algae); bald spots or granule loss; visible patches or tarps; a sagging or wavy roofline.\n' +
-        '- "pass": everything else — a sound roof, a merely aging-but-okay roof, or one you cannot clearly assess.\n' +
-        'IGNORE WEATHER & LIGHTING: snow, ice, frost, wet leaves, debris, and shadows are NOT roof damage. White/light patches on a dark roof in a snowy scene are almost always snow — do NOT read them as missing shingles, bald spots, or granule loss.\n' +
-        'Be strict: only "hot" when replacement need is clearly visible; when unsure, "pass". You can see shingles but NOT the wood decking beneath — only mention structure if the roofline visibly sags.\n' +
-        'Reply JSON only: {"score":"hot|pass","confidence":"high|medium|low","reasoning":"1-2 sentences citing what you see"}' }
+        'You are an experienced roofing sales rep deciding if this Raleigh NC roof is a VIABLE LEAD — a roof aging enough to be worth knocking. Judge ONLY the roof.\n\n' +
+        'Score "hot" (a lead worth knocking) when you see signs the roof is AGING / nearing end of life. In priority order:\n' +
+        '1. WASHED-OUT / FADED look — the shingles have lost their dark, rich color and look dull, gray, light, sun-bleached. THIS IS THE #1 SIGN of an aging roof.\n' +
+        '2. LOSS OF SHINGLE DEFINITION — you can no longer make out the crisp lines/tabs of individual shingles; the surface looks smooth, flat, or washed uniform. A healthy roof shows clear tab/shingle definition.\n' +
+        '3. COLOR INCONSISTENCY — blotchy/uneven color, whitish or worn edges while the middle differs, two-tone sections (e.g. a partial prior replacement).\n' +
+        '4. Dark streaking TOGETHER WITH a faded/washed look.\n' +
+        '5. Classic damage — missing/cracked/curling/lifting shingles, bald spots/granule loss, patches or tarps, a sagging/wavy roofline.\n' +
+        '6. The roof looks clearly older/duller than neighboring roofs in the image.\n\n' +
+        'Score "pass" when the roof still looks healthy: rich, consistent color and crisp, visible shingle-tab definition. IMPORTANT: light streaking ALONE, with otherwise good consistent color and clear tab definition, is NOT enough — pass it.\n\n' +
+        'IGNORE WEATHER & LIGHTING: snow, ice, frost, wet leaves, debris, and shadows are NOT roof condition. White/light patches in a snowy scene are snow, not wear. If snow covers the roof so you cannot judge color or definition, score "pass" (do not guess).\n' +
+        'You can see the shingle surface but NOT the wood decking beneath — only mention structure if the roofline visibly sags.\n\n' +
+        'Reply JSON only: {"score":"hot|pass","confidence":"high|medium|low","reasoning":"1-2 sentences naming the specific signs you see (washed/faded, lost tab definition, color inconsistency, streaking, or damage)"}' }
     ];
     const parsed = await callClaude(ANTHROPIC_KEY, p2, 220);
     const score = (parsed.score === 'hot') ? 'hot' : 'pass';
