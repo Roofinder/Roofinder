@@ -222,14 +222,12 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
       <div class="nav-badge">ADMIN</div>
       <div class="nav-tabs">
         <button class="nav-tab active" onclick="showPanel('contractors',this)">Owners</button>
-        <button class="nav-tab" onclick="showPanel('pockets',this)">Pockets</button>
         <button class="nav-tab" onclick="showPanel('activity',this)">Activity</button>
       <button class="nav-tab" onclick="showPanel('applications',this)">Leads <span id="app-badge" style="display:none;background:#4caf50;color:#000;font-size:9px;font-weight:900;padding:2px 6px;border-radius:10px;margin-left:4px">0</span></button>
       </div>
     </div>
     <div class="nav-stat-row">
       <div class="ns"><div class="ns-num" id="s-contractors">0</div><div class="ns-lbl">Owners</div></div>
-      <div class="ns"><div class="ns-num" id="s-pockets">0</div><div class="ns-lbl">Pockets Sold</div></div>
       <div class="ns"><div class="ns-num" id="s-revenue">$0</div><div class="ns-lbl">Revenue</div></div>
       <div class="ns"><div class="ns-num" id="s-active">0</div><div class="ns-lbl">Active This Week</div></div>
     </div>
@@ -245,30 +243,10 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
       <div class="table-wrap">
         <table class="data-table">
           <thead><tr>
-            <th>Name</th><th>Zip</th><th>Pocket</th><th>Phone</th><th>Payment</th><th>Status</th><th>Purchased</th><th>Portal</th><th>Zone</th><th></th>
+            <th>Name</th><th>Zip</th><th>Phone</th><th>Payment</th><th>Status</th><th>Purchased</th><th>Portal</th><th>Zone</th><th></th>
           </tr></thead>
           <tbody id="contractors-tbody">
-            <tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No owners yet.</div></div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- POCKETS PANEL -->
-    <div class="panel" id="panel-pockets">
-      <div class="sec-head">
-        <div><div class="sec-title">Sold Pockets</div><div class="sec-sub">Pockets assigned to contractors</div></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a href="https://roofinder.online/builder.html" target="_blank" class="btn-primary">Zone Builder ↗</a>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr>
-            <th>Pocket</th><th>Contractor</th><th>Leads</th><th>Progress</th><th>Knocked</th><th>Interested</th><th>Date Sold</th><th>Portal</th>
-          </tr></thead>
-          <tbody id="pockets-tbody">
-            <tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">No sold pockets yet.</div></div></td></tr>
+            <tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">No owners yet.</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -277,7 +255,7 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
     <!-- ACTIVITY PANEL -->
     <div class="panel" id="panel-activity">
       <div class="sec-head">
-        <div><div class="sec-title">Live Activity</div><div class="sec-sub">Real-time contractor progress across all pockets</div></div>
+        <div><div class="sec-title">Live Activity</div><div class="sec-sub">Real-time contractor progress across all zones</div></div>
         <span style="font-size:11px;font-weight:700;color:#4caf50;display:inline-flex;align-items:center;gap:7px"><span class="rf-live-dot"></span>LIVE</span>
       </div>
       <div class="activity-grid" id="activity-grid">
@@ -414,10 +392,7 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
       <div class="form-row"><label class="form-label">Phone</label><input class="form-input" id="f-phone" placeholder="(919) 555-0100"/></div>
       <div class="form-row"><label class="form-label">Email</label><input class="form-input" id="f-email" placeholder="john@smithroofing.com"/></div>
     </div>
-    <div class="form-row-2">
-      <div class="form-row"><label class="form-label">Pocket Purchased</label><input class="form-input" id="f-pocket" placeholder="Raleigh Pocket 3"/></div>
-      <div class="form-row"><label class="form-label">Portal URL (slug)</label><input class="form-input" id="f-portal" placeholder="raleigh-pocket-3"/></div>
-    </div>
+    <div class="form-row"><label class="form-label">Portal URL (slug)</label><input class="form-input" id="f-portal" placeholder="e.g. triangle-roofing-27601"/></div>
     <div class="form-row-2">
       <div class="form-row"><label class="form-label">Amount Paid</label><input class="form-input" id="f-amount" placeholder="999"/></div>
       <div class="form-row"><label class="form-label">Payment Status</label>
@@ -648,7 +623,6 @@ function initDashboard() {
       contractors.push(Object.assign({ id: doc.id }, doc.data()));
     });
     renderContractors();
-    renderPockets();
     updateStats();
   });
 
@@ -691,10 +665,8 @@ function updateStats() {
     .reduce(function(sum, c){ return sum + (parseInt(c.amount) || 0); }, 0);
   if (window.RF) {
     RF.countUp(document.getElementById('s-contractors'), total);
-    RF.countUp(document.getElementById('s-pockets'), sold);
   } else {
     document.getElementById('s-contractors').textContent = total;
-    document.getElementById('s-pockets').textContent = sold;
   }
   document.getElementById('s-revenue').textContent = '$' + (rev >= 1000 ? (rev/1000).toFixed(1) + 'K' : rev);
 }
@@ -722,7 +694,6 @@ function renderContractors() {
     return '<tr>'
       + '<td><div class="cell-name">' + (c.fname||'') + ' ' + (c.lname||'') + '</div><div class="cell-sub">' + (c.company||'') + '</div></td>'
       + '<td><span style="font-size:12px;font-weight:700;color:#e0e4f0">' + (zip||'—') + '</span></td>'
-      + '<td><span class="cell-green">' + (c.pocket||'—') + '</span></td>'
       + '<td>' + (c.phone||'—') + '</td>'
       + '<td>' + payBadge + (c.amount ? ' <span class="cell-dim">$' + parseInt(c.amount).toLocaleString() + '</span>' : '') + '</td>'
       + '<td><span class="badge badge-active">ACTIVE</span></td>'
@@ -734,61 +705,6 @@ function renderContractors() {
   }).join('');
 }
 
-function renderPockets() {
-  var tbody = document.getElementById('pockets-tbody');
-  var sold = contractors.filter(function(c){ return c.pocket; });
-  if (!sold.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-icon">📦</div><div class="empty-state-text">No sold pockets yet.</div></div></td></tr>';
-    return;
-  }
-  tbody.innerHTML = sold.map(function(c) {
-    var date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric'}) : '—';
-    var portalSlug = c.portal || '';
-    var portalBtn = portalSlug
-      ? '<a class="portal-link" href="https://roofinder.online/builder.html" target="_blank">Zone Builder ↗</a>'
-      : '—';
-    return '<tr>'
-      + '<td><div class="cell-name">' + (c.pocket||'—') + '</div></td>'
-      + '<td>' + (c.fname||'') + ' ' + (c.lname||'') + '<div class="cell-sub">' + (c.company||'') + '</div></td>'
-      + '<td class="cell-dim" id="leads-' + c.id + '">—</td>'
-      + '<td><div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-' + c.id + '" style="width:0%"></div></div></td>'
-      + '<td class="cell-green" id="knocked-' + c.id + '">—</td>'
-      + '<td class="cell-orange" id="interested-' + c.id + '">—</td>'
-      + '<td class="cell-dim">' + date + '</td>'
-      + '<td>' + portalBtn + '</td>'
-      + '</tr>';
-  }).join('');
-  sold.forEach(function(c) {
-    if (c.portal) loadPocketProgress(c);
-  });
-}
-
-function loadPocketProgress(c) {
-  var docId = c.portal;
-  db.collection('pockets').doc(docId).onSnapshot(function(doc) {
-    if (!doc.exists) return;
-    var d = doc.data();
-    var statuses = d.statuses || {};
-    var deleted = d.deleted || {};
-    var hidden = d.hidden || {};
-    var total = 0, knocked = 0, interested = 0;
-    Object.keys(statuses).forEach(function(k) {
-      if (deleted[k]) return;
-      total++;
-      if (statuses[k] === 'knocked' || statuses[k] === 'closed') knocked++;
-      if (statuses[k] === 'interested') interested++;
-    });
-    var leadsEl = document.getElementById('leads-' + c.id);
-    var progEl = document.getElementById('prog-' + c.id);
-    var knockEl = document.getElementById('knocked-' + c.id);
-    var intEl = document.getElementById('interested-' + c.id);
-    if (leadsEl) leadsEl.textContent = Object.keys(statuses).filter(function(k){ return !deleted[k]; }).length || '—';
-    if (progEl) progEl.style.width = (knocked > 0 ? Math.min(100, Math.round(knocked/78*100)) : 0) + '%';
-    if (knockEl) knockEl.textContent = knocked || '0';
-    if (intEl) intEl.textContent = interested || '0';
-    document.getElementById('s-active').textContent = knocked;
-  });
-}
 
 function loadActivity() {
   var grid = document.getElementById('activity-grid');
@@ -834,7 +750,7 @@ function loadActivity() {
 function openModal() {
   editingId = null;
   document.getElementById('modal-title').textContent = 'Add Contractor';
-  ['fname','lname','company','phone','email','pocket','portal','amount','notes'].forEach(function(f){ document.getElementById('f-'+f).value=''; });
+  ['fname','lname','company','phone','email','portal','amount','notes'].forEach(function(f){ document.getElementById('f-'+f).value=''; });
   document.getElementById('f-payment').value = 'paid';
   document.getElementById('modal-overlay').classList.add('open');
 }
@@ -847,7 +763,6 @@ function saveContractor() {
     company: document.getElementById('f-company').value.trim(),
     phone: document.getElementById('f-phone').value.trim(),
     email: document.getElementById('f-email').value.trim(),
-    pocket: document.getElementById('f-pocket').value.trim(),
     portal: document.getElementById('f-portal').value.trim(),
     amount: document.getElementById('f-amount').value.trim(),
     payment: document.getElementById('f-payment').value,
