@@ -73,6 +73,28 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
 .zb-field{background:#0d0d0d;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:9px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none}
 .zb-field:focus{border-color:rgba(76,175,80,0.4)}
 .zb-success-code{font-size:28px;font-weight:900;color:#4caf50;letter-spacing:2px;background:#0d1f0d;border:1px solid rgba(76,175,80,0.3);border-radius:10px;padding:16px 24px;text-align:center;margin:16px 0;cursor:pointer}
+
+/* Workflow guide */
+.wf-step{display:flex;align-items:flex-start;gap:14px;padding:10px 0;border-bottom:1px solid rgba(76,175,80,0.08)}
+.wf-step:last-child{border-bottom:none;padding-bottom:0}
+.wf-num{width:26px;height:26px;border-radius:50%;background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.wf-body{flex:1}
+.wf-body b{color:#e0e4f0;font-weight:700}
+.wf-body span{font-size:11px;color:#555;display:block;margin-top:2px;line-height:1.5}
+/* Build progress overlay */
+#zb-build-overlay{position:fixed;inset:0;z-index:9999;background:rgba(10,10,10,0.97);flex-direction:column;align-items:center;justify-content:center;gap:20px;display:none}
+#zb-build-overlay.open{display:flex}
+.zb-build-bar-wrap{width:320px;height:6px;background:rgba(255,255,255,0.06);border-radius:100px;overflow:hidden}
+.zb-build-bar{height:100%;background:#4caf50;border-radius:100px;width:0%;transition:width .5s ease}
+/* Step indicator */
+.zb-si{display:flex;align-items:center;gap:0;margin-bottom:28px}
+.zb-si-step{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:#333}
+.zb-si-step.active{color:#4caf50}
+.zb-si-step.done{color:#2e7b32}
+.zb-si-dot{width:8px;height:8px;border-radius:50%;background:#222;border:1.5px solid #333;flex-shrink:0;transition:all .2s}
+.zb-si-step.active .zb-si-dot{background:#4caf50;border-color:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.6)}
+.zb-si-step.done .zb-si-dot{background:#2e7b32;border-color:#2e7b32}
+.zb-si-line{width:28px;height:1px;background:#1a1a1a;flex-shrink:0;margin:0 2px}
 </style>
 <link rel="stylesheet" href="portal.css"/>
 </head>
@@ -103,6 +125,14 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
   <div id="launch">
     <div class="launch-heading">Start a Zone</div>
     <div class="launch-sub">Pick the owner this zone is for (so it auto-delivers to their dashboard), set a target zip, and we auto-pull qualifying homes — you just screen and send.</div>
+
+    <div style="background:rgba(76,175,80,0.05);border:1px solid rgba(76,175,80,0.15);border-radius:12px;padding:18px 20px;margin-bottom:32px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#4caf50;margin-bottom:14px">How this works — 4 steps</div>
+      <div class="wf-step"><div class="wf-num">1</div><div class="wf-body"><b>Pick the owner</b><span>Select a signed-up contractor from the dropdown. Their exact login code locks in automatically — routes go straight to their dashboard, no copy-pasting codes.</span></div></div>
+      <div class="wf-step"><div class="wf-num">2</div><div class="wf-body"><b>Load homes</b><span>Wake County (275xx / 276xx) auto-fetches. For any other NC county: download a parcel CSV from the county's GIS site and upload it — the builder handles filtering.</span></div></div>
+      <div class="wf-step"><div class="wf-num">3</div><div class="wf-body"><b>Screen addresses</b><span>Flip through each home — keep the good ones, skip the bad. Sort by street so adjacent homes stay together. Progress saves automatically as you go.</span></div></div>
+      <div class="wf-step"><div class="wf-num">4</div><div class="wf-body"><b>Launch → it's live</b><span>Routes are written to the owner's dashboard instantly. Text them their owner code, they log in at roofinder.online/owner.html, assign agents, and start knocking.</span></div></div>
+    </div>
 
     <label class="field-label">Deliver to owner</label>
     <select class="field-input" id="lc-owner" onchange="zbOnOwnerPick()">
@@ -144,6 +174,17 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
         <div id="zb-subtitle" style="font-size:13px;color:#555;margin-top:4px"></div>
       </div>
       <button onclick="closeZoneBuilder()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#aaa;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer">✕ Close</button>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="zb-si" id="zb-step-indicator">
+      <div class="zb-si-step active" id="zb-si-1"><div class="zb-si-dot"></div><span>Load Data</span></div>
+      <div class="zb-si-line"></div>
+      <div class="zb-si-step" id="zb-si-2"><div class="zb-si-dot"></div><span>Screen</span></div>
+      <div class="zb-si-line"></div>
+      <div class="zb-si-step" id="zb-si-3"><div class="zb-si-dot"></div><span>Configure</span></div>
+      <div class="zb-si-line"></div>
+      <div class="zb-si-step" id="zb-si-4"><div class="zb-si-dot"></div><span>Live!</span></div>
     </div>
 
     <!-- STEP 1: Upload or Fetch -->
@@ -299,8 +340,9 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
 
     <!-- STEP 3: Configure + Launch -->
     <div class="zb-step" id="zb-step3">
-      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Step 3 — Configure & Launch</div>
-      <div id="zb-lead-summary" style="font-size:13px;color:#666;margin-bottom:20px"></div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">Step 3 — Review & Launch</div>
+      <div id="zb-lead-summary" style="font-size:13px;color:#666;margin-bottom:12px"></div>
+      <div style="background:rgba(76,175,80,0.05);border:1px solid rgba(76,175,80,0.12);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#888;line-height:1.6"><b style="color:#ccc">These homes become the contractor's door-knock list.</b> They'll be split into route groups (one group per agent per day). Each group appears as a route in the owner's dashboard — their agents pick it up, tap each door, and log results in real time. Review the list below, set your route size, then hit Launch.</div>
       <div style="border:1px solid #1a1a1a;border-radius:10px;overflow:hidden;margin-bottom:24px">
         <table class="zb-table">
           <thead><tr><th>#</th><th>Address</th><th>Owner</th><th>Tier / Age</th><th>Value</th></tr></thead>
@@ -361,6 +403,15 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
       </div>
     </div>
   </div>
+</div>
+
+<!-- Build Progress Overlay -->
+<div id="zb-build-overlay">
+  <div style="font-size:20px;font-weight:900">Roo<span style="color:#4caf50">Finder</span></div>
+  <div style="font-size:24px;font-weight:900;letter-spacing:-.5px;text-align:center">Building your zone…</div>
+  <div class="zb-build-bar-wrap"><div class="zb-build-bar" id="zb-build-bar"></div></div>
+  <div style="font-size:13px;color:#555" id="zb-build-sub">Preparing routes…</div>
+  <div style="font-size:11px;color:#333;margin-top:4px">Writing to the owner's dashboard</div>
 </div>
 
 <!-- Street View Modal -->
@@ -601,6 +652,7 @@ function closeZoneBuilder() {
 function zbShowStep(n) {
   document.querySelectorAll('.zb-step').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById('zb-step' + n).classList.add('active');
+  for(var i=1;i<=4;i++){var el=document.getElementById('zb-si-'+i);if(el)el.className='zb-si-step'+(i<n?' done':i===n?' active':'');}
 }
 
 function zbBack() {
@@ -1071,6 +1123,22 @@ function zbFetchLiveData(){
   });
 }
 
+function zbShowBuildProgress(current, total) {
+  var overlay = document.getElementById('zb-build-overlay');
+  if (!overlay) return;
+  overlay.classList.add('open');
+  var pct = total > 0 ? Math.round((current / total) * 100) : 0;
+  var bar = document.getElementById('zb-build-bar');
+  if (bar) { void bar.offsetWidth; bar.style.width = pct + '%'; }
+  var sub = document.getElementById('zb-build-sub');
+  if (sub) sub.textContent = current === 0 ? 'Preparing ' + total + ' route' + (total===1?'':'s') + '…' : 'Building route ' + current + ' of ' + total + '…';
+}
+
+function zbHideBuildProgress() {
+  var overlay = document.getElementById('zb-build-overlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
 function zbLaunchZone(){
   var ownerCode=document.getElementById('zb-owner-code').value.trim();
   var perRoute=parseInt(document.getElementById('zb-per-route').value)||25;
@@ -1080,29 +1148,36 @@ function zbLaunchZone(){
   errEl.style.display='none'; btn.textContent='Launching…'; btn.disabled=true;
   var chunks=[];
   for(var i=0;i<zbLeads.length;i+=perRoute) chunks.push(zbLeads.slice(i,i+perRoute));
-  var promises=chunks.map(function(leads,i){
-    return db.collection('agentRoutes').add({
-      ownerCode:ownerCode, routeName:zbCompany+' — Route '+(i+1), pocket:ownerCode,
-      targetZip:zbZip, company:zbCompany, leads:leads, status:'active',
+  zbShowBuildProgress(0, chunks.length);
+  var routeIdx=0;
+  function writeNext(){
+    if(routeIdx>=chunks.length){
+      zbHideBuildProgress();
+      zbClearProgress();
+      document.getElementById('zb-success-code').textContent=ownerCode;
+      document.getElementById('zb-s-leads').textContent=zbLeads.length;
+      document.getElementById('zb-s-routes').textContent=chunks.length;
+      document.getElementById('zb-s-zip').textContent=zbZip;
+      var continueBtn=document.getElementById('zb-continue-btn');
+      if(zbMidSession&&zbScreenIdx<zbAllLeads.length){
+        var rem=zbAllLeads.length-zbScreenIdx;
+        continueBtn.textContent='▶ Continue Screening ('+rem+' left)';
+        continueBtn.style.display='inline-block';
+      } else { continueBtn.style.display='none'; }
+      zbShowStep(4); btn.textContent='Launch Zone →'; btn.disabled=false;
+      if(window.RF) RF.toast('Zone launched · '+chunks.length+' route'+(chunks.length===1?'':'s')+' delivered');
+      loadBuiltZones();
+      return;
+    }
+    zbShowBuildProgress(routeIdx+1, chunks.length);
+    db.collection('agentRoutes').add({
+      ownerCode:ownerCode, routeName:zbCompany+' — Route '+(routeIdx+1), pocket:ownerCode,
+      targetZip:zbZip, company:zbCompany, leads:chunks[routeIdx], status:'active',
       statuses:{}, notes:{}, coords:{}, agentName:'', createdAt:new Date().toISOString()
-    });
-  });
-  Promise.all(promises).then(function(){
-    zbClearProgress();
-    document.getElementById('zb-success-code').textContent=ownerCode;
-    document.getElementById('zb-s-leads').textContent=zbLeads.length;
-    document.getElementById('zb-s-routes').textContent=chunks.length;
-    document.getElementById('zb-s-zip').textContent=zbZip;
-    var continueBtn=document.getElementById('zb-continue-btn');
-    if(zbMidSession&&zbScreenIdx<zbAllLeads.length){
-      var rem=zbAllLeads.length-zbScreenIdx;
-      continueBtn.textContent='▶ Continue Screening ('+rem+' left)';
-      continueBtn.style.display='inline-block';
-    } else { continueBtn.style.display='none'; }
-    zbShowStep(4); btn.textContent='Launch Zone →'; btn.disabled=false;
-    if(window.RF) RF.toast('Zone launched · '+chunks.length+' route'+(chunks.length===1?'':'s')+' delivered');
-    loadBuiltZones();
-  }).catch(function(e){errEl.textContent='Error: '+e.message;errEl.style.display='inline';btn.textContent='Launch Zone →';btn.disabled=false;});
+    }).then(function(){ routeIdx++; writeNext(); })
+    .catch(function(e){ zbHideBuildProgress(); errEl.textContent='Error: '+e.message; errEl.style.display='inline'; btn.textContent='Launch Zone →'; btn.disabled=false; });
+  }
+  writeNext();
 }
 
 function zbCopyCode(el){
