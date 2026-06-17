@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Roof Review — RooFinder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:#0d0f17;color:#e8eaf0;font-family:system-ui,-apple-system,sans-serif;overflow:hidden;}
+
+/* ── Auth screen ── */
+#auth{position:fixed;inset:0;background:#0d0f17;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;z-index:100;padding:24px;}
+#auth h1{font-size:22px;font-weight:800;color:#fff;letter-spacing:.5px;}
+#auth p{font-size:14px;color:#6b7280;text-align:center;}
+#auth input{width:100%;max-width:320px;padding:14px 18px;border-radius:12px;border:2px solid #2a2d3a;background:#161824;color:#fff;font-size:16px;text-align:center;letter-spacing:3px;outline:none;}
+#auth input:focus{border-color:#4caf50;}
+#auth button{width:100%;max-width:320px;padding:14px;border-radius:12px;background:#4caf50;color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;}
+#auth-err{color:#e57373;font-size:13px;display:none;}
+
+/* ── Setup screen ── */
+#setup{position:fixed;inset:0;background:#0d0f17;display:none;flex-direction:column;padding:24px;overflow-y:auto;}
+#setup h2{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+#setup .sub{font-size:13px;color:#6b7280;margin-bottom:24px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:600;color:#9ca3af;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.field input,.field select{width:100%;padding:13px 16px;border-radius:10px;border:1.5px solid #2a2d3a;background:#161824;color:#fff;font-size:15px;outline:none;}
+.field input:focus,.field select:focus{border-color:#4caf50;}
+.field select option{background:#161824;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+#load-btn{width:100%;padding:16px;border-radius:12px;background:#4caf50;color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;margin-top:8px;}
+#load-btn:disabled{background:#2a4a2a;color:#5a7a5a;}
+#count-preview{font-size:13px;color:#6b7280;text-align:center;margin-top:10px;}
+
+/* ── Loading screen ── */
+#loading{position:fixed;inset:0;background:#0d0f17;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+#loading p{font-size:15px;color:#9ca3af;}
+.spinner{width:36px;height:36px;border:3px solid #2a2d3a;border-top-color:#4caf50;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── Main review ── */
+#app{position:fixed;inset:0;display:none;flex-direction:column;}
+
+/* Progress */
+#prog-bar-bg{height:3px;background:#1a1d27;flex-shrink:0;}
+#prog-bar{height:100%;background:#4caf50;width:0%;transition:width .2s;}
+
+/* Info strip */
+#info{padding:10px 16px 8px;background:#13151f;border-bottom:1px solid #1e2130;flex-shrink:0;}
+#addr{font-size:14px;font-weight:600;color:#fff;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#meta-row{display:flex;align-items:center;gap:10px;margin-top:3px;}
+#age-chip{padding:2px 9px;border-radius:20px;background:#1e3a1e;color:#4caf50;font-size:12px;font-weight:700;}
+#val-chip{font-size:12px;color:#6b7280;}
+#sv-date{font-size:11px;color:#3d4455;margin-left:auto;}
+#prog-txt{font-size:11px;color:#3d4455;margin-left:4px;}
+
+/* Image */
+#img-area{flex:1;position:relative;overflow:hidden;background:#0a0b10;}
+#img-main{width:100%;height:100%;object-fit:cover;display:block;}
+#img-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+#img-loading{color:#4b5563;font-size:14px;}
+#img-nosv{color:#4b5563;font-size:13px;text-align:center;line-height:1.6;}
+#view-toggle{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.6);color:#9ca3af;border:1px solid #374151;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;}
+#hot-streak{position:absolute;top:10px;left:10px;background:rgba(76,175,80,.15);border:1px solid #4caf50;color:#4caf50;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;display:none;}
+
+/* Action buttons */
+#actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;flex-shrink:0;}
+.act-btn{padding:16px 8px;border:none;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:.5px;transition:filter .1s;-webkit-user-select:none;user-select:none;}
+.act-btn:active{filter:brightness(1.3);}
+.act-btn .ico{font-size:20px;line-height:1;}
+#btn-hot {background:#1a3d1b;color:#4caf50;}
+#btn-pass{background:#131826;color:#5b8cf5;}
+#btn-skip{background:#1e1415;color:#9ca3af;}
+
+/* Bottom nav */
+#bottom-nav{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#0d0f17;border-top:1px solid #1e2130;flex-shrink:0;}
+#back-btn{padding:8px 16px;border-radius:8px;background:#1a1d27;color:#6b7280;border:1px solid #2a2d3a;font-size:13px;font-weight:600;cursor:pointer;}
+#hot-total{font-size:13px;font-weight:700;color:#4caf50;}
+#export-btn{padding:8px 16px;border-radius:8px;background:#1e3a1e;color:#4caf50;border:1px solid #4caf50;font-size:13px;font-weight:600;cursor:pointer;display:none;}
+
+/* Sort bar */
+#sort-bar{display:flex;gap:8px;padding:8px 16px;background:#13151f;border-bottom:1px solid #1e2130;overflow-x:auto;flex-shrink:0;}
+#sort-bar::-webkit-scrollbar{display:none;}
+.sort-chip{padding:5px 13px;border-radius:20px;border:1.5px solid #2a2d3a;background:transparent;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.sort-chip.active{border-color:#4caf50;color:#4caf50;background:#1a3d1b;}
+
+/* Done screen */
+#done{position:fixed;inset:0;background:#0d0f17;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:32px;}
+#done h2{font-size:24px;font-weight:800;color:#fff;}
+#done p{font-size:14px;color:#6b7280;text-align:center;line-height:1.7;}
+#done-export{padding:16px 32px;border-radius:12px;background:#4caf50;color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;}
+#done-restart{padding:12px 24px;border-radius:12px;background:#1a1d27;color:#9ca3af;font-size:14px;font-weight:600;border:1px solid #2a2d3a;cursor:pointer;}
+
+/* Flash */
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .12s;border:5px solid transparent;z-index:50;}
+#flash.hot {border-color:#4caf50;opacity:1;}
+#flash.pass{border-color:#3d5afe;opacity:1;}
+#flash.skip{border-color:#555;opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- Auth -->
+<div id="auth">
+  <h1>Roof Review</h1>
+  <p>Internal tool — enter your team password</p>
+  <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkAuth()">
+  <button onclick="checkAuth()">Enter</button>
+  <div id="auth-err">Incorrect password</div>
+</div>
+
+<!-- Setup -->
+<div id="setup">
+  <h2>Load Homes</h2>
+  <p class="sub">Sorted oldest first — highest priority leads at the top.</p>
+
+  <div class="field">
+    <label>Zip Code(s)</label>
+    <input type="text" id="f-zip" value="27603" placeholder="27603 or 27603,27604">
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label>Year Built Min</label>
+      <input type="number" id="f-ymin" value="1998">
+    </div>
+    <div class="field">
+      <label>Year Built Max</label>
+      <input type="number" id="f-ymax" value="2008">
+    </div>
+  </div>
+  <div class="row2">
+    <div class="field">
+      <label>Value Min</label>
+      <input type="number" id="f-vmin" value="300000">
+    </div>
+    <div class="field">
+      <label>Value Max</label>
+      <input type="number" id="f-vmax" value="1250000">
+    </div>
+  </div>
+  <div class="field">
+    <label>Max Homes to Load</label>
+    <input type="number" id="f-count" value="2000">
+  </div>
+
+  <button id="load-btn" onclick="loadHomes()">Load Homes</button>
+  <div id="count-preview"></div>
+</div>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p id="loading-msg">Loading homes…</p>
+</div>
+
+<!-- Main app -->
+<div id="app">
+  <div id="prog-bar-bg"><div id="prog-bar"></div></div>
+
+  <div id="sort-bar">
+    <div class="sort-chip active" onclick="sortBy('age-asc')"  id="sort-age-asc">Oldest first</div>
+    <div class="sort-chip"        onclick="sortBy('age-desc')" id="sort-age-desc">Newest first</div>
+    <div class="sort-chip"        onclick="sortBy('value-desc')"id="sort-val-desc">Highest value</div>
+    <div class="sort-chip"        onclick="sortBy('value-asc')" id="sort-val-asc">Lowest value</div>
+    <div class="sort-chip"        onclick="sortBy('unlabeled')" id="sort-unlabeled">Unlabeled only</div>
+  </div>
+
+  <div id="info">
+    <div id="addr">—</div>
+    <div id="meta-row">
+      <div id="age-chip">—</div>
+      <div id="val-chip">—</div>
+      <div id="sv-date"></div>
+      <div id="prog-txt"></div>
+    </div>
+  </div>
+
+  <div id="img-area">
+    <img id="img-main" src="" alt="" style="display:none;">
+    <div id="img-overlay">
+      <div id="img-loading">Loading Street View…</div>
+      <div id="img-nosv" style="display:none;">No Street View available<br><span style="font-size:12px;color:#374151;">Tap Pass or Skip to continue</span></div>
+    </div>
+    <button id="view-toggle" onclick="toggleView()" style="display:none;">ZOOM</button>
+    <div id="hot-streak"></div>
+  </div>
+
+  <div id="actions">
+    <button class="act-btn" id="btn-hot"  ontouchstart="" onclick="doLabel('hot')">
+      <span class="ico">🔥</span>HOT LEAD
+    </button>
+    <button class="act-btn" id="btn-pass" ontouchstart="" onclick="doLabel('pass')">
+      <span class="ico">✓</span>PASS
+    </button>
+    <button class="act-btn" id="btn-skip" ontouchstart="" onclick="doLabel('skip')">
+      <span class="ico">?</span>SKIP
+    </button>
+  </div>
+
+  <div id="bottom-nav">
+    <button id="back-btn" onclick="goBack()">← Back</button>
+    <div id="hot-total">0 HOT</div>
+    <button id="export-btn" onclick="exportCSV()">Export</button>
+  </div>
+</div>
+
+<!-- Done -->
+<div id="done">
+  <h2>All done!</h2>
+  <p id="done-p"></p>
+  <button id="done-export" onclick="exportCSV()">Export HOT Leads CSV</button>
+  <button id="done-restart" onclick="restart()">Review Another Zip</button>
+</div>
+
+<div id="flash"></div>
+
+<script>
+const PASS = 'ROOFTEAM1';
+const PREVIEW_API = '/api/preview-roof';
+const PULL_API    = '/api/pull-addresses';
+const STORE = 'rf_review2';
+
+// ── Auth ──
+function checkAuth() {
+  const v = document.getElementById('pw-input').value.trim().toUpperCase();
+  if (v === PASS) {
+    document.getElementById('auth').style.display = 'none';
+    document.getElementById('setup').style.display = 'flex';
+    sessionStorage.setItem('rf_auth','1');
+  } else {
+    document.getElementById('auth-err').style.display = 'block';
+  }
+}
+if (sessionStorage.getItem('rf_auth') === '1') {
+  document.getElementById('auth').style.display = 'none';
+  document.getElementById('setup').style.display = 'flex';
+}
+
+// ── State ──
+let homes = [];        // [{address, year, value, zip}]
+let sorted = [];       // current sorted view
+let idx = 0;
+let labels = {};       // address → 'hot'|'pass'|'skip'
+let currentPreview = null;
+let showZoom = false;
+let currentSort = 'age-asc';
+let consecutiveHot = 0;
+
+// ── Load homes ──
+async function loadHomes() {
+  const zip   = document.getElementById('f-zip').value.trim() || '27603';
+  const ymin  = document.getElementById('f-ymin').value;
+  const ymax  = document.getElementById('f-ymax').value;
+  const vmin  = document.getElementById('f-vmin').value;
+  const vmax  = document.getElementById('f-vmax').value;
+  const count = document.getElementById('f-count').value;
+
+  show('loading');
+  document.getElementById('loading-msg').textContent = 'Loading homes from county records…';
+
+  try {
+    const url = `${PULL_API}?zip=${encodeURIComponent(zip)}&year_min=${ymin}&year_max=${ymax}&value_min=${vmin}&value_max=${vmax}&count=${count}`;
+    const r = await fetch(url);
+    const data = await r.json();
+
+    if (data.error || !data.homes) throw new Error(data.error || 'No data');
+    homes = data.homes;
+
+    // Restore saved labels
+    const saved = localStorage.getItem(STORE + '_' + zip);
+    labels = saved ? JSON.parse(saved) : {};
+
+    // Start from first unlabeled
+    applySort('age-asc');
+    idx = sorted.findIndex(h => !labels[h.address]);
+    if (idx < 0) idx = 0;
+
+    show('app');
+    updateExportBtn();
+    showHome();
+  } catch (e) {
+    show('setup');
+    alert('Error loading homes: ' + e.message);
+  }
+}
+
+// ── Sort ──
+function applySort(mode) {
+  currentSort = mode;
+  document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('sort-' + mode.replace('-',''))?.classList.add('active');
+
+  let base = [...homes];
+  if (mode === 'age-asc')    base.sort((a,b) => (a.year||9999) - (b.year||9999));
+  if (mode === 'age-desc')   base.sort((a,b) => (b.year||0)    - (a.year||0));
+  if (mode === 'value-desc') base.sort((a,b) => (b.value||0)   - (a.value||0));
+  if (mode === 'value-asc')  base.sort((a,b) => (a.value||9e9) - (b.value||9e9));
+  if (mode === 'unlabeled')  base = base.filter(h => !labels[h.address]);
+  sorted = base;
+}
+
+function sortBy(mode) {
+  applySort(mode);
+  idx = 0;
+  showHome();
+}
+
+// ── Review ──
+function showHome() {
+  if (idx >= sorted.length) { showDone(); return; }
+  const h = sorted[idx];
+
+  document.getElementById('addr').textContent = h.address;
+  const age = h.year ? (2026 - parseInt(h.year)) + ' yr  (' + h.year + ')' : '—';
+  document.getElementById('age-chip').textContent = age;
+  document.getElementById('val-chip').textContent = h.value ? '$' + parseInt(h.value).toLocaleString() : '';
+  document.getElementById('sv-date').textContent = '';
+  document.getElementById('prog-txt').textContent = (idx+1) + ' / ' + sorted.length;
+  document.getElementById('prog-bar').style.width = ((idx / sorted.length) * 100).toFixed(1) + '%';
+
+  // Reset image
+  const img = document.getElementById('img-main');
+  img.style.display = 'none';
+  document.getElementById('img-loading').style.display = 'block';
+  document.getElementById('img-nosv').style.display = 'none';
+  document.getElementById('view-toggle').style.display = 'none';
+  currentPreview = null;
+  showZoom = false;
+
+  // Highlight if already labeled
+  highlightActiveBtn(labels[h.address] || null);
+
+  fetch(PREVIEW_API, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({address: h.address})
+  })
+  .then(r => r.json())
+  .then(data => {
+    currentPreview = data;
+    document.getElementById('img-loading').style.display = 'none';
+    if (!data.ok || (!data.overview_b64 && !data.zoom_b64)) {
+      document.getElementById('img-nosv').style.display = 'block';
+      return;
+    }
+    if (data.image_date) document.getElementById('sv-date').textContent = data.image_date;
+    const src = data.overview_b64 || data.zoom_b64;
+    img.src = 'data:image/jpeg;base64,' + src;
+    img.style.display = 'block';
+    if (data.overview_b64 && data.zoom_b64) {
+      document.getElementById('view-toggle').style.display = 'block';
+      document.getElementById('view-toggle').textContent = 'ZOOM';
+      showZoom = false;
+    }
+  })
+  .catch(() => {
+    document.getElementById('img-loading').style.display = 'none';
+    document.getElementById('img-nosv').style.display = 'block';
+  });
+}
+
+function toggleView() {
+  if (!currentPreview) return;
+  showZoom = !showZoom;
+  const src = showZoom
+    ? (currentPreview.zoom_b64 || currentPreview.overview_b64)
+    : (currentPreview.overview_b64 || currentPreview.zoom_b64);
+  document.getElementById('img-main').src = 'data:image/jpeg;base64,' + src;
+  document.getElementById('view-toggle').textContent = showZoom ? 'WIDE' : 'ZOOM';
+}
+
+function highlightActiveBtn(lbl) {
+  ['hot','pass','skip'].forEach(v => {
+    document.getElementById('btn-'+v).style.opacity = (!lbl || lbl===v) ? '1' : '0.4';
+  });
+}
+
+function doLabel(val) {
+  if (idx >= sorted.length) return;
+  const addr = sorted[idx].address;
+  labels[addr] = val;
+  saveLabels();
+  flashUI(val);
+  highlightActiveBtn(val);
+
+  if (val === 'hot') {
+    consecutiveHot++;
+    if (consecutiveHot >= 3) showStreak();
+  } else { consecutiveHot = 0; hideStreak(); }
+
+  updateHotCount();
+  updateExportBtn();
+  idx++;
+  setTimeout(showHome, 140);
+}
+
+function showStreak() {
+  const el = document.getElementById('hot-streak');
+  el.textContent = consecutiveHot + ' in a row 🔥';
+  el.style.display = 'block';
+}
+function hideStreak() {
+  document.getElementById('hot-streak').style.display = 'none';
+}
+
+function goBack() {
+  if (idx <= 0) return;
+  idx--;
+  const addr = sorted[idx].address;
+  delete labels[addr];
+  saveLabels();
+  updateHotCount();
+  updateExportBtn();
+  consecutiveHot = Math.max(0, consecutiveHot - 1);
+  showHome();
+}
+
+function updateHotCount() {
+  const n = Object.values(labels).filter(v => v === 'hot').length;
+  document.getElementById('hot-total').textContent = n + ' HOT';
+}
+
+function updateExportBtn() {
+  const hasHot = Object.values(labels).some(v => v === 'hot');
+  document.getElementById('export-btn').style.display = hasHot ? 'block' : 'none';
+}
+
+function flashUI(val) {
+  const el = document.getElementById('flash');
+  el.className = val;
+  setTimeout(() => el.className = '', 280);
+}
+
+function saveLabels() {
+  const zip = document.getElementById('f-zip').value.trim() || '27603';
+  localStorage.setItem(STORE + '_' + zip, JSON.stringify(labels));
+}
+
+// ── Done ──
+function showDone() {
+  show('done');
+  const hot  = Object.values(labels).filter(v => v === 'hot').length;
+  const total = Object.keys(labels).length;
+  document.getElementById('done-p').textContent =
+    total + ' homes reviewed — ' + hot + ' HOT leads found.';
+}
+
+// ── Export ──
+function exportCSV() {
+  const rows = ['"Address","Year Built","Assessed Value","Label"'];
+  for (const h of homes) {
+    const lbl = labels[h.address];
+    if (!lbl) continue;
+    rows.push([h.address, h.year, h.value, lbl.toUpperCase()].map(v=>`"${v||''}"`).join(','));
+  }
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'hot_leads_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function restart() {
+  homes = []; sorted = []; idx = 0; labels = {};
+  show('setup');
+}
+
+// ── Keyboard (desktop fallback) ──
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key==='h'||e.key==='H') doLabel('hot');
+  else if (e.key===' ') { e.preventDefault(); doLabel('pass'); }
+  else if (e.key==='s'||e.key==='S') doLabel('skip');
+  else if (e.key==='ArrowLeft') goBack();
+  else if (e.key==='z'||e.key==='Z') toggleView();
+});
+
+// ── Swipe ──
+let tx = 0;
+document.getElementById('img-area').addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, {passive:true});
+document.getElementById('img-area').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) < 60) return;
+  if (dx < 0) doLabel('pass');   // swipe left = pass
+  else        doLabel('hot');    // swipe right = hot
+}, {passive:true});
+
+function show(id) {
+  ['auth','setup','loading','app','done'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = (s===id) ? 'flex' : 'none';
+  });
+}
+</script>
+</body>
+</html>
