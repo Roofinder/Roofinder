@@ -148,10 +148,13 @@ module.exports = async function handler(req, res) {
     content.push({ type: 'text', text:
         'You are an experienced roofing sales rep deciding if this Raleigh NC roof is a VIABLE LEAD — a roof aging enough to be worth knocking. Judge ONLY the main house the camera is centered on; ignore neighboring roofs.\n\n' +
         'STEP 1 — SNOW CHECK (do this first, it OVERRIDES everything below). Look at the roof shingles themselves. If you see white or light patches of SNOW or ICE sitting ON the roof (very common when there is also snow on the ground, bare winter trees, or snow on cars), you CANNOT judge the roof — score "pass" immediately. Snow patches on a dark roof look like faded/washed/bald spots but they are NOT — never call a snow-covered roof aged or hot. (Snow only on the ground/trees while the shingles are clearly snow-free does not block judgment.)\n\n' +
-        'STEP 2 — SOLAR CHECK: if ANY solar panels are visible anywhere on the roof, score "pass" immediately — solar installs require a sound roof and indicate it was recently replaced or inspected. Do not score the shingles.\n\n' +
+        'STEP 2 — SOLAR / METAL CHECK: (a) If ANY solar panels are visible anywhere on the roof, score "pass" immediately. (b) If the roof is METAL (standing seam panels, corrugated metal, or metal tiles — smooth panels with ridges or seams running up the slope, NOT asphalt shingle tabs), score "pass" immediately — metal roofs last 40-50 years and are never shingle-replacement leads.
+
+' +
         'STEP 3 — These leads are sent to contractors, so QUALITY OVER QUANTITY: a weak lead wastes their time. Only flag a roof that CLEARLY shows aging / end of life. If it is borderline, or still has decent consistent color and visible shingle-tab definition, PASS.\n' +
         'Score "hot" (a lead worth sending) ONLY when one or more of these is clearly visible across MUCH of the roof:\n' +
-        '1. WASHED-OUT / FADED — shingles have lost their dark, rich color and look dull, gray, light, sun-bleached. THE #1 SIGN of an aging roof.\n' +
+        '1. WASHED-OUT / FADED — shingles have clearly LOST color depth: streaky, patchy, or bleached sections; visibly inconsistent color across the slope. NOTE: a uniform gray or dark-gray tone is NOT fading — many new architectural shingles are naturally gray. Only flag this if you see actual color loss or bleaching.
+' +
         '2. LOSS OF SHINGLE DEFINITION — you can no longer make out crisp individual shingle tabs/lines; the surface looks smooth, flat, or washed uniform.\n' +
         '3. COLOR INCONSISTENCY — blotchy/uneven color, whitish or worn edges, two-tone sections (e.g. a partial prior replacement).\n' +
         '4. Dark streaking together with a faded/washed look.\n' +
