@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="canonical" href="https://roofinder.online/"/>
 <meta name="google-site-verification" content="nJKujr38KOhyYCNo_7M7fxcOwZAs8rS2Np0hvruh7Ks" />
-<title>RooFinder — We Win When You Win | Roofing Sales Partnership</title>
-<meta name="description" content="Revenue-share roofing partnership. No upfront cost — get an exclusive zone of pre-qualified homeowners, full CRM, routes, and team app. Pay only from deals you close."/>
+<title>RooFinder — Stop Knocking Dead Doors | Pre-Qualified Roofing Leads</title>
+<meta name="description" content="Your crew burns the day knocking homes that don't need a roof. RooFinder gives roofing teams an exclusive zone of pre-qualified, worn-roof homes — the doors worth knocking — plus CRM, routes, and a team app. Start a free trial, no card."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -270,12 +270,13 @@ footer{padding:48px 24px;border-top:1px solid var(--border)}
 /* ── ANIMATIONS ── */
 /* Hero entrance */
 @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
-.hero-eyebrow{animation:fadeUp .55s ease both}
-.hero-headline{animation:fadeUp .65s .08s ease both}
-.hero-sub{animation:fadeUp .65s .18s ease both}
-#zip-search-box{animation:fadeUp .65s .28s ease both}
-.hero-proof{animation:fadeUp .55s .38s ease both}
-.hero-stats{animation:fadeUp .55s .46s ease both}
+.hero-content > *:nth-child(1){animation:fadeUp .5s ease both}
+.hero-headline{animation:fadeUp .65s .1s ease both}
+.hero-sub{animation:fadeUp .65s .2s ease both}
+.hero-content > *:nth-child(4){animation:fadeUp .55s .28s ease both}
+#zip-search-box{animation:fadeUp .65s .34s ease both}
+.hero-proof{animation:fadeUp .55s .44s ease both}
+.hero-stats{animation:fadeUp .55s .52s ease both}
 
 /* Pulsing green dot */
 @keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(76,175,80,.5)}60%{box-shadow:0 0 0 7px rgba(76,175,80,0)}}
@@ -318,8 +319,8 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
 /* CTA form inputs focus ring animation */
 @keyframes border-pulse{0%{box-shadow:0 0 0 0 rgba(76,175,80,.3)}100%{box-shadow:0 0 0 4px rgba(76,175,80,0)}}
 </style>
-<meta property="og:title" content="RooFinder — We Win When You Win"/>
-<meta property="og:description" content="Lock down your zip code. Pre-qualified leads, built-in CRM, daily routes, and a mobile app for your team. Apply to partner with RooFinder."/>
+<meta property="og:title" content="RooFinder — Stop Knocking Dead Doors"/>
+<meta property="og:description" content="Stop sending your crew to homes that will never buy. Get an exclusive zone of pre-qualified, worn-roof homes — plus CRM, routes, and a team app. Start free, no card."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://roofinder.online/"/>
 <meta property="og:image" content="https://roofinder.online/og-image.png"/>
@@ -339,11 +340,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
     "@type": "Country",
     "name": "United States"
   },
-  "offers": {
-    "@type": "Offer",
-    "name": "Exclusive Roofing Canvassing Zone",
-    "description": "Exclusive zip code territory with hundreds of pre-qualified homes, CRM, routes, and team app. Partnership model — no upfront cost."
-  },
+  "description": "Exclusive zone of pre-qualified, worn-roof homes plus CRM, routes, and team app for roofing sales teams. Free trial — no card.",
   "sameAs": []
 }
 </script>
@@ -374,21 +371,21 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
     <div class="nav-links">
       <a href="owner.html" class="nav-link-glow">Contractors Login</a>
       <a href="how-it-works.html" style="background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.3);color:var(--green);padding:5px 12px;border-radius:6px;font-weight:700">Info Sheet</a>
-      <a href="#territory">Partnership</a>
+      <a href="#territory">Free Trial</a>
       <a href="blog/">Blog</a>
       <a href="homeowners.html" class="nav-link-glow">For Homeowners</a>
     </div>
-    <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);color:var(--green);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Get Access →</a>
+    <a href="tel:9194808884" class="nav-cta" style="background:transparent;border:1px solid rgba(76,175,80,0.4);color:var(--green);margin-right:8px">(919) 480-8884</a><a href="#cta" class="nav-cta">Start Free Trial →</a>
     <a href="owner.html" class="nav-mobile-login">Contractors Login</a>
     <button class="nav-mobile-toggle" onclick="toggleMobileNav(this)">☰</button>
   </div>
   <div id="mobile-nav" style="display:none;padding:16px 24px 20px;border-top:1px solid rgba(255,255,255,0.06)">
     <a href="owner.html" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">Contractors Login</a>
     <a href="how-it-works.html" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Info Sheet</a>
-    <a href="#territory" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Partnership</a>
+    <a href="#territory" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Free Trial</a>
     <a href="blog/" style="display:block;padding:10px 0;font-size:13px;font-weight:600;color:#bbb;letter-spacing:.5px" onclick="toggleMobileNav()">Blog</a>
     <a href="homeowners.html" class="nav-link-glow" style="display:block;padding:10px 0;font-size:13px;letter-spacing:.5px" onclick="toggleMobileNav()">For Homeowners</a>
-    <a href="#cta" style="display:block;margin-top:12px;background:var(--green);color:#000;font-size:13px;font-weight:800;padding:12px 20px;border-radius:6px;text-align:center" onclick="toggleMobileNav()">Get Access →</a>
+    <a href="#cta" style="display:block;margin-top:12px;background:var(--green);color:#000;font-size:13px;font-weight:800;padding:12px 20px;border-radius:6px;text-align:center" onclick="toggleMobileNav()">Start Free Trial →</a>
   </div>
 </nav>
 
@@ -397,20 +394,30 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <!-- partnership badge replaced -->
-    <h1 class="hero-headline">We Win When<br><span>You Win.</span></h1>
-    <!-- partnership badge -->
-    <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);border-radius:100px;padding:8px 20px;margin-bottom:20px">
-      <div style="width:7px;height:7px;border-radius:50%;background:#4caf50;box-shadow:0 0 8px rgba(76,175,80,0.8);flex-shrink:0"></div>
-      <span style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#4caf50">Revenue-Share Partnership &mdash; Zero Upfront Cost</span>
+
+    <!-- Trial badge -->
+    <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);border-radius:100px;padding:8px 20px;margin-bottom:32px">
+      <div style="width:7px;height:7px;border-radius:50%;background:#4caf50;box-shadow:0 0 8px rgba(76,175,80,0.8);animation:pulse-ring 2.2s ease infinite;flex-shrink:0"></div>
+      <span style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#4caf50">Free Trial Zone &mdash; No Card, No Risk</span>
     </div>
-    <p class="hero-sub">No monthly fees. No risk. RooFinder builds your exclusive zone of pre-qualified homeowners, gives your team the tools to knock efficiently, and takes a small cut only when you close. If you don't close, we don't get paid.</p>
+
+    <h1 class="hero-headline">Stop Knocking<br><span>Dead Doors.</span></h1>
+
+    <p class="hero-sub">Door-knocking falls apart when half the homes don't need a roof and your crew is scattered across dead streets. RooFinder fixes all three: <strong style="color:#e8e8e8;font-weight:600">better doors</strong> (homes with worn, aging roofs), <strong style="color:#e8e8e8;font-weight:600">one dashboard to run your whole team</strong>, and <strong style="color:#e8e8e8;font-weight:600">smart routes</strong> so your guys knock the right doors fast. Try it free &mdash; no card, no contract.</p>
+
+    <!-- Three value props -->
     <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:40px">
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888"><span style="color:#4caf50;font-weight:700">✓</span> Exclusive territory — yours alone</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888">
+        <span style="color:#4caf50;font-weight:700">✓</span> Better doors — worn, aging roofs
+      </div>
       <div style="width:1px;height:16px;background:rgba(255,255,255,0.1)"></div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888"><span style="color:#4caf50;font-weight:700">✓</span> Pre-qualified roofs, built in 48 hrs</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888">
+        <span style="color:#4caf50;font-weight:700">✓</span> Run your whole team in one place
+      </div>
       <div style="width:1px;height:16px;background:rgba(255,255,255,0.1)"></div>
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888"><span style="color:#4caf50;font-weight:700">✓</span> Pay only from deals you close</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888">
+        <span style="color:#4caf50;font-weight:700">✓</span> Smart routes — knock efficiently
+      </div>
     </div>
 
     <!-- ZIP SEARCH -->
@@ -431,9 +438,9 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
       <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
         <div>
           <div id="zip-city-label" style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.3px"></div>
-          <div style="font-size:11px;color:#666;margin-top:3px">Exclusive zone · pre-qualified homes</div>
+          <div style="font-size:11px;color:#666;margin-top:3px">Your exclusive 3-mile zone · pre-qualified roofs</div>
         </div>
-        <button onclick="claimZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:10px 22px;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;letter-spacing:-.2px">Apply to Partner →</button>
+        <button onclick="claimZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:10px 22px;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;letter-spacing:-.2px">Start Free Trial →</button>
       </div>
     </div>
 
@@ -441,6 +448,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
       <div class="hero-proof-dot"></div>
       One exclusive zone per contractor &mdash; once it's claimed, it's gone
     </div>
+
     <div class="hero-stats">
       <div>
         <div class="hero-stat-num" style="color:var(--green)">$0</div>
@@ -449,7 +457,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
         <div class="hero-stat-num">100s</div>
-        <div class="hero-stat-lbl">Pre-Qualified Homes</div>
+        <div class="hero-stat-lbl">Pre-Qualified Roofs</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
@@ -462,6 +470,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
         <div class="hero-stat-lbl">Partner Per Zone</div>
       </div>
     </div>
+
   </div>
 </section>
 
@@ -475,8 +484,8 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
     <div class="steps-simple reveal-stagger">
       <div class="step-simple">
         <div class="step-simple-num">1</div>
-        <div class="step-simple-title">Claim Your Zone</div>
-        <div class="step-simple-body">Pick your zip, apply to partner, and your exclusive territory is locked. Hundreds of pre-qualified homes built and loaded within 48 hours.</div>
+        <div class="step-simple-title">Start Your Free Trial</div>
+        <div class="step-simple-body">Pick your zip and start free — no card. Your exclusive trial zone of pre-qualified, worn-roof homes is built and loaded within 48 hours.</div>
       </div>
       <div class="step-simple">
         <div class="step-simple-num">2</div>
@@ -504,21 +513,19 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
 <!-- PARTNERSHIP -->
 <section id="territory">
   <div class="section-inner reveal">
-    <div class="section-eyebrow">Partnership</div>
-    <h2 class="section-title">We Win When You Win.</h2>
-    <p class="section-sub">No monthly fees. No upfront costs. RooFinder partners with roofing companies on a simple revenue-share model — you only pay when you close deals.</p>
+    <div class="section-eyebrow">Risk-Free Trial</div>
+    <h2 class="section-title">Try It Free. Pay Only When It Works.</h2>
+    <p class="section-sub">No card. No contract. RooFinder builds you a trial zone of pre-qualified, worn-roof homes and the full system to work them. Run the leads first — keep going only if they put deals on your board.</p>
 
     <div style="margin-top:48px;max-width:700px">
 
       <div class="tier-card" style="border-color:rgba(76,175,80,.3)">
-        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);border-radius:8px;padding:8px 14px;margin-bottom:16px">
-          <span style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#4caf50">Revenue Share Model</span>
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);border-radius:8px;padding:8px 14px;margin-bottom:20px">
+          <span style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#4caf50">Free Trial — No Card</span>
         </div>
-        <div style="display:flex;align-items:baseline;gap:12px">
-          <div style="font-size:28px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:6px">A small percentage of closed deals.</div>
-        <div style="font-size:14px;color:#555;font-weight:500;margin-bottom:6px">No monthly bill. No risk. Pay only from revenue you've already earned.</div>
-        </div>
-        <div class="tier-card-price-sub">Neighborhood zone built within 48 hrs · Terms agreed before launch</div>
+        <div style="font-size:28px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:6px">Start free. Pay only once it's working.</div>
+        <div style="font-size:14px;color:#555;font-weight:500;margin-bottom:6px">No card to start. No contract. Work the leads first — continue only if they convert.</div>
+        <div class="tier-card-price-sub">Trial zone built within 48 hrs · Cancel anytime</div>
         <div class="tier-card-divider"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
           <div>
@@ -540,8 +547,8 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
             </ul>
           </div>
         </div>
-        <div style="margin-top:16px;padding:14px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;font-size:12px;color:#666;line-height:1.7">We're aligned with your success from day one. <span style="color:#4caf50;font-weight:600">If you don't close, we don't get paid.</span> That's the only model that makes sense.</div>
-        <a href="search.html" class="tier-card-cta" style="background:#4caf50;color:#000;margin-top:16px;display:block;text-align:center">Apply to Partner →</a>
+        <div style="margin-top:16px;padding:14px 18px;background:rgba(76,175,80,.04);border:1px solid rgba(76,175,80,.15);border-radius:8px;font-size:13px;color:#888;line-height:1.7">We put the leads in your hands first. <span style="color:#4caf50;font-weight:600">Work them free — if they don't earn their keep, you walk away owing nothing.</span> That's how confident we are in the doors.</div>
+        <a href="#cta" class="tier-card-cta" style="background:#4caf50;color:#000;margin-top:16px;display:block;text-align:center">Start Free Trial →</a>
       </div>
 
     </div>
@@ -553,15 +560,15 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
 <section id="cta" style="border-top:1px solid var(--border);text-align:center;padding:120px 24px;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(76,175,80,0.08) 0%,transparent 70%)">
   <div style="max-width:600px;margin:0 auto">
     <div class="section-eyebrow" style="margin-bottom:20px">Get Started</div>
-    <h2 class="cta-title">Apply to Partner.</h2>
-    <p class="cta-sub" style="margin-bottom:28px">Enter your info below and we'll lock in your territory. Your zone is exclusive — once it's taken, it's gone.</p>
+    <h2 class="cta-title">Start Your Free Trial.</h2>
+    <p class="cta-sub" style="margin-bottom:28px">Tell us where you knock and we'll build your trial zone — pre-qualified, worn-roof homes loaded in 48 hours. No card, no contract. Your zone is exclusive — once it's taken, it's gone.</p>
     <form id="contact-form" onsubmit="submitForm(event)" style="display:flex;flex-direction:column;gap:12px;max-width:440px;margin:0 auto;text-align:left">
       <input type="text" placeholder="Company name" id="f-company" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="tel" placeholder="Your phone number" id="f-phone" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="email" placeholder="Your email address" id="f-email" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
       <input type="text" placeholder="Target zip code" id="f-zip" required style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:14px 18px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='rgba(76,175,80,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.08)'"/>
-      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:15px;font-weight:800;border:none;cursor:pointer;width:100%">Apply to Partner →</button>
-      <p style="font-size:11px;color:#444;text-align:center;margin-top:4px">Revenue-share model · No upfront cost · We'll reach out within 24 hrs</p>
+      <button type="submit" class="btn-primary" style="justify-content:center;padding:16px;font-size:15px;font-weight:800;border:none;cursor:pointer;width:100%">Start Free Trial →</button>
+      <p style="font-size:11px;color:#444;text-align:center;margin-top:4px">Free trial · No card required · We'll reach out within 24 hrs</p>
     </form>
     <div id="form-success" style="display:none;padding:24px;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);border-radius:10px;margin-top:16px;text-align:center">
       <div style="font-size:18px;font-weight:900;color:var(--green);margin-bottom:6px">✓ Application received — we'll be in touch within 24 hours.</div>
@@ -635,19 +642,9 @@ function submitForm(e) {
 }
 
 function redirectToPayment(company, email, zip) {
+  // Free trial — no payment step. Just confirm the application.
   document.getElementById('contact-form').style.display = 'none';
   document.getElementById('form-success').style.display = 'block';
-  if (STRIPE_LINK.indexOf('YOUR_PAYMENT_LINK') !== -1) {
-    // Stripe not configured yet — show success and stay on page
-    document.querySelector('#form-success div:first-child').textContent = '✓ Info saved!';
-    document.querySelector('#form-success div:last-child').textContent = 'We\'ll be in touch within 24 hours to complete your setup.';
-    return;
-  }
-  // Redirect to Stripe after short delay so they see the confirmation
-  setTimeout(function() {
-    var url = STRIPE_LINK + '?prefilled_email=' + encodeURIComponent(email) + '&client_reference_id=' + encodeURIComponent(zip);
-    window.location.href = url;
-  }, 1200);
 }
 
 // ── New application notification ──────────────────────────────────
@@ -736,7 +733,7 @@ function searchTerritory() {
 
       if (_zipCircle) _zipCircle.remove();
       _zipCircle = L.circle([lat, lng], {
-        radius: 2400,
+        radius: 4828,
         color: '#4caf50',
         fillColor: '#4caf50',
         fillOpacity: 0.12,
