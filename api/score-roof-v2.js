@@ -1,4 +1,4 @@
-// score-roof-v2.js — experimental scoring endpoint. Does NOT touch the live
+// score-roof-v2.js (build trigger 2) — experimental scoring endpoint. Does NOT touch live score-roof.js. POST /api/score-roof-v2
 // score-roof.js used by label.html. POST /api/score-roof-v2
 //
 // Changes vs v1:
