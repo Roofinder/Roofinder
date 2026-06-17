@@ -48,7 +48,7 @@ function bearing(lat1, lng1, lat2, lng2) {
 }
 
 function svUrl(key, lat, lng, heading, pitch, fov) {
-  let u = 'https://maps.googleapis.com/maps/api/streetview?size=640x640&location=' + lat + ',' + lng +
+  let u = 'https://maps.googleapis.com/maps/api/streetview?size=400x400&location=' + lat + ',' + lng +
     '&pitch=' + pitch + '&fov=' + fov + '&key=' + key + '&return_error_code=true';
   if (heading != null) u += '&heading=' + heading;   // omit -> Google auto-aims at location
   return u;
@@ -71,7 +71,7 @@ function parseLoose(raw) {
 async function callClaude(key, content, maxTokens) {
   const body = JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: maxTokens, messages: [{ role: 'user', content: content }] });
   const resp = await httpsPost('api.anthropic.com', '/v1/messages', {
-    'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json'
+    'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'prompt-caching-2024-07-31', 'content-type': 'application/json'
   }, body, 7000);
   if (resp.status !== 200) throw new Error('Claude ' + resp.status + ': ' + resp.body.slice(0, 150));
   const cd = JSON.parse(resp.body);
@@ -124,8 +124,7 @@ module.exports = async function handler(req, res) {
     // Step 2: LEAN single-pass — 2 aimed photos of the house (overview + zoomed detail).
     const head = aim;  // numeric bearing toward the house, or null => Google auto-aims at the location
     const shots = (await Promise.all([
-      fetchShot(GMAPS_KEY, lat, lng, head, 15, 78, 'overview'),
-      fetchShot(GMAPS_KEY, lat, lng, head, 15, 55, 'zoom'),
+      fetchShot(GMAPS_KEY, lat, lng, head, 20, 55, 'zoom'),
     ])).filter(Boolean);
     if (!shots.length) {
       return res.status(200).json({ score: 'pass', confidence: 'low', reasoning: 'No Street View imagery for this address.', address, image_date, geo_precision, image_count: 0, roof_visible: false, version: VERSION });
@@ -134,9 +133,11 @@ module.exports = async function handler(req, res) {
     // Single Claude call: few-shot references + the 2 target photos + decisive rubric.
     const content = [];
     content.push({ type: 'text', text: 'First, REFERENCE EXAMPLES that define the standard. Study each labeled roof, then judge the TARGET photos the same way:' });
-    FEWSHOT.forEach(function (ex) {
+    FEWSHOT.forEach(function (ex, idx) {
       content.push({ type: 'text', text: 'Reference [' + ex.label.toUpperCase() + ']: ' + ex.why });
-      content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: ex.b64 } });
+      const imgBlock = { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: ex.b64 } };
+      if (idx === FEWSHOT.length - 1) imgBlock.cache_control = { type: 'ephemeral' };
+      content.push(imgBlock);
     });
     content.push({ type: 'text', text: 'END OF REFERENCES. NOW JUDGE THIS TARGET HOUSE — two photos of the SAME roof (an overview and a zoomed-in view):' });
     shots.forEach(function (img) {
