@@ -756,7 +756,7 @@ function zbProcessParcel() {
     if (colType >= 0) { var tv = (row[colType]||'').toString(); if (tv && NONRES_RE.test(tv) && !RES_RE.test(tv)) return; }
     var age = curYear - year;
     var street = colStreet >= 0 ? (row[colStreet]||'') : addr.replace(/^\d+\s+/,'').replace(/\s+(St|Ave|Rd|Dr|Ln|Blvd|Way|Ct|Pl|Loop|Cir|Ter|Trl|Pkwy|Hwy)\.?$/i,'').trim();
-    zbLeads.push({ addr:addr, owner:owner, tier: age<=22?'PRIME':age<=25?'HOT':'WARM', age:age, val: val?'$'+Math.round(val/1000)+'k':'', street:street });
+    zbLeads.push({ addr:addr, owner:owner, tier: 'PRIME', age:age, val: val?'$'+Math.round(val/1000)+'k':'', street:street });
   });
   if (!zbLeads.length) { err.textContent = 'No homes matched filters for zip ' + zbZip + '.'; err.style.display = 'inline'; return; }
   var to = {PRIME:0,HOT:1,WARM:2};
@@ -854,7 +854,7 @@ function zbShowScreenCard(idx) {
     return;
   }
   var lead=zbAllLeads[idx];
-  var tc=lead.tier==='PRIME'?'#4caf50':lead.tier==='HOT'?'#ff9800':'#64b5f6';
+  var tc='#4caf50';
   document.getElementById('sc-tier-badge').innerHTML='<span style="color:'+tc+'">'+lead.tier+'</span> &nbsp;·&nbsp; '+lead.age+' yr roof';
   document.getElementById('sc-addr').textContent=lead.addr;
   document.getElementById('sc-owner').textContent=lead.owner||'—';
@@ -1021,7 +1021,7 @@ function zbRenderListView(){
 function zbMakeListRow(item){var row=document.createElement('div');row.id='sc-row-'+item.idx;row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;margin-bottom:3px;background:#080808;border:1px solid #111';row.innerHTML=zbListRowHTML(item.lead,item.idx);return row;}
 function zbListRowHTML(lead,idx){
   var st=zbStatus[idx]||'pending';
-  var tc=lead.tier==='PRIME'?'#4caf50':lead.tier==='HOT'?'#ff9800':'#64b5f6';
+  var tc='#4caf50';
   var kStyle=st==='kept'?'background:#4caf50;border:1px solid #4caf50;color:#000':'background:#111;border:1px solid #222;color:#555';
   var xStyle=st==='skipped'?'background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.3);color:#ff5555':'background:#111;border:1px solid #222;color:#555';
   var opacity=st==='skipped'?'opacity:.4;':'';
@@ -1041,7 +1041,7 @@ function zbSendBatch(){
   var toSend=zbAllLeads.filter(function(_,i){return zbStatus[i]==='kept';}); if(!toSend.length) return;
   zbMidSession=true; zbLeads=toSend; zbStatus=zbStatus.map(function(s){return s==='kept'?'sent':s;}); zbUpdateStats();
   var tbody=document.getElementById('zb-preview-body'); tbody.innerHTML='';
-  zbLeads.slice(0,30).forEach(function(lead,i){var tc=lead.tier==='PRIME'?'#4caf50':lead.tier==='HOT'?'#ff9800':'#64b5f6';var tr=document.createElement('tr');tr.innerHTML='<td style="color:#555">'+(i+1)+'</td><td style="font-weight:600">'+lead.addr+'</td><td style="color:#888">'+(lead.owner||'—')+'</td><td style="color:'+tc+';font-weight:700;font-size:11px">'+lead.tier+' '+lead.age+'yr</td><td style="color:#888">'+(lead.val||'—')+'</td>';tbody.appendChild(tr);});
+  zbLeads.slice(0,30).forEach(function(lead,i){var tc='#4caf50';var tr=document.createElement('tr');tr.innerHTML='<td style="color:#555">'+(i+1)+'</td><td style="font-weight:600">'+lead.addr+'</td><td style="color:#888">'+(lead.owner||'—')+'</td><td style="color:'+tc+';font-weight:700;font-size:11px">'+lead.tier+' '+lead.age+'yr</td><td style="color:#888">'+(lead.val||'—')+'</td>';tbody.appendChild(tr);});
   if(zbLeads.length>30){var tr=document.createElement('tr');tr.innerHTML='<td colspan="5" style="color:#444;text-align:center;font-size:12px">… and '+(zbLeads.length-30)+' more</td>';tbody.appendChild(tr);}
   var remaining=zbStatus.filter(function(s){return s==='pending';}).length;
   document.getElementById('zb-lead-summary').textContent=zbLeads.length+' approved leads · '+remaining+' addresses still unscreened';
@@ -1059,7 +1059,7 @@ function zbFinishScreening(){
   zbLeads=zbAllLeads.filter(function(_,i){return zbStatus[i]==='kept';});
   if(!zbLeads.length) zbLeads=zbAllLeads.filter(function(_,i){return zbStatus[i]!=='skipped'&&zbStatus[i]!=='sent';});
   var tbody=document.getElementById('zb-preview-body'); tbody.innerHTML='';
-  zbLeads.slice(0,30).forEach(function(lead,i){var tc=lead.tier==='PRIME'?'#4caf50':lead.tier==='HOT'?'#ff9800':'#64b5f6';var tr=document.createElement('tr');tr.innerHTML='<td style="color:#555">'+(i+1)+'</td><td style="font-weight:600">'+lead.addr+'</td><td style="color:#888">'+(lead.owner||'—')+'</td><td style="color:'+tc+';font-weight:700;font-size:11px">'+lead.tier+' '+lead.age+'yr</td><td style="color:#888">'+(lead.val||'—')+'</td>';tbody.appendChild(tr);});
+  zbLeads.slice(0,30).forEach(function(lead,i){var tc='#4caf50';var tr=document.createElement('tr');tr.innerHTML='<td style="color:#555">'+(i+1)+'</td><td style="font-weight:600">'+lead.addr+'</td><td style="color:#888">'+(lead.owner||'—')+'</td><td style="color:'+tc+';font-weight:700;font-size:11px">'+lead.tier+' '+lead.age+'yr</td><td style="color:#888">'+(lead.val||'—')+'</td>';tbody.appendChild(tr);});
   if(zbLeads.length>30){var tr=document.createElement('tr');tr.innerHTML='<td colspan="5" style="color:#444;text-align:center;font-size:12px">… and '+(zbLeads.length-30)+' more</td>';tbody.appendChild(tr);}
   document.getElementById('zb-lead-summary').textContent=zbLeads.length+' leads ready to route';
   zbUpdateRouteCount(); document.getElementById('zb-per-route').oninput=zbUpdateRouteCount; zbShowStep(3);
@@ -1108,7 +1108,7 @@ function zbFetchLiveData(){
     features.forEach(function(f){
       var a=f.attributes; var addr=(a[c.addrField]||'').trim(); var year=a[c.yearField];
       if(!addr||!year) return;
-      var val=a[c.valField]; var age=curYear-year; var tier=age<=22?'PRIME':age<=25?'HOT':'WARM';
+      var val=a[c.valField]; var age=curYear-year; var tier='PRIME';
       zbLeads.push({addr:addr,owner:(a[c.ownerField]||'').trim(),tier:tier,age:age,val:val?'$'+Math.round(val/1000)+'k':'',street:(a[c.streetField]||'').trim()||addr.replace(/^\d+\s+/,'').trim(),zip:(a[c.zipField]||zbZip)});
     });
     var to={PRIME:0,HOT:1,WARM:2};
