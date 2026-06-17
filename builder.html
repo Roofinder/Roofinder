@@ -6,9 +6,31 @@
 <title>RooFinder Zone Builder</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="portal-ui.js" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+
+/* Built Zones home */
+.bz-section{max-width:760px;margin:34px auto 0;padding:0 24px}
+.bz-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px}
+.bz-head-title{font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#888}
+.bz-list{display:flex;flex-direction:column;gap:10px}
+.bz-card{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:16px;transition:border-color .2s,transform .15s}
+.bz-card:hover{border-color:rgba(76,175,80,0.4);transform:translateY(-1px)}
+.bz-card-main{flex:1;min-width:0}
+.bz-card-name{font-size:15px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bz-card-meta{font-size:12px;color:#666;margin-top:3px}
+.bz-card-stats{display:flex;gap:18px;flex-shrink:0}
+.bz-stat{text-align:center}
+.bz-stat-n{font-size:18px;font-weight:900;color:#4caf50;line-height:1}
+.bz-stat-l{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.bz-card-actions{display:flex;gap:8px;flex-shrink:0}
+.bz-btn{background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:700;padding:7px 13px;border-radius:7px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.bz-btn:hover{background:rgba(76,175,80,0.2)}
+.bz-btn.ghost{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.12);color:#aaa}
+.bz-btn.ghost:hover{color:#fff;border-color:rgba(255,255,255,0.25)}
+.bz-empty{text-align:center;padding:30px 24px;color:#555;font-size:13px;background:rgba(255,255,255,0.015);border:1px dashed rgba(255,255,255,0.1);border-radius:12px}
 
 /* LOGIN */
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(76,175,80,0.1) 0%,transparent 60%),#0a0a0a}
@@ -52,6 +74,7 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
 .zb-field:focus{border-color:rgba(76,175,80,0.4)}
 .zb-success-code{font-size:28px;font-weight:900;color:#4caf50;letter-spacing:2px;background:#0d1f0d;border:1px solid rgba(76,175,80,0.3);border-radius:10px;padding:16px 24px;text-align:center;margin:16px 0;cursor:pointer}
 </style>
+<link rel="stylesheet" href="portal.css"/>
 </head>
 <body>
 
@@ -79,9 +102,9 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
   <!-- Launch screen -->
   <div id="launch">
     <div class="launch-heading">Start a Zone</div>
-    <div class="launch-sub">Enter the company info below to open the zone builder.</div>
+    <div class="launch-sub">Enter a roofing company and a target zip. We auto-pull qualifying homes — you just screen and send.</div>
 
-    <label class="field-label">Company Name</label>
+    <label class="field-label">Roofing Company</label>
     <input type="text" class="field-input" id="lc-company" placeholder="e.g. Triangle Roofing" onkeydown="if(event.key==='Enter')document.getElementById('lc-zip').focus()"/>
 
     <label class="field-label">Target Zip Code</label>
@@ -89,6 +112,17 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
 
     <button class="launch-btn" onclick="launchBuilder()">Open Zone Builder →</button>
     <div class="launch-err" id="lc-err"></div>
+  </div>
+
+  <!-- Built Zones home -->
+  <div class="bz-section" id="bz-section">
+    <div class="bz-head">
+      <div class="bz-head-title">Zones You've Built</div>
+      <span style="font-size:11px;color:#555" id="bz-count"></span>
+    </div>
+    <div class="bz-list" id="bz-list">
+      <div class="bz-empty">Loading your zones…</div>
+    </div>
   </div>
 
 </div>
@@ -354,9 +388,123 @@ function tryLogin() {
   if (v === TEAM_PW) {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
+    loadBuiltZones();
+    maybeAutoLaunch();
   } else {
     document.getElementById('login-err').style.display = 'block';
   }
+}
+
+// URL handoff from admin: builder.html?company=X&zip=Y opens that zone directly.
+var pendingZone = (function(){
+  var p = new URLSearchParams(location.search);
+  var company = (p.get('company')||'').trim();
+  var zip = (p.get('zip')||'').replace(/\D/g,'').slice(0,5);
+  return (company || zip) ? { company:company, zip:zip } : null;
+})();
+function maybeAutoLaunch(){
+  if(!pendingZone) return;
+  if(pendingZone.company) document.getElementById('lc-company').value = pendingZone.company;
+  if(pendingZone.zip)     document.getElementById('lc-zip').value = pendingZone.zip;
+  var z = pendingZone; pendingZone = null;
+  if(z.company && /^\d{5}$/.test(z.zip)) buildZone(null, z.company, z.zip);
+}
+
+// ── Built Zones overview (groups delivered routes by owner code) ──────────────
+var bzZones = [];
+function loadBuiltZones() {
+  var list = document.getElementById('bz-list');
+  db.collection('agentRoutes').get().then(function(snap) {
+    var byCode = {};
+    snap.forEach(function(doc) {
+      var r = doc.data();
+      var code = r.ownerCode || r.pocket || 'unassigned';
+      if (!byCode[code]) byCode[code] = { code:code, company:'', zip:'', leads:0, routes:0, knocked:0, interested:0, appt:0, created:0, active:false };
+      var z = byCode[code];
+      z.company = z.company || r.company || '';
+      z.zip = z.zip || r.targetZip || '';
+      z.leads += (r.leads || []).length;
+      z.routes += 1;
+      if (r.status !== 'archived') z.active = true;
+      var st = r.statuses || {};
+      Object.values(st).forEach(function(s){
+        if (s !== 'pending') z.knocked++;
+        if (s === 'interested') z.interested++;
+        if (s === 'appointment') z.appt++;
+      });
+      var ts = typeof r.createdAt === 'string' ? Date.parse(r.createdAt) : (r.createdAt || 0);
+      if (ts > z.created) z.created = ts;
+    });
+    bzZones = Object.keys(byCode).map(function(k){ return byCode[k]; })
+      .sort(function(a,b){ return b.created - a.created; });
+    renderBuiltZones();
+  }).catch(function(e) {
+    list.innerHTML = '<div class="bz-empty">Could not load your zones: ' + e.message + '</div>';
+  });
+}
+
+function renderBuiltZones() {
+  var list = document.getElementById('bz-list');
+  var countEl = document.getElementById('bz-count');
+  if (!bzZones.length) {
+    list.innerHTML = '<div class="bz-empty">No zones built yet. Start one above — it becomes a roofing company\'s door-knock list.</div>';
+    countEl.textContent = '';
+    return;
+  }
+  countEl.textContent = bzZones.length + (bzZones.length === 1 ? ' zone' : ' zones');
+  list.innerHTML = bzZones.map(function(z) {
+    var name = z.company || z.code;
+    var date = z.created ? new Date(z.created).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var statusChip = z.active
+      ? '<span style="font-size:10px;font-weight:700;color:#4caf50;background:rgba(76,175,80,0.12);border:1px solid rgba(76,175,80,0.25);padding:2px 8px;border-radius:100px">● Live</span>'
+      : '<span style="font-size:10px;font-weight:700;color:#666;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:100px">Archived</span>';
+    return '<div class="bz-card">'
+      + '<div class="bz-card-main">'
+        + '<div class="bz-card-name">' + name + ' &nbsp;' + statusChip + '</div>'
+        + '<div class="bz-card-meta">Zip ' + (z.zip || '—') + ' · code <span style="font-family:monospace;color:#888">' + z.code + '</span>' + (date ? ' · ' + date : '') + '</div>'
+      + '</div>'
+      + '<div class="bz-card-stats">'
+        + '<div class="bz-stat"><div class="bz-stat-n">' + z.leads + '</div><div class="bz-stat-l">Homes</div></div>'
+        + '<div class="bz-stat"><div class="bz-stat-n">' + z.routes + '</div><div class="bz-stat-l">Routes</div></div>'
+        + '<div class="bz-stat"><div class="bz-stat-n">' + z.knocked + '</div><div class="bz-stat-l">Knocked</div></div>'
+      + '</div>'
+      + '<div class="bz-card-actions">'
+        + '<button class="bz-btn" onclick="bzDeliver(\'' + z.code + '\')">📋 Delivery Info</button>'
+        + '<button class="bz-btn ghost" onclick="bzReopen(\'' + z.code + '\',\'' + (z.company||'').replace(/'/g,"\\'") + '\',\'' + z.zip + '\')">+ Add Homes</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function bzReopen(code, company, zip) {
+  // Re-open the builder for the same company+zip to screen & deliver more homes.
+  document.getElementById('lc-company').value = company || code;
+  document.getElementById('lc-zip').value = zip || '';
+  if (zip && /^\d{5}$/.test(zip)) { buildZone(null, company || code, zip); }
+  else { document.getElementById('lc-company').scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+
+function bzDeliver(code) {
+  var z = bzZones.filter(function(x){ return x.code === code; })[0];
+  if (!z) return;
+  var loginUrl = 'roofinder.online/owner.html';
+  var msg = 'Your RooFinder zone is ready!\n\n'
+    + 'Zone: ' + (z.zip || code) + ' — ' + z.leads + ' pre-qualified homes across ' + z.routes + ' route' + (z.routes===1?'':'s') + '\n'
+    + 'Owner code: ' + z.code + '\n'
+    + 'Log in at: ' + loginUrl + '\n\n'
+    + 'Sign in, assign your agents, and start knocking. Questions? Text (919) 480-8884.\n\n— Dalton, RooFinder';
+  var html = '<div style="font-size:13px;color:#9aa3b6;line-height:1.6;margin-bottom:16px">This is what goes to the roofing company. They log in at <b style="color:#cfd4e0">' + loginUrl + '</b> with the owner code below and see these homes as routes.</div>'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5a627a;margin-bottom:6px">Owner code</div>'
+    + '<div style="font-size:24px;font-weight:900;letter-spacing:2px;color:#4caf50;font-family:monospace;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px">' + z.code + '</div>'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#5a627a;margin-bottom:6px">Ready-to-send message</div>'
+    + '<div style="font-size:12.5px;color:#bbb;line-height:1.6;white-space:pre-wrap;background:#0d0f17;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:16px">' + msg.replace(/</g,'&lt;') + '</div>'
+    + '<div style="display:flex;gap:10px;flex-wrap:wrap">'
+      + '<button class="rf-btn rf-btn-green" id="bz-copy-msg">📋 Copy message</button>'
+      + '<button class="rf-btn rf-btn-ghost" id="bz-copy-code">Copy code only</button>'
+    + '</div>';
+  RF.drawer({ title: (z.company || code) + ' — Zone ' + (z.zip||''), html: html });
+  document.getElementById('bz-copy-msg').onclick = function(){ navigator.clipboard.writeText(msg).then(function(){ RF.toast('Message copied'); }); };
+  document.getElementById('bz-copy-code').onclick = function(){ navigator.clipboard.writeText(z.code).then(function(){ RF.toast('Code copied'); }); };
 }
 
 // ── Launch builder from form ──
@@ -377,13 +525,16 @@ var zbAppId = '', zbZip = '', zbCompany = '', zbLeads = [];
 var zbRawCSV = '';
 
 function buildZone(id, company, zip) {
-  zbAppId = id; zbZip = zip; zbCompany = company; zbRawCSV = '';
+  zbZip = zip; zbCompany = company; zbRawCSV = '';
   zbMidSession = false; zbTotalSent = 0; zbKeptLeads = []; zbAllLeads = []; zbScreenIdx = 0;
   document.getElementById('zb-title').textContent = company;
   document.getElementById('zb-subtitle').textContent = 'Zip Code: ' + zip;
   document.getElementById('zb-zip-label').textContent = zip;
   var slug = company.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,20);
-  document.getElementById('zb-owner-code').value = slug + '-' + zip;
+  // Stable per company+zip so screening progress always resumes. (Previously the
+  // id was random per launch, which orphaned saved progress every time.)
+  zbAppId = slug + '-' + zip;
+  document.getElementById('zb-owner-code').value = zbAppId;
   document.getElementById('zb-filename').style.display = 'none';
   document.getElementById('zb-parse-err').style.display = 'none';
   document.getElementById('zb-extra-zips').value = zip;
@@ -893,6 +1044,8 @@ function zbLaunchZone(){
       continueBtn.style.display='inline-block';
     } else { continueBtn.style.display='none'; }
     zbShowStep(4); btn.textContent='Launch Zone →'; btn.disabled=false;
+    if(window.RF) RF.toast('Zone launched · '+chunks.length+' route'+(chunks.length===1?'':'s')+' delivered');
+    loadBuiltZones();
   }).catch(function(e){errEl.textContent='Error: '+e.message;errEl.style.display='inline';btn.textContent='Launch Zone →';btn.disabled=false;});
 }
 
