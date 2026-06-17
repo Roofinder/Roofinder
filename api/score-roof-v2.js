@@ -13,6 +13,7 @@
 const https = require('https');
 
 const HEADINGS = { North: 0, SE: 120, SW: 240 };
+const VERSION = 'v2.3-snowfix';
 
 function httpsGet(url, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -156,6 +157,7 @@ module.exports = async function handler(req, res) {
         'Choose ONE:\n' +
         '- "hot": the roof CLEARLY needs replacement NOW — missing/cracked/curling/lifting shingles; heavy dark streaking (algae); bald spots or granule loss; visible patches or tarps; a sagging or wavy roofline.\n' +
         '- "pass": everything else — a sound roof, a merely aging-but-okay roof, or one you cannot clearly assess.\n' +
+        'IGNORE WEATHER & LIGHTING: snow, ice, frost, wet leaves, debris, and shadows are NOT roof damage. White or light patches on a dark roof in a winter/snowy scene are almost always snow — do NOT read them as missing shingles, bald spots, or granule loss. If the scene shows snow on the ground/cars/trees, be especially careful not to mistake snow on the roof for damage.\n' +
         'Be strict: only "hot" when replacement need is clearly visible; when unsure, "pass". You can see shingles but NOT the wood decking beneath — only mention structure if the roofline visibly sags.\n' +
         'Reply JSON only: {"score":"hot|pass","confidence":"high|medium|low","reasoning":"1-2 sentences citing what you see"}' }
     ];
@@ -169,6 +171,7 @@ module.exports = async function handler(req, res) {
       address, lat, lng, image_date,
       best_angle: bestLabel,
       roof_visible: true,
+      version: VERSION,
       image_count: wide.length + 1,
       previews: [
         { label: zoom.label, url: 'data:image/jpeg;base64,' + zoom.b64 },
