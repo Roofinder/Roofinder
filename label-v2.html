@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Roof Labeler v2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0a0a0a; color: #e0e4f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+.top { background: #111; border-bottom: 1px solid #222; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+.top h1 { font-size: 16px; font-weight: 800; }
+.tag { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: #4caf50; border: 1px solid #2a4a2a; border-radius: 99px; padding: 3px 8px; margin-left: 8px; }
+.pw { background: #222; border-radius: 99px; height: 8px; width: 220px; }
+.pf { background: #4caf50; height: 8px; border-radius: 99px; transition: width .3s; }
+.pt { font-size: 12px; color: #666; margin-top: 4px; text-align: right; }
+.main { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+.abox { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.atxt { font-size: 22px; font-weight: 900; color: #fff; line-height: 1.2; }
+.mlink { background: #1a1a1a; border: 1px solid #333; color: #4caf50; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; text-decoration: none; white-space: nowrap; }
+.mf { width: 100%; height: 420px; border: none; border-radius: 12px; margin-bottom: 16px; display: block; background: #111; }
+.empty { background: #111; border: 2px dashed #222; border-radius: 12px; height: 420px; display: flex; align-items: center; justify-content: center; color: #444; font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+.aibox { border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; border: 1px solid #222; background: #0d0d0d; display: none; }
+.aibox.hot  { border-color: rgba(239,68,68,.5);  background: rgba(239,68,68,.06); }
+.aibox.pass { border-color: rgba(59,130,246,.35); background: rgba(59,130,246,.05); }
+.ailbl { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #555; margin-bottom: 8px; }
+.aiv { font-size: 18px; font-weight: 900; margin-bottom: 6px; }
+.air { font-size: 12px; color: #888; line-height: 1.5; }
+.aic { font-size: 10px; font-weight: 700; letter-spacing: 1px; margin-top: 6px; }
+.btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.btn { border: none; border-radius: 10px; font-size: 16px; font-weight: 800; padding: 18px; cursor: pointer; font-family: inherit; transition: opacity .1s, transform .1s; }
+.btn:active { transform: scale(.97); }
+.bhot  { background: rgba(239,68,68,.15); border: 2px solid rgba(239,68,68,.5); color: #ef4444; }
+.bpass { background: rgba(59,130,246,.1);  border: 2px solid rgba(59,130,246,.35); color: #3b82f6; }
+.bskip { background: rgba(255,255,255,.04); border: 2px solid #333; color: #666; }
+.btn.sel { transform: scale(1.02); filter: brightness(1.5); }
+.nsel .btn { opacity: 1; }
+.btns:not(.nsel) .btn:not(.sel) { opacity: .5; }
+textarea { width: 100%; background: #111; border: 1px solid #252525; border-radius: 8px; padding: 10px 12px; color: #ccc; font-size: 13px; font-family: inherit; outline: none; resize: vertical; min-height: 64px; margin-bottom: 12px; }
+textarea::placeholder { color: #444; }
+.nbtn { width: 100%; background: #fff; color: #000; font-size: 20px; font-weight: 900; padding: 22px; border: none; border-radius: 12px; cursor: pointer; font-family: inherit; }
+.nbtn:hover { background: #e0e0e0; }
+.log { margin-top: 28px; }
+.lh { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: #444; margin-bottom: 10px; }
+.lr { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 8px; margin-bottom: 6px; font-size: 12px; }
+.ls { font-weight: 800; min-width: 55px; }
+.la { color: #888; flex: 1; }
+.ebtn { margin-top: 16px; background: #1a1a1a; border: 1px solid #333; color: #aaa; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Roof Labeler <span class="tag">v2 &middot; score-roof-v2</span></h1>
+  <div>
+    <div class="pw"><div class="pf" id="pf" style="width:0%"></div></div>
+    <div class="pt" id="pt">0 / 50 labeled</div>
+  </div>
+</div>
+<div class="main">
+  <div class="abox">
+    <div class="atxt" id="addr">Hit START to begin</div>
+    <a id="mlink" href="#" target="_blank" class="mlink">Street View</a>
+  </div>
+  <div id="mph" class="empty">Hit START below to load the first home</div>
+  <iframe id="mframe" class="mf" style="display:none" src=""></iframe>
+  <div class="aibox" id="aibox">
+    <div class="ailbl">AI ROOF ANALYSIS &mdash; <span id="aic2"></span></div>
+    <div class="aiv" id="aiv">Analyzing...</div>
+    <div class="air" id="air"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px" id="aipv"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <div class="aic" id="aiconf"></div>
+      <div id="aibest" style="font-size:10px;color:#555;font-weight:700"></div>
+    </div>
+  </div>
+  <div class="btns nsel" id="btns">
+    <button class="btn bhot"  onclick="sel('hot')">HOT LEAD<br><span style="font-size:11px;font-weight:500;opacity:.7">Aging / washed roof</span></button>
+    <button class="btn bpass" onclick="sel('pass')">PASS<br><span style="font-size:11px;font-weight:500;opacity:.7">Good roof / not worth it</span></button>
+    <button class="btn bskip" onclick="sel('skip')">SKIP<br><span style="font-size:11px;font-weight:500;opacity:.7">Can't see roof</span></button>
+  </div>
+  <textarea id="notes" placeholder="Optional: what did you see? washed/faded, lost tab definition, streaking, snow, solar..."></textarea>
+  <button class="nbtn" id="mbtn" onclick="mainAction()">START</button>
+  <div class="log" id="logsec" style="display:none">
+    <div class="lh">LABELED SO FAR</div>
+    <div id="logrows"></div>
+    <button class="ebtn" onclick="doExport()">Download CSV</button>
+  </div>
+</div>
+<script>
+var ADDR = [
+  '4305 BEACON CREST WAY, Raleigh, NC 27604',
+  '3308 FOREST MILL CIR, Raleigh, NC 27616',
+  '2629 ASHER VIEW CT, Raleigh, NC 27606',
+  '4900 ALENJA LN, Raleigh, NC 27616',
+  '2704 SNOWY MEADOW CT, Raleigh, NC 27614',
+  '12532 RICHMOND RUN DR, Raleigh, NC 27614',
+  '7753 WINNERS EDGE ST, Raleigh, NC 27617',
+  '6120 EAGLESFIELD DR, Raleigh, NC 27613',
+  '3210 HAYLING DR, Raleigh, NC 27610',
+  '9837 TREYMORE DR, Raleigh, NC 27617',
+  '2509 AUSTRALIA DR, Raleigh, NC 27610',
+  '4210 MASSEY PRESERVE TRL, Raleigh, NC 27616',
+  '7929 MILLTRACE RUN, Raleigh, NC 27615',
+  '5937 BIG NANCE DR, Raleigh, NC 27616',
+  '2320 BRYARTON WOODS DR, Raleigh, NC 27606',
+  '8972 CAMDEN PARK DR, Raleigh, NC 27613',
+  '1711 HAPPINESS HILL LN, Raleigh, NC 27614',
+  '2718 SUMMER STREAM DR, Raleigh, NC 27610',
+  '8408 ASTWELL CT, Raleigh, NC 27615',
+  '2310 SHEPHERD VALLEY ST, Raleigh, NC 27610',
+  '8001 FLANAGAN PL, Raleigh, NC 27612',
+  '8701 NEUSE VILLAGE CT, Raleigh, NC 27616',
+  '5232 PINEHALL WYND, Raleigh, NC 27604',
+  '5117 NEUSE COMMONS LN, Raleigh, NC 27616',
+  '8829 THORNTON TOWN PL, Raleigh, NC 27616',
+  '6301 BELLE CREST DR, Raleigh, NC 27612',
+  '2531 CARRIAGE OAKS DR, Raleigh, NC 27614',
+  '8300 NEUSE HUNTER DR, Raleigh, NC 27616',
+  '3908 CATHEDRAL BELL RD, Raleigh, NC 27614',
+  '7002 RACINE WAY, Raleigh, NC 27615',
+  '12566 HONEYCHURCH ST, Raleigh, NC 27614',
+  '6516 WESTBOROUGH DR, Raleigh, NC 27612',
+  '1929 CRAG BURN LN, Raleigh, NC 27604',
+  '8836 THORNTON GARDEN LN, Raleigh, NC 27616',
+  '2211 SPRINGHILL AVE, Raleigh, NC 27603',
+  '3033 LEWIS FARM RD, Raleigh, NC 27607',
+  '8901 BARLEYMOOR DR, Raleigh, NC 27615',
+  '4508 HOLLIROSE PL, Raleigh, NC 27616',
+  '2345 SPRUCE SHADOWS LN, Raleigh, NC 27614',
+  '7724 SILVER VIEW LN, Raleigh, NC 27613',
+  '7025 RACINE WAY, Raleigh, NC 27615',
+  '1928 BETRY PL, Raleigh, NC 27603',
+  '6022 FOUR TOWNES LN, Raleigh, NC 27616',
+  '9400 CLOVER CREST CT, Raleigh, NC 27617',
+  '4320 WINDLASS CT, Raleigh, NC 27616',
+  '5802 CAMEO GLASS WAY, Raleigh, NC 27612',
+  '5432 ALAFIA CT, Raleigh, NC 27616',
+  '5804 TANGLEWOOD DR, Raleigh, NC 27616',
+  '2511 VILLAGE STONE CT, Raleigh, NC 27614',
+  '3820 CASHEW DR, Raleigh, NC 27616',
+  '1831 ELKPARK DR, Raleigh, NC 27610',
+  '4217 NORMAN RIDGE LN, Raleigh, NC 27613',
+  '8814 WAYNICK DR, Raleigh, NC 27617',
+  '6100 AMBER BLUFFS CRES, Raleigh, NC 27616',
+  '3724 BLUE BLOSSOM DR, Raleigh, NC 27616',
+  '1300 KINSFOLK CIR, Raleigh, NC 27610',
+  '5508 NEUSE WOOD DR, Raleigh, NC 27616',
+  '6736 HAMMERSMITH DR, Raleigh, NC 27613',
+  '3816 HOPPER ST, Raleigh, NC 27616',
+  '1360 ILEAGNES RD, Raleigh, NC 27603'
+];
+
+var idx = 0, started = false, curLabel = null, curAI = null;
+var labels = JSON.parse(localStorage.getItem('rl2_v2') || '[]');   // v2 uses its own store
+var SC = {hot:'#ef4444',pass:'#3b82f6',skip:'#666'};
+var ST = {hot:'HOT LEAD',pass:'PASS',skip:'SKIP'};
+
+function mainAction() {
+  if (!started) {
+    started = true;
+    document.getElementById('mbtn').textContent = 'NEXT HOME';
+    load(0);
+    return;
+  }
+  var score = curLabel || 'skip';
+  labels.push({
+    address: ADDR[idx], score: score,
+    ai_score: curAI ? curAI.score : null,
+    ai_reasoning: curAI ? curAI.reasoning : null,
+    ai_confidence: curAI ? curAI.confidence : null,
+    ai_image_date: curAI ? curAI.image_date : null,
+    ai_agreed: curAI ? (curAI.score === score) : null,
+    notes: document.getElementById('notes').value.trim(),
+    savedAt: new Date().toISOString()
+  });
+  localStorage.setItem('rl2_v2', JSON.stringify(labels));
+  renderLog();
+  idx++;
+  if (idx >= ADDR.length) {
+    document.getElementById('addr').textContent = 'All ' + ADDR.length + ' homes done!';
+    document.getElementById('mframe').style.display = 'none';
+    document.getElementById('mph').style.display = 'flex';
+    document.getElementById('mph').textContent = 'Queue complete — download CSV below';
+    document.getElementById('mbtn').textContent = 'Download CSV';
+    document.getElementById('mbtn').onclick = doExport;
+    document.getElementById('aibox').style.display = 'none';
+    return;
+  }
+  load(idx);
+}
+
+function load(i) {
+  var a = ADDR[i];
+  curLabel = null; curAI = null;
+  document.getElementById('addr').textContent = a;
+  document.getElementById('mlink').href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(a);
+  document.getElementById('notes').value = '';
+  document.getElementById('aibox').style.display = 'none';
+  var bg = document.getElementById('btns');
+  bg.className = 'btns nsel';
+  document.querySelectorAll('.btn').forEach(function(b){b.classList.remove('sel');});
+  document.getElementById('mframe').src = 'https://maps.google.com/maps?q=' + encodeURIComponent(a) + '&output=embed&z=18';
+  document.getElementById('mframe').style.display = 'block';
+  document.getElementById('mph').style.display = 'none';
+  updateProg();
+  scoreAI(a);
+}
+
+function sel(score) {
+  curLabel = score;
+  document.getElementById('btns').className = 'btns';
+  document.querySelectorAll('.btn').forEach(function(b){b.classList.remove('sel');});
+  var m = {hot:0,pass:1,skip:2};
+  document.querySelectorAll('.btn')[m[score]].classList.add('sel');
+}
+
+function scoreAI(addr) {
+  var box = document.getElementById('aibox');
+  box.className = 'aibox';
+  box.style.display = 'block';
+  document.getElementById('aiv').textContent = 'Pulling Street View images...';
+  document.getElementById('aiv').style.color = '#555';
+  document.getElementById('air').textContent = '';
+  document.getElementById('aiconf').textContent = '';
+  document.getElementById('aipv').innerHTML = '';
+  document.getElementById('aic2').textContent = '';
+  document.getElementById('aibest').textContent = '';
+
+  fetch('/api/score-roof-v2', {                                  // v2 endpoint
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({address: addr})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d) {
+    curAI = d;
+    if (d.error) { box.style.display='none'; return; }
+    var score = d.score || 'pass';
+    var color = SC[score] || '#666';
+    box.className = 'aibox ' + score;
+    document.getElementById('aiv').textContent = ST[score] || score.toUpperCase();
+    document.getElementById('aiv').style.color = color;
+    document.getElementById('air').textContent = d.reasoning || '';
+    var meta = (d.image_count||'?') + ' ANGLES';
+    if (d.image_date) meta += ' · 📷 ' + d.image_date;
+    document.getElementById('aic2').textContent = meta;
+    var cf = d.confidence || 'low';
+    var cel = document.getElementById('aiconf');
+    cel.textContent = 'Confidence: ' + cf.toUpperCase();
+    cel.style.color = cf==='high'?'#4caf50':cf==='medium'?'#fb923c':'#555';
+    if (d.best_angle) document.getElementById('aibest').textContent = 'Best: ' + d.best_angle;
+    if (d.previews && d.previews.length) {
+      document.getElementById('aipv').innerHTML = '<div style="font-size:9px;font-weight:800;letter-spacing:1.5px;color:#444;margin-bottom:8px;text-transform:uppercase">What AI Saw</div>' +
+        d.previews.map(function(p) {
+          return '<div style="position:relative;width:100%">' +
+            '<img src="' + p.url + '" style="width:100%;height:200px;object-fit:cover;border-radius:8px;display:block">' +
+            '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:11px;font-weight:800;color:#fff;padding:12px 10px 8px;border-radius:0 0 8px 8px;letter-spacing:.5px">' + p.label + '</div>' +
+            '</div>';
+        }).join('');
+    }
+  })
+  .catch(function(e){ box.style.display='none'; });
+}
+
+function updateProg() {
+  var d = labels.length, t = ADDR.length;
+  document.getElementById('pf').style.width = Math.round(d/t*100)+'%';
+  document.getElementById('pt').textContent = d + ' / ' + t + ' labeled';
+}
+
+function renderLog() {
+  if (!labels.length) return;
+  document.getElementById('logsec').style.display = 'block';
+  document.getElementById('logrows').innerHTML = labels.slice().reverse().map(function(l) {
+    var c = SC[l.score]||'#666';
+    var ai = l.ai_agreed===true?' <span style="color:#4caf50;font-size:9px">AI agreed</span>':
+             l.ai_agreed===false?' <span style="color:#ef4444;font-size:9px">AI: '+(l.ai_score||'?')+'</span>':'';
+    return '<div class="lr"><span class="ls" style="color:'+c+'">'+l.score.toUpperCase()+'</span>' +
+      '<span class="la">'+l.address+ai+'</span>' +
+      (l.notes?'<span style="color:#555;font-size:11px">'+l.notes+'</span>':'')+
+      '</div>';
+  }).join('');
+  updateProg();
+}
+
+function doExport() {
+  if (!labels.length) { alert('No labels yet.'); return; }
+  var rows = [['Address','Your Score','AI Score','AI Confidence','AI Agreed','AI Reasoning','Image Date','Notes','Saved At']];
+  labels.forEach(function(l){
+    rows.push([l.address,l.score,l.ai_score||'',l.ai_confidence||'',l.ai_agreed===null?'':(l.ai_agreed?'YES':'NO'),l.ai_reasoning||'',l.ai_image_date||'',l.notes||'',l.savedAt]);
+  });
+  var csv = rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'roof-labels-v2-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+if (labels.length) renderLog();
+</script>
+</body>
+</html>
