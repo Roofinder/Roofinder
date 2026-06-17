@@ -11,6 +11,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="portal-ui.js" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -201,7 +202,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .ah-tier-btn.sel-hot{background:#450a0a30;color:#f87171;border-color:#7c1500}
 .ah-tier-btn.sel-warm{background:#451a0330;color:#fbbf24;border-color:#78350f}
 #ah-save{width:100%;background:var(--green);color:#000;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;font-family:inherit}
+
+/* Drag handle + reorder hint for the door list */
+.door-card .door-drag{margin-left:auto;align-self:center;padding-left:6px}
+.reorder-hint{font-size:11px;color:var(--muted);padding:2px 2px 10px;display:flex;align-items:center;gap:6px}
 </style>
+<link rel="stylesheet" href="portal.css">
 </head>
 <body>
 
@@ -256,6 +262,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="stats-title">Route Stats</div>
     <div class="stats-sub" id="stats-sub">Current route progress</div>
     <div class="stats-grid" id="stats-grid"></div>
+    <div class="sec-hdr" style="margin-top:4px">Your Funnel</div>
+    <div class="bars-card" id="stats-funnel-card" style="margin-bottom:20px">
+      <div class="rf-funnel" id="stats-funnel"></div>
+    </div>
     <div class="sec-hdr">Breakdown</div>
     <div class="bars-card" id="stats-bars"></div>
     <div style="height:20px"></div>
@@ -728,6 +738,8 @@ function renderStatsTab() {
     + '<div class="stat-box"><div class="stat-num" style="color:#10b981">' + qualified + '</div><div class="stat-lbl">Qualified</div></div>'
     + '<div class="stat-box"><div class="stat-num" style="color:var(--text)">' + pct + '%</div><div class="stat-lbl">Route Progress</div></div>';
 
+  renderStatsFunnel(knocked, counts['interested']||0, counts['appointment']||0);
+
   var barOrder = ['appointment','interested','callback','no-answer','not-interested','no-need','pending'];
   var maxCt    = Math.max.apply(null, barOrder.map(function(s){ return counts[s]||0; })) || 1;
   var bHtml    = '';
@@ -742,6 +754,32 @@ function renderStatsTab() {
       + '</div>';
   });
   bars.innerHTML = bHtml;
+}
+
+// ── Stats Funnel (knock → interested → appointment) ─────────────────────────
+function renderStatsFunnel(knocked, interested, appt) {
+  var el = document.getElementById('stats-funnel');
+  if (!el) return;
+  if (!knocked) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:8px">Knock a few doors to see your funnel.</div>';
+    return;
+  }
+  var rows = [
+    { l:'Knocked',      v:knocked,    cls:'s1' },
+    { l:'Interested',   v:interested, cls:'s2' },
+    { l:'Appointments', v:appt,       cls:'s3' }
+  ];
+  el.innerHTML = rows.map(function(r) {
+    var share = Math.round(r.v / knocked * 100);
+    return '<div class="rf-funnel-row">'
+      + '<div class="rf-funnel-meta"><div class="l">' + r.l + '</div><div class="p">' + share + '%</div></div>'
+      + '<div class="rf-funnel-track"><div class="rf-funnel-bar ' + r.cls + '" data-w="' + share + '">' + r.v + '</div></div>'
+      + '</div>';
+  }).join('');
+  el.querySelectorAll('.rf-funnel-bar').forEach(function(bar) {
+    void bar.offsetWidth;
+    bar.style.width = Math.max(6, parseInt(bar.getAttribute('data-w'), 10)) + '%';
+  });
 }
 
 // ── Route View ─────────────────────────────────────────────────────────────────
@@ -763,16 +801,34 @@ function closeRouteView() {
 }
 
 // ── Render: Door List ──────────────────────────────────────────────────────────
+// Display order of doors (original lead indices). Lets the rep set their
+// knock sequence by dragging — statuses/notes stay keyed by original index.
+function displayOrder() {
+  var n = (routeData && routeData.leads) ? routeData.leads.length : 0;
+  var ord = routeData && routeData.order;
+  if (Array.isArray(ord) && ord.length === n) {
+    // sanity check: must be a permutation of 0..n-1
+    var seen = {}, ok = true;
+    ord.forEach(function(x){ if (x<0||x>=n||seen[x]) ok=false; seen[x]=1; });
+    if (ok) return ord.slice();
+  }
+  var def = []; for (var i=0;i<n;i++) def.push(i); return def;
+}
+
 function renderList() {
   var el = document.getElementById('door-list');
   if (!routeData || !routeData.leads) { el.innerHTML=''; return; }
-  var html = '';
-  routeData.leads.forEach(function(lead, i) {
+  var canDrag = (curTab === 'all');
+  var html = canDrag
+    ? '<div class="reorder-hint">⠿ Drag a door to set your knock order</div>'
+    : '';
+  displayOrder().forEach(function(i) {
+    var lead = routeData.leads[i];
     var s = statuses[i] || 'pending';
     if (curTab !== 'all' && s !== curTab) return;
     var color     = STATUS_COLORS[s] || '#4b5563';
     var tierClass = lead.tier === 'PRIME' ? 'prime' : lead.tier === 'HOT' ? 'hot' : 'warm';
-    html += '<div class="door-card" onclick="openModal(' + i + ')">'
+    html += '<div class="door-card rf-drag-item" data-rf-id="' + i + '" onclick="openModal(' + i + ')">'
       + '<div class="door-dot" style="background:' + color + '"></div>'
       + '<div class="door-info">'
       + '<div class="door-addr">' + lead.addr + '</div>'
@@ -783,9 +839,23 @@ function renderList() {
       + '<span class="badge val">💰 ' + lead.val + '</span>'
       + '</div>'
       + '</div>'
+      + (canDrag ? '<div class="rf-drag-handle door-drag" onclick="event.stopPropagation()">⠿</div>' : '')
       + '</div>';
   });
   el.innerHTML = html || '<div style="padding:28px;text-align:center;color:var(--muted);font-size:13px">No doors in this filter.</div>';
+  if (canDrag && window.RF) {
+    RF.dragList(el, '.rf-drag-item', saveDoorOrder);
+  }
+}
+
+function saveDoorOrder(orderIds) {
+  var newOrder = orderIds.map(function(x){ return parseInt(x,10); }).filter(function(x){ return !isNaN(x); });
+  if (newOrder.length !== (routeData.leads||[]).length) return;
+  routeData.order = newOrder;
+  if (routeCode !== 'CARY82') {
+    db.collection('agentRoutes').doc(routeCode).update({ order: newOrder, lastUpdate: Date.now() }).catch(function(){});
+  }
+  if (window.RF) RF.toast('Knock order saved');
 }
 
 function setTab(tab, el) {
@@ -859,6 +929,7 @@ function saveAndClose() {
   renderList(); updateProgress();
   updateMapDot(savedIdx);
   renderHomeTab(); renderStatsTab();
+  if (window.RF) RF.toast('Saved · ' + (STATUS_LABELS[curStatus] || curStatus));
 }
 
 // ── Script Modal ───────────────────────────────────────────────────────────────
@@ -903,7 +974,9 @@ function saveAddHome() {
     routeData.leads = updatedLeads;
     if (note) { notes[updatedLeads.length-1] = note; }
     btn.textContent='Add to Route ↑'; btn.disabled=false;
-    closeAddHome(); renderList(); return;
+    closeAddHome(); renderList();
+    if (window.RF) RF.toast('Home added to route');
+    return;
   }
 
   db.collection('agentRoutes').doc(routeCode).update({ leads:updatedLeads, lastUpdate:Date.now() })
@@ -915,9 +988,10 @@ function saveAddHome() {
       }
       btn.textContent='Add to Route ↑'; btn.disabled=false;
       closeAddHome();
+      if (window.RF) RF.toast('Home added to route');
     })
     .catch(function() {
-      alert('Could not save. Check your connection.');
+      if (window.RF) RF.toast('Could not save — check your connection', {type:'err'});
       btn.textContent='Add to Route ↑'; btn.disabled=false;
     });
 }
