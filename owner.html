@@ -243,7 +243,6 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
       <button class="nav-tab active" onclick="showPanel('dashboard',this)">Dashboard</button>
       <button class="nav-tab" onclick="showPanel('routes',this)">Routes</button>
       <button class="nav-tab" onclick="showPanel('agents',this)">Agents</button>
-      <button class="nav-tab" onclick="showPanel('applications',this)" id="tab-applications">Applications <span id="app-badge" style="display:none;background:#4caf50;color:#000;font-size:9px;font-weight:900;padding:2px 6px;border-radius:10px;margin-left:4px">0</span></button>
     </div>
     <span class="nav-company" id="nav-company"></span>
     <button class="nav-signout" onclick="signOut()">Sign Out</button>
@@ -311,7 +310,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
         <button class="btn-primary" onclick="openCreateModal()">+ New Route</button>
       </div>
       <div class="routes-grid" id="dashboard-routes">
-        <div class="empty"><div class="empty-icon">📡</div><div class="empty-title">No active routes yet</div><div class="empty-sub">Create a route and send the link to your agent.</div></div>
+        <div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Loading your zone…</div></div>
       </div>
     </div>
 
@@ -350,21 +349,6 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
             <tr><td colspan="8"><div class="empty"><div class="empty-icon">👤</div><div class="empty-title">No agents yet</div></div></td></tr>
           </tbody>
         </table>
-      </div>
-    </div>
-
-    <!-- ── APPLICATIONS ── -->
-    <div class="panel" id="panel-applications">
-      <div class="sec-head">
-        <div>
-          <div class="sec-title">Applications</div>
-          <div class="sec-sub">Inbound zone applications from roofinder.online</div>
-        </div>
-        <button class="btn-ghost" onclick="loadApplications()">↻ Refresh</button>
-      </div>
-
-      <div id="app-list">
-        <div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading applications…</div>
       </div>
     </div>
 
@@ -819,7 +803,16 @@ function renderDashboard() {
 
   var container = document.getElementById('dashboard-routes');
   if (!activeRoutes.length) {
-    container.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><div class="empty-title">No routes today yet</div><div class="empty-sub">Create a route and send the link to your agent.</div></div>';
+    if (!allRoutes.length) {
+      // Brand-new owner — zone not delivered yet. Set the 48-hour expectation.
+      container.innerHTML = '<div class="empty" style="border:1px solid rgba(76,175,80,.25);background:rgba(76,175,80,.05);border-radius:14px;padding:36px 24px">'
+        + '<div class="empty-icon">🛠️</div>'
+        + '<div class="empty-title" style="color:#4caf50">Your zone is being built</div>'
+        + '<div class="empty-sub">We\'re loading your exclusive, pre-qualified homes into routes right now. <strong style="color:#cfd4e0">You\'ll have everything here within 48 hours of signup.</strong> Your CRM, team app, and door-knock routes will appear automatically — no setup needed.</div>'
+        + '<div style="font-size:12px;color:#555;margin-top:14px">Questions? Text (919) 480-8884</div></div>';
+    } else {
+      container.innerHTML = '<div class="empty"><div class="empty-icon">📡</div><div class="empty-title">No routes today yet</div><div class="empty-sub">Create a route and send the link to your agent.</div></div>';
+    }
     return;
   }
   container.innerHTML = activeRoutes.map(function(r) { return routeCardHtml(r); }).join('');
@@ -1215,7 +1208,6 @@ function showPanel(name, btn) {
   document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById('panel-' + name).classList.add('active');
   btn.classList.add('active');
-  if (name === 'applications') loadApplications();
 }
 // ── Utilities ─────────────────────────────────────────────────────────────
 function copyLink(url) {
@@ -1240,72 +1232,6 @@ function fmtTimeAgo(date) {
 // Close modals on backdrop click
 document.getElementById('create-modal').addEventListener('click', function(e){ if(e.target===this) closeCreateModal(); });
 document.getElementById('detail-modal').addEventListener('click', function(e){ if(e.target===this) closeDetailModal(); });
-
-/* ── APPLICATIONS ── */
-function loadApplications() {
-  var list = document.getElementById('app-list');
-  list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">Loading…</div>';
-  db.collection('applications').orderBy('createdAt', 'desc').get().then(function(snap) {
-    var badge = document.getElementById('app-badge');
-    var newCount = 0;
-    if (snap.empty) {
-      list.innerHTML = '<div style="text-align:center;padding:60px 24px;color:#444;font-size:14px">No applications yet — submissions will appear here.</div>';
-      badge.style.display = 'none';
-      return;
-    }
-    list.innerHTML = '';
-    snap.forEach(function(doc) {
-      var d = doc.data();
-      var isNew = d.status === 'new';
-      if (isNew) newCount++;
-      var statusColor = isNew ? '#4caf50' : (d.status === 'approved' ? '#3b82f6' : '#555');
-      var statusLabel = isNew ? 'NEW' : (d.status === 'approved' ? 'APPROVED' : 'REVIEWED');
-      var date = d.createdAt ? new Date(d.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
-      var card = document.createElement('div');
-      card.style.cssText = 'background:#111;border:1px solid ' + (isNew ? 'rgba(76,175,80,0.3)' : '#222') + ';border-radius:12px;padding:20px 22px;margin-bottom:12px';
-      card.innerHTML =
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">' +
-          '<div style="flex:1;min-width:0">' +
-            '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
-              '<div style="font-size:16px;font-weight:800;color:#e0e4f0">' + (d.company || '—') + '</div>' +
-              '<span style="font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:6px;background:' + statusColor + '22;color:' + statusColor + ';border:1px solid ' + statusColor + '44">' + statusLabel + '</span>' +
-            '</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px">' +
-              '<div style="font-size:12px;color:#666">📞 <a href="tel:' + (d.phone || '') + '" style="color:#4caf50;font-weight:600">' + (d.phone || '—') + '</a></div>' +
-              '<div style="font-size:12px;color:#666">✉️ <a href="mailto:' + (d.email || '') + '" style="color:#4caf50;font-weight:600">' + (d.email || '—') + '</a></div>' +
-              '<div style="font-size:12px;color:#666">📍 Target zip: <span style="color:#e0e4f0;font-weight:700">' + (d.targetZip || '—') + '</span></div>' +
-              '<div style="font-size:11px;color:#444">' + date + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div style="display:flex;gap:8px;flex-shrink:0" id="btns-' + doc.id + '">' +
-            (isNew ? '<button class="tbl-btn app-action" data-id="' + doc.id + '" data-status="reviewed">Mark Reviewed</button>' : '') +
-            '<button class="tbl-btn app-action" data-id="' + doc.id + '" data-status="approved" style="border-color:rgba(59,130,246,0.3);color:#3b82f6">Approve</button>' +
-          '</div>' +
-        '</div>';
-      list.appendChild(card);
-    });
-    // Attach click handlers via event delegation
-    list.querySelectorAll('.app-action').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        updateAppStatus(this.dataset.id, this.dataset.status);
-      });
-    });
-    if (newCount > 0) {
-      badge.style.display = 'inline';
-      badge.textContent = newCount;
-    } else {
-      badge.style.display = 'none';
-    }
-  }).catch(function(err) {
-    list.innerHTML = '<div style="text-align:center;padding:40px;color:#ff5555;font-size:13px">Error: ' + err.message + '</div>';
-  });
-}
-
-function updateAppStatus(id, status) {
-  db.collection('applications').doc(id).update({ status: status }).then(function() {
-    loadApplications();
-  });
-}
 
 </script>
 </body>
