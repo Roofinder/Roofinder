@@ -10,7 +10,7 @@
 //  Two-pass: Pass 1 locates roof + picks angle; re-zoom that angle; Pass 2 = HOT/PASS.
 //  Decisive HOT/PASS, ignores snow/debris/shadows, returns image_date.
 const https = require('https');
-const VERSION = 'v2.8-recall';
+const VERSION = 'v2.9-snowgate';
 
 function httpsGet(url, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -164,7 +164,9 @@ module.exports = async function handler(req, res) {
       { type: 'text', text: '[' + zoom.label + ']' },
       { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: zoom.b64 } },
       { type: 'text', text:
-        'You are an experienced roofing sales rep deciding if this Raleigh NC roof is a VIABLE LEAD — a roof aging enough to be worth knocking. This is for lead generation: when in doubt, LEAN TOWARD flagging it (a wasted knock costs little; a missed aging roof is a lost lead). Judge ONLY the main house the camera is centered on; ignore neighboring roofs.\n\n' +
+        'You are an experienced roofing sales rep deciding if this Raleigh NC roof is a VIABLE LEAD — a roof aging enough to be worth knocking. Judge ONLY the main house the camera is centered on; ignore neighboring roofs.\n\n' +
+        'STEP 1 — SNOW CHECK (do this first, it OVERRIDES everything below). Look at the roof shingles themselves. If you see white or light patches of SNOW or ICE sitting ON the roof (very common when there is also snow on the ground, bare winter trees, or snow on cars), you CANNOT judge the roof — score "pass" immediately. Snow patches on a dark roof look like faded/washed/bald spots but they are NOT — never call a snow-covered roof aged or hot. (Snow only on the ground/trees while the shingles are clearly snow-free does not block judgment.)\n\n' +
+        'STEP 2 — If the roof is snow-free and visible, this is lead generation: when in doubt, LEAN TOWARD flagging (a wasted knock costs little; a missed aging roof is a lost lead).\n' +
         'Score "hot" (a lead worth knocking) when you see ANY clear sign the roof is aging / nearing end of life:\n' +
         '1. WASHED-OUT / FADED — shingles have lost their dark, rich color and look dull, gray, light, sun-bleached. THE #1 SIGN of an aging roof.\n' +
         '2. LOSS OF SHINGLE DEFINITION — you can no longer make out crisp individual shingle tabs/lines; the surface looks smooth, flat, or washed uniform.\n' +
