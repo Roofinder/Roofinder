@@ -1,14 +1,18 @@
-// score-roof-v2.js (build trigger 2) — experimental scoring endpoint. Does NOT touch live score-roof.js. POST /api/score-roof-v2
-// score-roof.js used by label.html. POST /api/score-roof-v2
+// score-roof-v2.js — experimental scoring endpoint. Does NOT touch live score-roof.js.
+// POST /api/score-roof-v2
 //
-// Changes vs v1:
-//  - DECISIVE scoring: HOT (clearly needs replacement) or PASS (everything else,
-//    incl. aging-but-ok and can't-tell). High bar; when unsure -> PASS.
-//  - Better images: pitch up (35), moderate FOV (80) to stay SHARP not blurry,
-//    640x640 resolution (more real pixels, not magnification).
-//  - Returns image_date from Street View metadata (surfaced, NOT yet filtered) so
-//    we can see how fresh Raleigh's coverage is before turning on a hard 2024+ gate.
+// TWO-PASS roof focus ("heat zone"):
+//  Pass 1 (LOCATE): send 3 wide pitched-up angles; AI picks the angle with the
+//    clearest roof and says whether the roof is actually visible. If it's hidden by
+//    trees / out of frame -> PASS immediately (no guessing), skip Pass 2.
+//  RE-ZOOM: re-fetch the chosen angle with a tighter FOV (and pitch nudge) so the
+//    roof fills the frame. Done via the Street View API (renders from the panorama),
+//    NOT digital upscaling -> stays sharp.
+//  Pass 2 (INSPECT): decisive HOT / PASS on the zoomed roof image.
+// Also returns image_date (Street View capture month, surfaced not yet filtered).
 const https = require('https');
+
+const HEADINGS = { North: 0, SE: 120, SW: 240 };
 
 function httpsGet(url, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -18,11 +22,11 @@ function httpsGet(url, timeoutMs) {
       res.on('end', () => resolve({ status: res.statusCode, buffer: Buffer.concat(chunks) }));
     });
     req.on('error', reject);
-    req.setTimeout(timeoutMs || 8000, () => { req.destroy(); reject(new Error('timeout')); });
+    req.setTimeout(timeoutMs || 6000, () => { req.destroy(); reject(new Error('timeout')); });
   });
 }
 
-function httpsPost(hostname, path, headers, body) {
+function httpsPost(hostname, path, headers, body, timeoutMs) {
   return new Promise((resolve, reject) => {
     const buf = Buffer.from(body);
     const opts = { hostname, path, method: 'POST', headers: { ...headers, 'Content-Length': buf.length } };
@@ -32,10 +36,40 @@ function httpsPost(hostname, path, headers, body) {
       res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() }));
     });
     req.on('error', reject);
-    req.setTimeout(8000, () => { req.destroy(); reject(new Error('Claude timeout')); });
+    req.setTimeout(timeoutMs || 7000, () => { req.destroy(); reject(new Error('Claude timeout')); });
     req.write(buf);
     req.end();
   });
+}
+
+function streetViewUrl(key, lat, lng, heading, pitch, fov) {
+  return 'https://maps.googleapis.com/maps/api/streetview?size=640x640&location=' + lat + ',' + lng +
+    '&heading=' + heading + '&pitch=' + pitch + '&fov=' + fov + '&key=' + key + '&return_error_code=true';
+}
+
+function fetchShot(key, lat, lng, heading, pitch, fov, label) {
+  return httpsGet(streetViewUrl(key, lat, lng, heading, pitch, fov), 5000).then(function (r) {
+    if (r.status === 404 || r.buffer.length < 4000) return null;
+    return { label: label, b64: r.buffer.toString('base64') };
+  }).catch(function () { return null; });
+}
+
+function parseJsonLoose(raw) {
+  try { return JSON.parse(raw); } catch (e) {
+    var m = raw.match(/\{[\s\S]*\}/);
+    try { return m ? JSON.parse(m[0]) : {}; } catch (e2) { return {}; }
+  }
+}
+
+async function callClaude(key, content, maxTokens) {
+  const body = JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: maxTokens, messages: [{ role: 'user', content: content }] });
+  const resp = await httpsPost('api.anthropic.com', '/v1/messages', {
+    'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json'
+  }, body, 7000);
+  if (resp.status !== 200) throw new Error('Claude ' + resp.status + ': ' + resp.body.slice(0, 150));
+  const cd = JSON.parse(resp.body);
+  const raw = ((cd.content && cd.content[0] && cd.content[0].text) || '{}').trim();
+  return parseJsonLoose(raw);
 }
 
 module.exports = async function handler(req, res) {
@@ -50,95 +84,96 @@ module.exports = async function handler(req, res) {
 
   const GMAPS_KEY = process.env.GOOGLE_MAPS_KEY;
   const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
-  if (!GMAPS_KEY || !ANTHROPIC_KEY) {
-    return res.status(500).json({ error: 'Missing API keys' });
-  }
+  if (!GMAPS_KEY || !ANTHROPIC_KEY) return res.status(500).json({ error: 'Missing API keys' });
 
   try {
     // Step 1: Geocode
-    const geoUrl = 'https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address) + '&key=' + GMAPS_KEY;
-    const geoResp = await httpsGet(geoUrl, 5000);
+    const geoResp = await httpsGet('https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURIComponent(address) + '&key=' + GMAPS_KEY, 5000);
     const geoData = JSON.parse(geoResp.buffer.toString());
     if (!geoData.results || !geoData.results.length) {
-      return res.status(200).json({ score: 'pass', confidence: 'low', reasoning: 'Could not locate address.', address, image_count: 0 });
+      return res.status(200).json({ score: 'pass', confidence: 'low', reasoning: 'Could not locate address.', address, image_count: 0, roof_visible: false });
     }
     const lat = geoData.results[0].geometry.location.lat;
     const lng = geoData.results[0].geometry.location.lng;
 
-    // Step 1b: Street View metadata — capture date (FREE call). Surfaced only for now.
+    // Step 1b: Street View capture date (FREE). Surfaced only for now.
     let image_date = null;
     try {
-      const metaUrl = 'https://maps.googleapis.com/maps/api/streetview/metadata?location=' + lat + ',' + lng + '&key=' + GMAPS_KEY;
-      const metaResp = await httpsGet(metaUrl, 4000);
+      const metaResp = await httpsGet('https://maps.googleapis.com/maps/api/streetview/metadata?location=' + lat + ',' + lng + '&key=' + GMAPS_KEY, 4000);
       const meta = JSON.parse(metaResp.buffer.toString());
       if (meta.status === 'OK' && meta.date) image_date = meta.date; // "YYYY-MM"
-      // NOTE: once we've seen coverage, gate here: if year(image_date) < 2024 -> skip.
-    } catch (e) { /* non-fatal: leave image_date null */ }
+    } catch (e) { /* non-fatal */ }
 
-    // Step 2: Fetch Street View images — pitched up, moderate FOV (sharp), 640x640.
-    const shots = [
-      { heading: 0,   pitch: 12, fov: 80, label: 'North' },
-      { heading: 120, pitch: 12, fov: 80, label: 'SE'    },
-      { heading: 240, pitch: 12, fov: 80, label: 'SW'    },
+    // Step 2: WIDE shots — pitch 12, fov 80 (sharp, roof roughly centered).
+    const wide = (await Promise.all([
+      fetchShot(GMAPS_KEY, lat, lng, 0, 12, 80, 'North'),
+      fetchShot(GMAPS_KEY, lat, lng, 120, 12, 80, 'SE'),
+      fetchShot(GMAPS_KEY, lat, lng, 240, 12, 80, 'SW'),
+    ])).filter(Boolean);
+    if (!wide.length) {
+      return res.status(200).json({ score: 'pass', confidence: 'low', reasoning: 'No Street View imagery for this address.', address, image_count: 0, image_date, roof_visible: false });
+    }
+
+    // Step 3 — PASS 1 (LOCATE the roof).
+    const p1content = [];
+    wide.forEach(function (img) { p1content.push({ type: 'text', text: '[' + img.label + ']' }); p1content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: img.b64 } }); });
+    p1content.push({ type: 'text', text:
+      'These are Street View angles of one property. Find the MAIN house roof.\n' +
+      'Reply JSON only: {"roof_visible":true|false,"best_angle":"North|SE|SW","look":"up|down|none"}\n' +
+      '- roof_visible=false if the roof is mostly hidden by trees, blocked, or not in frame. Be honest — if you cannot clearly see roof surface, say false.\n' +
+      '- best_angle = the angle with the clearest, most complete view of the roof.\n' +
+      '- look = to center the roof, should the camera tilt "up", "down", or "none" if already centered.' });
+    const loc = await callClaude(ANTHROPIC_KEY, p1content, 80);
+
+    const labels = wide.map(function (w) { return w.label; });
+    let bestLabel = (loc.best_angle && labels.indexOf(loc.best_angle) >= 0) ? loc.best_angle : labels[0];
+
+    if (loc.roof_visible === false) {
+      return res.status(200).json({
+        score: 'pass', confidence: 'high',
+        reasoning: 'Roof not clearly visible from Street View (obscured by trees or out of frame) — skipped rather than guessed.',
+        address, lat, lng, image_date, image_count: wide.length, roof_visible: false,
+        best_angle: bestLabel,
+        previews: wide.map(function (img) { return { label: img.label, url: 'data:image/jpeg;base64,' + img.b64 }; })
+      });
+    }
+
+    // RE-ZOOM the chosen angle: tighter fov (65) fills the frame with roof; pitch nudge to center.
+    const pitch = loc.look === 'up' ? 20 : (loc.look === 'down' ? 5 : 12);
+    const heading = HEADINGS[bestLabel] != null ? HEADINGS[bestLabel] : 0;
+    let zoom = await fetchShot(GMAPS_KEY, lat, lng, heading, pitch, 65, bestLabel + ' (roof)');
+    if (!zoom) { // fall back to the wide best-angle image we already have
+      const w = wide.filter(function (x) { return x.label === bestLabel; })[0] || wide[0];
+      zoom = { label: w.label + ' (roof)', b64: w.b64 };
+    }
+
+    // Step 4 — PASS 2 (INSPECT the zoomed roof). Decisive HOT/PASS.
+    const p2content = [
+      { type: 'text', text: '[' + zoom.label + ']' },
+      { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: zoom.b64 } },
+      { type: 'text', text:
+        'You are a roofing sales rep judging ONLY this roof in Raleigh NC.\n' +
+        'Choose ONE:\n' +
+        '- "hot": the roof CLEARLY needs replacement NOW — missing/cracked/curling/lifting shingles; heavy dark streaking (algae); bald spots or granule loss; visible patches or tarps; a sagging or wavy roofline.\n' +
+        '- "pass": everything else — a sound roof, a merely aging-but-okay roof, or one you cannot clearly assess.\n' +
+        'Be strict: only "hot" when replacement need is clearly visible; when unsure, "pass". You can see shingles but NOT the wood decking beneath — only mention structure if the roofline visibly sags.\n' +
+        'Reply JSON only: {"score":"hot|pass","confidence":"high|medium|low","reasoning":"1-2 sentences citing what you see"}' }
     ];
-
-    const imageResults = await Promise.all(shots.map(function(shot) {
-      const url = 'https://maps.googleapis.com/maps/api/streetview?size=640x640&location=' + lat + ',' + lng + '&heading=' + shot.heading + '&pitch=' + shot.pitch + '&fov=' + shot.fov + '&key=' + GMAPS_KEY + '&return_error_code=true';
-      return httpsGet(url, 5000).then(function(r) {
-        if (r.status === 404 || r.buffer.length < 4000) return null;
-        return { label: shot.label, b64: r.buffer.toString('base64') };
-      }).catch(function() { return null; });
-    }));
-
-    const valid = imageResults.filter(Boolean);
-    if (!valid.length) {
-      return res.status(200).json({ score: 'pass', confidence: 'low', reasoning: 'No Street View imagery for this address.', address, image_count: 0, image_date });
-    }
-
-    // Step 3: Claude Haiku — decisive HOT/PASS inspection.
-    const content = [];
-    valid.forEach(function(img) {
-      content.push({ type: 'text', text: '[' + img.label + ']' });
-      content.push({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: img.b64 } });
-    });
-    content.push({ type: 'text', text:
-      'You are a roofing sales rep deciding whether to knock this Raleigh NC home. Judge ONLY the roof.\n\n' +
-      'Choose ONE:\n' +
-      '- "hot": the roof CLEARLY needs replacement NOW. Visible signs: missing / cracked / curling / lifting shingles; heavy dark streaking (algae); bald spots or granule loss; visible patches or tarps; a sagging or wavy roofline.\n' +
-      '- "pass": everything else — a sound roof, a roof that is merely aging but still okay, OR a roof you cannot clearly see or assess.\n\n' +
-      'Be strict. Only choose "hot" when the need for replacement is clearly visible. If you are unsure, or the roof is just "kind of old", choose "pass". We only want roofs that clearly need replacing.\n' +
-      'You can see the shingle surface, but you CANNOT see the wood decking beneath the shingles — only mention structure if the roofline visibly sags.\n\n' +
-      'Reply JSON only: {"score":"hot|pass","confidence":"high|medium|low","best_angle":"North|SE|SW","reasoning":"1-2 sentences citing what you actually see"}' });
-
-    const claudeBody = JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 220, messages: [{ role: 'user', content: content }] });
-    const claudeResp = await httpsPost('api.anthropic.com', '/v1/messages', {
-      'x-api-key': ANTHROPIC_KEY,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json'
-    }, claudeBody);
-
-    if (claudeResp.status !== 200) throw new Error('Claude ' + claudeResp.status + ': ' + claudeResp.body.slice(0, 150));
-    const cd = JSON.parse(claudeResp.body);
-    const raw = ((cd.content && cd.content[0] && cd.content[0].text) || '{}').trim();
-    var parsed;
-    try { parsed = JSON.parse(raw); } catch(e) {
-      var m = raw.match(/\{[\s\S]*\}/);
-      try { parsed = m ? JSON.parse(m[0]) : {}; } catch(e2) { parsed = { score: 'pass', confidence: 'low', reasoning: raw.slice(0, 150) }; }
-    }
-
-    // Normalize: anything that isn't a clean "hot" collapses to "pass".
+    const parsed = await callClaude(ANTHROPIC_KEY, p2content, 220);
     const score = (parsed.score === 'hot') ? 'hot' : 'pass';
 
     return res.status(200).json({
       score: score,
       confidence: parsed.confidence || 'low',
-      best_angle: parsed.best_angle || '',
       reasoning: parsed.reasoning || '',
-      address: address,
-      lat: lat, lng: lng,
-      image_date: image_date,
-      image_count: valid.length,
-      previews: valid.map(function(img) { return { label: img.label, url: 'data:image/jpeg;base64,' + img.b64 }; })
+      address, lat, lng, image_date,
+      best_angle: bestLabel,
+      roof_visible: true,
+      image_count: wide.length + 1,
+      previews: [
+        { label: zoom.label, url: 'data:image/jpeg;base64,' + zoom.b64 },
+        { label: bestLabel + ' (wide)', url: 'data:image/jpeg;base64,' + (wide.filter(function (x) { return x.label === bestLabel; })[0] || wide[0]).b64 }
+      ]
     });
 
   } catch (err) {
