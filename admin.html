@@ -717,7 +717,7 @@ function renderContractors() {
     var zip = c.targetZip || '';
     var safeCompany = (c.company||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var buildBtn = zip
-      ? '<button onclick="buildZone(\'' + c.id + '\',\'' + safeCompany + '\',\'' + zip + '\')" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit">🗺 Build Zone</button>'
+      ? '<button onclick="buildZone(\'' + c.id + '\',\'' + safeCompany + '\',\'' + zip + '\',\'' + (c.portal||'') + '\')" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#4caf50;font-size:11px;font-weight:700;padding:5px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit">🗺 Build Zone</button>'
       : '<span class="cell-dim">no zip</span>';
     return '<tr>'
       + '<td><div class="cell-name">' + (c.fname||'') + ' ' + (c.lname||'') + '</div><div class="cell-sub">' + (c.company||'') + '</div></td>'
@@ -1442,10 +1442,12 @@ var zbFromFetch = false; /* true when screener is being started from a fresh fet
 
 var zbRawCSV = '';
 
-function buildZone(id, company, zip) {
+function buildZone(id, company, zip, ownerCode) {
   // Consolidated: the embedded builder was retired in favor of the single
-  // Zone Builder at builder.html. Open it for this owner (company + zip).
+  // Zone Builder at builder.html. Open it pre-linked to this owner so the zone
+  // auto-delivers under their exact code (no manual code matching).
   var qs = 'company=' + encodeURIComponent(company || '') + '&zip=' + encodeURIComponent(zip || '');
+  if (ownerCode) qs += '&owner=' + encodeURIComponent(ownerCode);
   window.open('builder.html?' + qs, '_blank');
 }
 
