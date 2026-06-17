@@ -129,6 +129,7 @@
     if (from === to){ el.textContent = (o.prefix||'') + fmt(to,o) + (o.suffix||''); return; }
     el.setAttribute('data-rf-val', to);
     var dur = o.duration || 700, start = performance.now();
+    var finalStr = (o.prefix||'') + fmt(to,o) + (o.suffix||'');
     el.classList.remove('rf-flash'); void el.offsetWidth; el.classList.add('rf-flash');
     function step(now){
       var p = Math.min(1, (now-start)/dur);
@@ -138,6 +139,8 @@
       if (p < 1) requestAnimationFrame(step);
     }
     requestAnimationFrame(step);
+    // Guarantee the final value lands even if animation frames are throttled/never fire.
+    setTimeout(function(){ if (el.textContent !== finalStr) el.textContent = finalStr; }, dur + 120);
   };
   function fmt(n,o){ return o.comma ? n.toLocaleString('en-US') : String(n); }
 
