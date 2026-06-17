@@ -144,7 +144,7 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
     <div class="zb-step active" id="zb-step1">
       <div style="margin-bottom:24px">
         <div style="font-size:16px;font-weight:800;margin-bottom:6px">Step 1 — Load Address Data</div>
-        <div style="font-size:13px;color:#666;line-height:1.7">The system will auto-filter to <span style="color:#4caf50;font-weight:700">18–27 year old homes</span> valued at <span style="color:#4caf50;font-weight:700">$250k+</span> in zip <span id="zb-zip-label" style="color:#fff;font-weight:700"></span>.</div>
+        <div style="font-size:13px;color:#666;line-height:1.7">The system will auto-filter to <span style="color:#4caf50;font-weight:700">residential homes, 18–28 years old</span>, valued <span style="color:#4caf50;font-weight:700">$300k–$1.25M</span> in zip <span id="zb-zip-label" style="color:#fff;font-weight:700"></span>.</div>
       </div>
 
       <!-- CSV upload -->
@@ -166,8 +166,8 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
       <input type="file" id="zb-file-input" accept=".csv,.txt" style="display:none" onchange="zbLoadFile(this)"/>
 
       <div style="display:flex;gap:16px;margin-top:16px;align-items:center;flex-wrap:wrap">
-        <div style="font-size:12px;color:#666">Min home value: $<input id="zb-min-val" type="number" value="250000" style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#fff;font-size:12px;width:90px;outline:none"/></div>
-        <div style="font-size:12px;color:#666">Roof age: <input id="zb-age-min" type="number" value="18" style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#fff;font-size:12px;width:50px;outline:none"/>–<input id="zb-age-max" type="number" value="30" style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#fff;font-size:12px;width:50px;outline:none"/> yrs</div>
+        <div style="font-size:12px;color:#666">Home value: $<input id="zb-min-val" type="number" value="300000" style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#fff;font-size:12px;width:90px;outline:none"/> – $<input id="zb-max-val" type="number" value="1250000" style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#fff;font-size:12px;width:100px;outline:none"/></div>
+        <div style="font-size:12px;color:#666">Roof age: <input id="zb-age-min" type="number" value="18" style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#fff;font-size:12px;width:50px;outline:none"/>–<input id="zb-age-max" type="number" value="28" style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:5px 8px;color:#fff;font-size:12px;width:50px;outline:none"/> yrs</div>
       </div>
 
       <div style="display:flex;gap:12px;margin-top:16px;align-items:center">
@@ -623,13 +623,18 @@ function zbProcessParcel() {
   var colVal   = zbFindCol(headers, ['TOTALVALUE','TOTALVAL','ASSESSEDVALUE','MARKETVALUE','APPRAISEDVALUE','FULLVALUE','CALCVALUE','FVAL','APPRVALUE','TOTALAPPR','PROPVALUE','LANDVAL']);
   var colZip   = zbFindCol(headers, ['ZIP','ZIPCODE','POSTALCODE','SITUSZIP','SITEZIP','PROPZIP']);
   var colStreet= zbFindCol(headers, ['STREETNAME','STNAME','ROADNAME','STREET']);
+  var colType  = zbFindCol(headers, ['LANDUSE','PROPERTYUSE','PROPUSE','USEDESC','USECODE','PROPTYPE','PROPERTYTYPE','TYPEUSE','TYPEUSEDECODE','PROPCLASS','CLASS','DWELLTYPE','BLDGTYPE','STRUCTURETYPE','OCCUPANCY']);
   if (colAddr < 0) { err.textContent = 'Could not find an address column.'; err.style.display = 'inline'; return; }
   if (colYear < 0) { err.textContent = 'Could not find Year Built column.'; err.style.display = 'inline'; return; }
   var curYear = new Date().getFullYear();
   var ageMin  = parseInt(document.getElementById('zb-age-min').value) || 18;
-  var ageMax  = parseInt(document.getElementById('zb-age-max').value) || 27;
-  var minVal  = parseInt(document.getElementById('zb-min-val').value) || 250000;
+  var ageMax  = parseInt(document.getElementById('zb-age-max').value) || 28;
+  var minVal  = parseInt(document.getElementById('zb-min-val').value) || 300000;
+  var maxVal  = parseInt(document.getElementById('zb-max-val').value) || 1250000;
   var yearMin = curYear - ageMax, yearMax = curYear - ageMin;
+  // Best-effort residential filter (only applied if a use/type column exists).
+  var NONRES_RE = /(COMMERC|INDUST|VACANT|AGRIC|EXEMPT|RETAIL|OFFICE|WAREHOUS|CHURCH|SCHOOL|UTILIT|GOVERN|MUNICIPAL|APARTMENT|MULTI)/i;
+  var RES_RE = /(SINGLE|SFR|\bSF\b|FAM|RESID|\bRES\b|TOWN|TWNH|CONDO|DUPLEX|DWELL|TRIPLEX|MOBILE|MANUF)/i;
   zbLeads = [];
   rows.slice(1).forEach(function(row) {
     var addr = colAddr >= 0 ? row[colAddr] || '' : '';
@@ -647,6 +652,8 @@ function zbProcessParcel() {
     if (!year || year < yearMin || year > yearMax) return;
     var val = parseInt(valRaw.toString().replace(/[^0-9]/g,''));
     if (colVal >= 0 && val && val < minVal) return;
+    if (colVal >= 0 && val && val > maxVal) return;
+    if (colType >= 0) { var tv = (row[colType]||'').toString(); if (tv && NONRES_RE.test(tv) && !RES_RE.test(tv)) return; }
     var age = curYear - year;
     var street = colStreet >= 0 ? (row[colStreet]||'') : addr.replace(/^\d+\s+/,'').replace(/\s+(St|Ave|Rd|Dr|Ln|Blvd|Way|Ct|Pl|Loop|Cir|Ter|Trl|Pkwy|Hwy)\.?$/i,'').trim();
     zbLeads.push({ addr:addr, owner:owner, tier: age<=22?'PRIME':age<=25?'HOT':'WARM', age:age, val: val?'$'+Math.round(val/1000)+'k':'', street:street });
@@ -975,13 +982,14 @@ function zbFetchLiveData(){
   var allZips=[zbZip].concat(extraZips).filter(function(z,i,a){return a.indexOf(z)===i;});
   var curYear=new Date().getFullYear();
   var ageMin=parseInt(document.getElementById('zb-age-min').value)||18;
-  var ageMax=parseInt(document.getElementById('zb-age-max').value)||30;
-  var minVal=parseInt(document.getElementById('zb-min-val').value)||250000;
+  var ageMax=parseInt(document.getElementById('zb-age-max').value)||28;
+  var minVal=parseInt(document.getElementById('zb-min-val').value)||300000;
+  var maxVal=parseInt(document.getElementById('zb-max-val').value)||1250000;
   var yearMin=curYear-ageMax, yearMax=curYear-ageMin;
   btn.textContent='Fetching…'; btn.disabled=true;
   statusEl.textContent='Pulling '+c.name+' data for '+allZips.join(', ')+'…';
   var zipWhere=allZips.length===1?c.zipField+"='"+allZips[0]+"'":'('+allZips.map(function(z){return c.zipField+"='"+z+"'";}).join(' OR ')+')';
-  var where=zipWhere+' AND '+c.yearField+'>='+yearMin+' AND '+c.yearField+'<='+yearMax+' AND '+c.valField+'>='+minVal;
+  var where=zipWhere+' AND '+c.yearField+'>='+yearMin+' AND '+c.yearField+'<='+yearMax+' AND '+c.valField+'>='+minVal+' AND '+c.valField+'<='+maxVal;
   var outFields=[c.addrField,c.ownerField,c.yearField,c.valField,c.zipField,c.streetField,c.typeField].join(',');
   var allFeatures=[], pageSize=1000;
   function fetchPage(offset){
