@@ -153,7 +153,8 @@ module.exports = async function handler(req, res) {
 ' +
         'STEP 3 — VISIBILITY CHECK: if trees, branches, or other obstructions block most of the roof so you cannot clearly see the shingle condition across a meaningful portion, score "pass" — do not guess from a sliver. Less than ~40% roof surface visible = pass.
 
-STEP 4 — These leads are sent to contractors, so QUALITY OVER QUANTITY: a weak lead wastes their time. Only flag a roof that CLEARLY shows aging / end of life. If it is borderline, or still has decent consistent color and visible shingle-tab definition, PASS.\n' +
+' +
+        'STEP 4 — These leads are sent to contractors, so QUALITY OVER QUANTITY: a weak lead wastes their time. Only flag a roof that CLEARLY shows aging / end of life. If it is borderline, or still has decent consistent color and visible shingle-tab definition, PASS.\n' +
         'Score "hot" (a lead worth sending) ONLY when one or more of these is clearly visible across MUCH of the roof:\n' +
         '1. WASHED-OUT / FADED — shingles have clearly LOST color depth: streaky, patchy, or bleached sections; visibly inconsistent color across the slope. NOTE: a uniform gray or dark-gray tone is NOT fading — many new architectural shingles are naturally gray. Only flag this if you see actual color loss or bleaching.
 ' +
