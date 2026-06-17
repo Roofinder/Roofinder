@@ -10,7 +10,7 @@
 //  Two-pass: Pass 1 locates roof + picks angle; re-zoom that angle; Pass 2 = HOT/PASS.
 //  Decisive HOT/PASS, ignores snow/debris/shadows, returns image_date.
 const https = require('https');
-const VERSION = 'v2.7-snowfix2';
+const VERSION = 'v2.8-recall';
 
 function httpsGet(url, timeoutMs) {
   return new Promise((resolve, reject) => {
@@ -164,18 +164,20 @@ module.exports = async function handler(req, res) {
       { type: 'text', text: '[' + zoom.label + ']' },
       { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: zoom.b64 } },
       { type: 'text', text:
-        'You are an experienced roofing sales rep deciding if this Raleigh NC roof is a VIABLE LEAD — a roof aging enough to be worth knocking. Judge ONLY the main house the camera is centered on; ignore neighboring houses/roofs in the frame.\n\n' +
-        'FIRST, visibility checks — score "pass" ONLY if you truly cannot judge the shingles:\n' +
-        '- The ROOF SURFACE ITSELF is covered by snow or ice so the shingles are hidden. IMPORTANT: snow merely on the GROUND, trees, or cars while the roof shingles are still visible does NOT count — in that case judge the roof normally. Only patches/sheets of snow ON the shingles block judgment.\n' +
-        '- The roof is mostly in deep shadow or strongly backlit, or you can only see a small sliver / the gable end rather than the main roof surface.\n\n' +
-        'OTHERWISE, score "hot" (a lead worth knocking) when aging signs are clear across much of the visible roof:\n' +
-        '- WASHED-OUT / FADED — shingles have clearly lost their dark, rich color and look dull/gray/bleached over most of the surface. #1 sign of an aging roof.\n' +
-        '- LOSS OF SHINGLE DEFINITION — individual shingle tabs/lines are no longer crisp; the surface looks smooth/flat/uniform over most of the roof.\n' +
-        '- COLOR INCONSISTENCY — clearly blotchy/uneven color, whitish worn edges, or two-tone sections (e.g. a partial prior replacement).\n' +
-        '- Classic damage — missing/cracked/curling/lifting shingles, bald spots/granule loss, patches or tarps, a sagging/wavy roofline.\n\n' +
-        'Score "pass" when the roof still looks healthy: reasonably rich, consistent color AND visible shingle-tab definition. IMPORTANT: streaking or minor/partial fading is NOT enough on its own — if the color is still decent and the tabs are still visible, PASS.\n\n' +
-        'You see the shingle surface, not the wood decking beneath — only mention structure if the roofline visibly sags.\n' +
-        'Reply JSON only: {"score":"hot|pass","confidence":"high|medium|low","reasoning":"1-2 sentences citing the specific signs (or why you passed: snow / not visible / still-healthy)"}' }
+        'You are an experienced roofing sales rep deciding if this Raleigh NC roof is a VIABLE LEAD — a roof aging enough to be worth knocking. This is for lead generation: when in doubt, LEAN TOWARD flagging it (a wasted knock costs little; a missed aging roof is a lost lead). Judge ONLY the main house the camera is centered on; ignore neighboring roofs.\n\n' +
+        'Score "hot" (a lead worth knocking) when you see ANY clear sign the roof is aging / nearing end of life:\n' +
+        '1. WASHED-OUT / FADED — shingles have lost their dark, rich color and look dull, gray, light, sun-bleached. THE #1 SIGN of an aging roof.\n' +
+        '2. LOSS OF SHINGLE DEFINITION — you can no longer make out crisp individual shingle tabs/lines; the surface looks smooth, flat, or washed uniform.\n' +
+        '3. COLOR INCONSISTENCY — blotchy/uneven color, whitish or worn edges, two-tone sections (e.g. a partial prior replacement).\n' +
+        '4. Dark streaking together with a faded/washed look.\n' +
+        '5. Classic damage — missing/cracked/curling/lifting shingles, bald spots/granule loss, patches or tarps, a sagging/wavy roofline.\n' +
+        '6. The roof looks clearly older/duller than neighboring roofs in the frame.\n\n' +
+        'Score "pass" when the roof still looks healthy: reasonably rich, consistent color AND clearly visible shingle-tab definition. Light streaking ALONE with otherwise good color and visible tabs is NOT enough — pass it.\n\n' +
+        'ONLY TWO things force a "pass" regardless of the above:\n' +
+        '- SNOW or ice covering the roof SHINGLES so you cannot see their color/condition. (Snow merely on the ground/trees/cars while the shingles are visible does NOT count — judge the roof normally.)\n' +
+        '- You genuinely cannot see the main roof surface at all (only a gable-end sliver, or it is fully blocked).\n\n' +
+        'You see the shingle surface, not the wood decking — only mention structure if the roofline visibly sags.\n' +
+        'Reply JSON only: {"score":"hot|pass","confidence":"high|medium|low","reasoning":"1-2 sentences citing the specific signs (or why passed: snow / not visible / still-healthy)"}' }
     ];
     const parsed = await callClaude(ANTHROPIC_KEY, p2, 220);
     const score = (parsed.score === 'hot') ? 'hot' : 'pass';
