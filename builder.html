@@ -102,7 +102,13 @@ body{background:#0a0a0a;color:#fff;font-family:'Inter',system-ui,sans-serif;-web
   <!-- Launch screen -->
   <div id="launch">
     <div class="launch-heading">Start a Zone</div>
-    <div class="launch-sub">Enter a roofing company and a target zip. We auto-pull qualifying homes — you just screen and send.</div>
+    <div class="launch-sub">Pick the owner this zone is for (so it auto-delivers to their dashboard), set a target zip, and we auto-pull qualifying homes — you just screen and send.</div>
+
+    <label class="field-label">Deliver to owner</label>
+    <select class="field-input" id="lc-owner" onchange="zbOnOwnerPick()">
+      <option value="">— New / unlinked zone —</option>
+    </select>
+    <div style="font-size:11px;color:#555;margin:-8px 0 18px;line-height:1.5">Choose a signed-up owner and the zone publishes under their exact code automatically — no copy-pasting codes. Leave on "new" for a demo/unlinked zone.</div>
 
     <label class="field-label">Roofing Company</label>
     <input type="text" class="field-input" id="lc-company" placeholder="e.g. Triangle Roofing" onkeydown="if(event.key==='Enter')document.getElementById('lc-zip').focus()"/>
@@ -388,10 +394,43 @@ function tryLogin() {
   if (v === TEAM_PW) {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
+    loadOwners();
     loadBuiltZones();
     maybeAutoLaunch();
   } else {
     document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+// ── Owners (so a zone auto-delivers under the right owner code) ───────────────
+var zbLinkedOwnerCode = '';
+var ownersByCode = {};
+function loadOwners() {
+  var sel = document.getElementById('lc-owner');
+  if (!sel) return;
+  db.collection('contractors').get().then(function(snap) {
+    var rows = [];
+    ownersByCode = {};
+    snap.forEach(function(d) {
+      var c = d.data();
+      var code = c.portal || '';
+      if (!code) return;
+      var name = c.company || ((c.fname||'') + ' ' + (c.lname||'')).trim() || code;
+      ownersByCode[code] = name;
+      rows.push({ name:name, code:code });
+    });
+    rows.sort(function(a,b){ return a.name.localeCompare(b.name); });
+    var opts = '<option value="">— New / unlinked zone —</option>';
+    rows.forEach(function(r){
+      opts += '<option value="' + r.code + '">' + r.name + ' (' + r.code + ')</option>';
+    });
+    sel.innerHTML = opts;
+  }).catch(function(){ /* leave the default option */ });
+}
+function zbOnOwnerPick() {
+  var sel = document.getElementById('lc-owner');
+  if (sel && sel.value && ownersByCode[sel.value]) {
+    document.getElementById('lc-company').value = ownersByCode[sel.value];
   }
 }
 
@@ -400,14 +439,16 @@ var pendingZone = (function(){
   var p = new URLSearchParams(location.search);
   var company = (p.get('company')||'').trim();
   var zip = (p.get('zip')||'').replace(/\D/g,'').slice(0,5);
-  return (company || zip) ? { company:company, zip:zip } : null;
+  var owner = (p.get('owner')||'').trim();
+  return (company || zip || owner) ? { company:company, zip:zip, owner:owner } : null;
 })();
 function maybeAutoLaunch(){
   if(!pendingZone) return;
   if(pendingZone.company) document.getElementById('lc-company').value = pendingZone.company;
   if(pendingZone.zip)     document.getElementById('lc-zip').value = pendingZone.zip;
+  if(pendingZone.owner){ var sel=document.getElementById('lc-owner'); if(sel) sel.value = pendingZone.owner; }
   var z = pendingZone; pendingZone = null;
-  if(z.company && /^\d{5}$/.test(z.zip)) buildZone(null, z.company, z.zip);
+  if(z.company && /^\d{5}$/.test(z.zip)) buildZone(null, z.company, z.zip, z.owner || null);
 }
 
 // ── Built Zones overview (groups delivered routes by owner code) ──────────────
@@ -477,10 +518,11 @@ function renderBuiltZones() {
 }
 
 function bzReopen(code, company, zip) {
-  // Re-open the builder for the same company+zip to screen & deliver more homes.
+  // Re-open the builder for the same zone — keep it linked to the same owner code.
   document.getElementById('lc-company').value = company || code;
   document.getElementById('lc-zip').value = zip || '';
-  if (zip && /^\d{5}$/.test(zip)) { buildZone(null, company || code, zip); }
+  var sel = document.getElementById('lc-owner'); if (sel && ownersByCode[code]) sel.value = code;
+  if (zip && /^\d{5}$/.test(zip)) { buildZone(null, company || code, zip, code); }
   else { document.getElementById('lc-company').scrollIntoView({behavior:'smooth',block:'center'}); }
 }
 
@@ -509,32 +551,38 @@ function bzDeliver(code) {
 
 // ── Launch builder from form ──
 function launchBuilder() {
+  var sel = document.getElementById('lc-owner');
+  var linkedCode = sel ? sel.value : '';
   var company = document.getElementById('lc-company').value.trim();
+  if (linkedCode && ownersByCode[linkedCode]) company = ownersByCode[linkedCode];
   var zip     = document.getElementById('lc-zip').value.trim().replace(/\D/g,'').slice(0,5);
   var err     = document.getElementById('lc-err');
-  if (!company) { err.textContent = 'Enter a company name.'; err.style.display = 'block'; return; }
+  if (!company) { err.textContent = 'Pick an owner or enter a company name.'; err.style.display = 'block'; return; }
   if (!/^\d{5}$/.test(zip)) { err.textContent = 'Enter a valid 5-digit zip code.'; err.style.display = 'block'; return; }
   err.style.display = 'none';
-  // Generate a unique session ID
-  var sessionId = 'builder-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
-  buildZone(sessionId, company, zip);
+  buildZone(null, company, zip, linkedCode || null);
 }
 
 // ── Zone Builder ──
 var zbAppId = '', zbZip = '', zbCompany = '', zbLeads = [];
 var zbRawCSV = '';
 
-function buildZone(id, company, zip) {
+function buildZone(id, company, zip, linkedCode) {
   zbZip = zip; zbCompany = company; zbRawCSV = '';
   zbMidSession = false; zbTotalSent = 0; zbKeptLeads = []; zbAllLeads = []; zbScreenIdx = 0;
   document.getElementById('zb-title').textContent = company;
-  document.getElementById('zb-subtitle').textContent = 'Zip Code: ' + zip;
+  document.getElementById('zb-subtitle').textContent = 'Zip Code: ' + zip + (linkedCode ? ' · delivering to ' + linkedCode : '');
   document.getElementById('zb-zip-label').textContent = zip;
   var slug = company.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,20);
-  // Stable per company+zip so screening progress always resumes. (Previously the
-  // id was random per launch, which orphaned saved progress every time.)
+  // Progress key stays per company+zip so screening always resumes.
   zbAppId = slug + '-' + zip;
-  document.getElementById('zb-owner-code').value = zbAppId;
+  // If linked to a signed-up owner, publish under THEIR exact code so the zone
+  // auto-appears in their dashboard — and lock the field so it can't drift.
+  zbLinkedOwnerCode = linkedCode || '';
+  var ocEl = document.getElementById('zb-owner-code');
+  ocEl.value = linkedCode ? linkedCode : zbAppId;
+  ocEl.readOnly = !!linkedCode;
+  ocEl.style.opacity = linkedCode ? '0.65' : '1';
   document.getElementById('zb-filename').style.display = 'none';
   document.getElementById('zb-parse-err').style.display = 'none';
   document.getElementById('zb-extra-zips').value = zip;
