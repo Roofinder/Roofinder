@@ -7,6 +7,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="portal-ui.js" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#e0e4f0;font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
@@ -178,6 +179,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
 .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4caf50;margin-right:5px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 </style>
+<link rel="stylesheet" href="portal.css"/>
 <link rel="icon" type="image/x-icon" href="favicon.ico"/>
 <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png"/>
 <link rel="apple-touch-icon" href="favicon-512.png"/>
@@ -250,15 +252,15 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
   <main>
     <!-- ── DASHBOARD ── -->
     <div class="panel active" id="panel-dashboard">
-      <div id="pocket-card">
-        <div class="pocket-left">
-          <div class="pocket-company" id="d-company">Loading...</div>
-          <div class="pocket-name" id="d-pocket"></div>
-          <div class="pocket-meta" id="d-meta"></div>
+      <div id="zone-card">
+        <div class="zone-left">
+          <div class="zone-company" id="d-company">Loading...</div>
+          <div class="zone-name" id="d-pocket"></div>
+          <div class="zone-meta" id="d-meta"></div>
         </div>
-        <div class="pocket-right">
-          <div class="pocket-stat-big" id="d-active-routes">—</div>
-          <div class="pocket-stat-lbl">Active Routes Today</div>
+        <div class="zone-right">
+          <div class="zone-stat-big" id="d-active-routes">—</div>
+          <div class="zone-stat-lbl"><span class="rf-live-dot" style="margin-right:6px"></span>Active Routes Today</div>
         </div>
       </div>
 
@@ -267,6 +269,30 @@ main{max-width:1100px;margin:0 auto;padding:20px 14px}
         <div class="stat-card"><div class="stat-num green" id="d-total-interested">0</div><div class="stat-lbl">Interested</div></div>
         <div class="stat-card"><div class="stat-num purple" id="d-total-appt">0</div><div class="stat-lbl">Appointments</div></div>
         <div class="stat-card"><div class="stat-num blue" id="d-total-agents">0</div><div class="stat-lbl">Agents Today</div></div>
+      </div>
+
+      <div class="sec-head" style="margin-top:8px">
+        <div>
+          <div class="sec-title">Today's Funnel</div>
+          <div class="sec-sub">From knock to booked appointment</div>
+        </div>
+        <span class="rf-conv-chip" id="d-conv-chip">—</span>
+      </div>
+      <div class="stat-card" style="padding:22px 24px;margin-bottom:32px">
+        <div class="rf-funnel" id="dashboard-funnel">
+          <div class="empty" style="padding:24px"><div class="empty-title">No knocks logged yet today</div></div>
+        </div>
+      </div>
+
+      <div class="sec-head" style="margin-top:8px">
+        <div>
+          <div class="sec-title">Team Leaderboard</div>
+          <div class="sec-sub">Today's top performers — updates live</div>
+        </div>
+        <span style="font-size:11px;font-weight:700;color:#4caf50;display:inline-flex;align-items:center;gap:7px"><span class="rf-live-dot"></span>LIVE</span>
+      </div>
+      <div class="rf-board" id="dashboard-board" style="margin-bottom:32px">
+        <div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No knocks logged yet today</div><div class="empty-sub">Your team's stats will rank here in real time.</div></div>
       </div>
 
       <div class="sec-head" style="margin-top:8px">
@@ -681,7 +707,7 @@ function saveAgent() {
         });
         batch.commit();
       }
-    }).catch(function(e){ alert('Error: ' + e.message); });
+    }).catch(function(e){ RF.alert(e.message, {type:'err'}); });
   } else {
     // Create new agent
     db.collection('agents').add({
@@ -692,8 +718,9 @@ function saveAgent() {
       ownerCode: contractorData.portal || '',
       active: true,
       createdAt: Date.now()
-    }).catch(function(e){ alert('Error: ' + e.message); });
+    }).catch(function(e){ RF.alert(e.message, {type:'err'}); });
   }
+  RF.toast(editingAgentId ? 'Agent updated' : 'Agent added');
   closeAgentModal();
 }
 
@@ -716,13 +743,13 @@ function loadPockets() {
         var code = d.portal || '';
         var company = d.company || '';
         el.innerHTML +=
-          '<div class="pocket-item">' +
+          '<div class="zone-item">' +
             '<div>' +
-              '<div class="pocket-item-name">' + zoneName + (company ? ' — ' + company : '') + '</div>' +
-              '<div class="pocket-item-code">' + code + '</div>' +
+              '<div class="zone-item-name">' + zoneName + (company ? ' — ' + company : '') + '</div>' +
+              '<div class="zone-item-code">' + code + '</div>' +
             '</div>' +
             '<div style="display:flex;align-items:center;gap:12px">' +
-              '<span class="pocket-badge">● Active</span>' +
+              '<span class="zone-badge">● Active</span>' +
               (code ? '<a class="btn-link" href="https://roofinder.online/pocket-builder.html?slug=' + encodeURIComponent(code) + '&auto=1" target="_blank">View Zone →</a>' : '') +
             '</div>' +
           '</div>';
@@ -759,23 +786,37 @@ function renderDashboard() {
   });
   var allActive = allRoutes.filter(function(r){ return r.status !== 'archived'; });
 
-  // Aggregate stats
+  // Aggregate stats + per-agent tallies for the leaderboard
   var totalKnocked = 0, totalInterested = 0, totalAppt = 0, agentNames = new Set();
+  var perAgent = {};
   allActive.forEach(function(r) {
     var st = r.statuses || {};
+    var name = r.agentName || 'Unassigned';
+    if (!perAgent[name]) perAgent[name] = { knocked:0, interested:0, appt:0 };
     Object.values(st).forEach(function(s) {
-      if (s !== 'pending') totalKnocked++;
-      if (s === 'interested') totalInterested++;
-      if (s === 'appointment') totalAppt++;
+      if (s !== 'pending') { totalKnocked++; perAgent[name].knocked++; }
+      if (s === 'interested') { totalInterested++; perAgent[name].interested++; }
+      if (s === 'appointment') { totalAppt++; perAgent[name].appt++; }
     });
     if (r.agentName) agentNames.add(r.agentName);
   });
 
-  document.getElementById('d-active-routes').textContent = activeRoutes.length;
-  document.getElementById('d-total-knocked').textContent = totalKnocked;
-  document.getElementById('d-total-interested').textContent = totalInterested;
-  document.getElementById('d-total-appt').textContent = totalAppt;
-  document.getElementById('d-total-agents').textContent = agentNames.size;
+  if (window.RF) {
+    RF.countUp(document.getElementById('d-active-routes'), activeRoutes.length);
+    RF.countUp(document.getElementById('d-total-knocked'), totalKnocked);
+    RF.countUp(document.getElementById('d-total-interested'), totalInterested);
+    RF.countUp(document.getElementById('d-total-appt'), totalAppt);
+    RF.countUp(document.getElementById('d-total-agents'), agentNames.size);
+  } else {
+    document.getElementById('d-active-routes').textContent = activeRoutes.length;
+    document.getElementById('d-total-knocked').textContent = totalKnocked;
+    document.getElementById('d-total-interested').textContent = totalInterested;
+    document.getElementById('d-total-appt').textContent = totalAppt;
+    document.getElementById('d-total-agents').textContent = agentNames.size;
+  }
+
+  renderFunnel(totalKnocked, totalInterested, totalAppt);
+  renderLeaderboard(perAgent);
 
   var container = document.getElementById('dashboard-routes');
   if (!activeRoutes.length) {
@@ -783,6 +824,66 @@ function renderDashboard() {
     return;
   }
   container.innerHTML = activeRoutes.map(function(r) { return routeCardHtml(r); }).join('');
+}
+
+// ── Render Conversion Funnel ──────────────────────────────────────────────
+function renderFunnel(knocked, interested, appt) {
+  var el = document.getElementById('dashboard-funnel');
+  var chip = document.getElementById('d-conv-chip');
+  if (!el) return;
+  if (!knocked) {
+    el.innerHTML = '<div class="empty" style="padding:24px"><div class="empty-title">No knocks logged yet today</div></div>';
+    if (chip) chip.textContent = '—';
+    return;
+  }
+  var rows = [
+    { l:'Doors Knocked', v:knocked,    cls:'s1' },
+    { l:'Interested',    v:interested, cls:'s2' },
+    { l:'Appointments',  v:appt,       cls:'s3' }
+  ];
+  el.innerHTML = rows.map(function(r) {
+    var share = Math.round(r.v / knocked * 100);
+    return '<div class="rf-funnel-row">'
+      + '<div class="rf-funnel-meta"><div class="l">' + r.l + '</div><div class="p">' + share + '% of knocks</div></div>'
+      + '<div class="rf-funnel-track"><div class="rf-funnel-bar ' + r.cls + '" data-w="' + share + '">' + r.v + '</div></div>'
+      + '</div>';
+  }).join('');
+  el.querySelectorAll('.rf-funnel-bar').forEach(function(bar) {
+    void bar.offsetWidth; // commit the 0% base so the width change animates
+    bar.style.width = Math.max(6, parseInt(bar.getAttribute('data-w'), 10)) + '%';
+  });
+  if (chip) chip.textContent = Math.round(appt / knocked * 100) + '% booked';
+}
+
+// ── Render Team Leaderboard ───────────────────────────────────────────────
+function renderLeaderboard(perAgent) {
+  var el = document.getElementById('dashboard-board');
+  if (!el) return;
+  var rows = Object.keys(perAgent)
+    .filter(function(n){ return n !== 'Unassigned' && perAgent[n].knocked > 0; })
+    .map(function(n){ return { name:n, s:perAgent[n] }; })
+    .sort(function(a,b){
+      return (b.s.appt - a.s.appt) || (b.s.interested - a.s.interested) || (b.s.knocked - a.s.knocked);
+    });
+  if (!rows.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏆</div><div class="empty-title">No knocks logged yet today</div><div class="empty-sub">Your team\'s stats will rank here in real time.</div></div>';
+    return;
+  }
+  var maxKnocked = Math.max.apply(null, rows.map(function(r){ return r.s.knocked; })) || 1;
+  el.innerHTML = rows.map(function(r, i) {
+    var rank = i + 1;
+    var topCls = rank <= 3 ? ' top' + rank : '';
+    var rate = r.s.knocked > 0 ? Math.round(r.s.interested / r.s.knocked * 100) : 0;
+    return '<div class="rf-board-row' + topCls + '">'
+      + '<div class="rf-board-rank">' + rank + '</div>'
+      + '<div style="flex:1;min-width:0">'
+        + '<div class="rf-board-name">' + r.name + '</div>'
+        + '<div class="rf-board-sub">' + r.s.knocked + ' knocked · ' + rate + '% interested</div>'
+        + '<div class="rf-board-bar"><i style="width:' + Math.round(r.s.knocked / maxKnocked * 100) + '%"></i></div>'
+      + '</div>'
+      + '<div class="rf-board-metric"><div class="v">' + r.s.appt + '</div><div class="l">appts</div></div>'
+      + '</div>';
+  }).join('');
 }
 
 // ── Render All Routes ─────────────────────────────────────────────────────
@@ -923,7 +1024,7 @@ function editAgent(oldName) {
         batch.update(db.collection('agentRoutes').doc(r.routeCode), { agentName: newName });
       }
     });
-    batch.commit().catch(function(e){ alert('Error: ' + e.message); });
+    batch.commit().catch(function(e){ RF.alert(e.message, {type:'err'}); });
     closeAgentModal();
     document.querySelector('#agent-modal .btn-primary').onclick = saveAgent;
   };
@@ -932,12 +1033,21 @@ function editAgent(oldName) {
 // ── Remove Agent ──────────────────────────────────────────────────────────
 function removeAgent(name) {
   var routes = allRoutes.filter(function(r){ return r.agentName === name; });
-  if (!confirm('Remove agent "' + name + '"?\n\nThis will archive all ' + routes.length + ' of their routes. Stats will be preserved in history.')) return;
-  var batch = db.batch();
-  routes.forEach(function(r) {
-    batch.update(db.collection('agentRoutes').doc(r.routeCode), { status: 'archived', agentRemoved: true });
+  RF.confirm({
+    danger: true,
+    title: 'Remove ' + name + '?',
+    msg: 'This archives all ' + routes.length + ' of their route' + (routes.length===1?'':'s') + '. Their stats stay in your history.',
+    okText: 'Remove agent'
+  }).then(function(ok){
+    if (!ok) return;
+    var batch = db.batch();
+    routes.forEach(function(r) {
+      batch.update(db.collection('agentRoutes').doc(r.routeCode), { status: 'archived', agentRemoved: true });
+    });
+    batch.commit()
+      .then(function(){ RF.toast(name + ' removed'); })
+      .catch(function(e){ RF.alert(e.message, {type:'err', title:'Could not remove agent'}); });
   });
-  batch.commit().catch(function(e) { alert('Error removing agent: ' + e.message); });
 }
 
 // ── Create Route ──────────────────────────────────────────────────────────
@@ -960,7 +1070,7 @@ function createRoute() {
   var name = document.getElementById('cr-name').value.trim();
   var agentName = document.getElementById('cr-agent').value.trim();
   var notes = document.getElementById('cr-notes').value.trim();
-  if (!name) { alert('Please enter a route name.'); return; }
+  if (!name) { RF.toast('Enter a route name first', {type:'warn'}); document.getElementById('cr-name').focus(); return; }
 
   var zoneCode = (contractorData.portal || 'ROUTE').toUpperCase().replace(/-/g,'').slice(0,8);
   var datePart = new Date().toISOString().slice(2,10).replace(/-/g,'');
@@ -991,7 +1101,8 @@ function createRoute() {
     document.getElementById('cr-link-section').style.display = 'block';
     document.getElementById('cr-actions').style.display = 'none';
     document.getElementById('cr-done-actions').style.display = 'block';
-  }).catch(function(e) { alert('Error creating route: ' + e.message); });
+    RF.toast('Route created');
+  }).catch(function(e) { RF.alert(e.message, {type:'err', title:'Could not create route'}); });
 }
 
 function copyCreatedLink() {
@@ -1001,13 +1112,33 @@ function copyCreatedLink() {
 }
 
 function archiveRoute(code) {
-  if (!confirm('Archive this route?')) return;
-  db.collection('agentRoutes').doc(code).update({ status: 'archived' });
+  RF.confirm({
+    title: 'Archive this route?',
+    msg: 'It moves out of your active list but stays in history. You can still see its stats.',
+    okText: 'Archive'
+  }).then(function(ok){
+    if (!ok) return;
+    db.collection('agentRoutes').doc(code).update({ status: 'archived' })
+      .then(function(){
+        RF.toast('Route archived', { undo: function(){
+          db.collection('agentRoutes').doc(code).update({ status: 'active' });
+          RF.toast('Route restored');
+        }});
+      });
+  });
 }
 
 function deleteRoute(code) {
-  if (!confirm('Permanently delete this route and all its data?')) return;
-  db.collection('agentRoutes').doc(code).delete();
+  RF.confirm({
+    danger: true,
+    title: 'Delete this route?',
+    msg: 'This permanently removes the route and all its door data. This can\'t be undone.',
+    okText: 'Delete forever'
+  }).then(function(ok){
+    if (!ok) return;
+    db.collection('agentRoutes').doc(code).delete()
+      .then(function(){ RF.toast('Route deleted'); });
+  });
 }
 
 // ── Route Detail (Live View) ───────────────────────────────────────────────
