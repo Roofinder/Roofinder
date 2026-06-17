@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="canonical" href="https://roofinder.online/"/>
 <meta name="google-site-verification" content="nJKujr38KOhyYCNo_7M7fxcOwZAs8rS2Np0hvruh7Ks" />
-<title>RooFinder — Exclusive Roofing Territories for Sales Teams</title>
-<meta name="description" content="Claim an exclusive zip-code territory and get pre-qualified homeowner leads, built-in CRM, daily routes, and a mobile team app. One zone per contractor — anywhere in the US."/>
+<title>RooFinder — We Win When You Win | Roofing Sales Partnership</title>
+<meta name="description" content="Revenue-share roofing partnership. No upfront cost — get an exclusive zone of pre-qualified homeowners, full CRM, routes, and team app. Pay only from deals you close."/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -318,7 +318,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
 /* CTA form inputs focus ring animation */
 @keyframes border-pulse{0%{box-shadow:0 0 0 0 rgba(76,175,80,.3)}100%{box-shadow:0 0 0 4px rgba(76,175,80,0)}}
 </style>
-<meta property="og:title" content="RooFinder — Own Your Roofing Zone"/>
+<meta property="og:title" content="RooFinder — We Win When You Win"/>
 <meta property="og:description" content="Lock down your zip code. Pre-qualified leads, built-in CRM, daily routes, and a mobile app for your team. Apply to partner with RooFinder."/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://roofinder.online/"/>
@@ -397,9 +397,21 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">The Future of Roofing Sales</div>
-    <h1 class="hero-headline">Own Your Zone.<br>Run Your Team.<br><span>Anywhere.</span></h1>
-    <p class="hero-sub">Most crews are knocking whatever doors their gut says — competing with three other companies for the same worn-out leads, with no system and no visibility. RooFinder locks in your exclusive zone of pre-qualified homes and gives you everything to run your team from the door to the close.</p>
+    <!-- partnership badge replaced -->
+    <h1 class="hero-headline">We Win When<br><span>You Win.</span></h1>
+    <!-- partnership badge -->
+    <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(76,175,80,0.08);border:1px solid rgba(76,175,80,0.25);border-radius:100px;padding:8px 20px;margin-bottom:20px">
+      <div style="width:7px;height:7px;border-radius:50%;background:#4caf50;box-shadow:0 0 8px rgba(76,175,80,0.8);flex-shrink:0"></div>
+      <span style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#4caf50">Revenue-Share Partnership &mdash; Zero Upfront Cost</span>
+    </div>
+    <p class="hero-sub">No monthly fees. No risk. RooFinder builds your exclusive zone of pre-qualified homeowners, gives your team the tools to knock efficiently, and takes a small cut only when you close. If you don't close, we don't get paid.</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap;margin-bottom:40px">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888"><span style="color:#4caf50;font-weight:700">✓</span> Exclusive territory — yours alone</div>
+      <div style="width:1px;height:16px;background:rgba(255,255,255,0.1)"></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888"><span style="color:#4caf50;font-weight:700">✓</span> Pre-qualified roofs, built in 48 hrs</div>
+      <div style="width:1px;height:16px;background:rgba(255,255,255,0.1)"></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#888"><span style="color:#4caf50;font-weight:700">✓</span> Pay only from deals you close</div>
+    </div>
 
     <!-- ZIP SEARCH -->
     <div id="zip-search-box">
@@ -408,7 +420,7 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
           <svg id="zip-pin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
           <input id="zip-input" type="text" inputmode="numeric" maxlength="5" placeholder="Enter your zip code" autocomplete="postal-code"/>
         </div>
-        <button id="zip-search-btn" onclick="searchTerritory()">Find My Zone →</button>
+        <button id="zip-search-btn" onclick="searchTerritory()">Check My Zone →</button>
       </div>
       <div id="zip-err" style="display:none;color:#ff5555;font-size:12px;margin-top:10px">Please enter a valid 5-digit zip code.</div>
     </div>
@@ -421,18 +433,23 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
           <div id="zip-city-label" style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.3px"></div>
           <div style="font-size:11px;color:#666;margin-top:3px">Exclusive zone · pre-qualified homes</div>
         </div>
-        <button onclick="claimZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:10px 22px;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;letter-spacing:-.2px">Claim This Zone →</button>
+        <button onclick="claimZone()" style="background:#4caf50;color:#000;font-weight:800;font-size:13px;padding:10px 22px;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;letter-spacing:-.2px">Apply to Partner →</button>
       </div>
     </div>
 
     <div class="hero-proof">
       <div class="hero-proof-dot"></div>
-      One zone at a time &mdash; work it, then get another
+      One exclusive zone per contractor &mdash; once it's claimed, it's gone
     </div>
     <div class="hero-stats">
       <div>
+        <div class="hero-stat-num" style="color:var(--green)">$0</div>
+        <div class="hero-stat-lbl">To Get Started</div>
+      </div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div>
         <div class="hero-stat-num">100s</div>
-        <div class="hero-stat-lbl">Pre-Qualified Homes Per Zone</div>
+        <div class="hero-stat-lbl">Pre-Qualified Homes</div>
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
@@ -441,13 +458,8 @@ nav.scrolled{box-shadow:0 4px 32px rgba(0,0,0,.6)}
       </div>
       <div style="width:1px;height:40px;background:var(--border)"></div>
       <div>
-        <div class="hero-stat-num">1 Zone</div>
-        <div class="hero-stat-lbl">Per Contractor</div>
-      </div>
-      <div style="width:1px;height:40px;background:var(--border)"></div>
-      <div>
-        <div class="hero-stat-num" style="color:var(--green)">0%</div>
-        <div class="hero-stat-lbl">Upfront Cost</div>
+        <div class="hero-stat-num">1</div>
+        <div class="hero-stat-lbl">Partner Per Zone</div>
       </div>
     </div>
   </div>
