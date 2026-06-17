@@ -77,9 +77,9 @@ module.exports = async function handler(req, res) {
 
     // Step 2: Fetch Street View images — pitched up, moderate FOV (sharp), 640x640.
     const shots = [
-      { heading: 0,   pitch: 35, fov: 80, label: 'North' },
-      { heading: 120, pitch: 35, fov: 80, label: 'SE'    },
-      { heading: 240, pitch: 35, fov: 80, label: 'SW'    },
+      { heading: 0,   pitch: 12, fov: 80, label: 'North' },
+      { heading: 120, pitch: 12, fov: 80, label: 'SE'    },
+      { heading: 240, pitch: 12, fov: 80, label: 'SW'    },
     ];
 
     const imageResults = await Promise.all(shots.map(function(shot) {
