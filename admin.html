@@ -745,7 +745,7 @@ function renderPockets() {
     var date = c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric'}) : '—';
     var portalSlug = c.portal || '';
     var portalBtn = portalSlug
-      ? '<a class="portal-link" href="https://roofinder.online/pocket-builder.html?slug=' + portalSlug.toLowerCase() + '" target="_blank">View Portal ↗</a>'
+      ? '<a class="portal-link" href="https://roofinder.online/builder.html" target="_blank">Zone Builder ↗</a>'
       : '—';
     return '<tr>'
       + '<td><div class="cell-name">' + (c.pocket||'—') + '</div></td>'
@@ -799,7 +799,7 @@ function loadActivity() {
     var card = document.createElement('div');
     card.className = 'activity-card';
     card.id = 'ac-' + c.id;
-    card.innerHTML = '<div class="ac-head"><div><div class="ac-pocket">' + (c.pocket||'Pocket') + '</div><div class="ac-contractor">' + (c.fname||'') + ' ' + (c.lname||'') + ' &middot; ' + (c.company||'') + '</div></div><a class="portal-link" href="https://roofinder.online/pocket-builder.html?slug=' + c.portal.toLowerCase() + '" target="_blank">Open ↗</a></div>'
+    card.innerHTML = '<div class="ac-head"><div><div class="ac-pocket">' + (c.pocket||'Pocket') + '</div><div class="ac-contractor">' + (c.fname||'') + ' ' + (c.lname||'') + ' &middot; ' + (c.company||'') + '</div></div><a class="portal-link" href="https://roofinder.online/builder.html" target="_blank">Zone Builder ↗</a></div>'
       + '<div class="ac-stats"><div><div class="ac-stat-num" id="acn-total-' + c.id + '">—</div><div class="ac-stat-lbl">Leads</div></div><div><div class="ac-stat-num green" id="acn-knocked-' + c.id + '">0</div><div class="ac-stat-lbl">Knocked</div></div><div><div class="ac-stat-num yellow" id="acn-int-' + c.id + '">0</div><div class="ac-stat-lbl">Interested</div></div><div><div class="ac-stat-num blue" id="acn-closed-' + c.id + '">0</div><div class="ac-stat-lbl">Closed</div></div></div>'
       + '<div class="ac-bar"><div class="ac-bar-fill" id="acb-' + c.id + '" style="width:0%"></div></div>'
       + '<div class="ac-bar-label"><span>Progress</span><span id="acpct-' + c.id + '">0%</span></div>';
