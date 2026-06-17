@@ -124,7 +124,8 @@ module.exports = async function handler(req, res) {
     // Step 2: LEAN single-pass — 2 aimed photos of the house (overview + zoomed detail).
     const head = aim;  // numeric bearing toward the house, or null => Google auto-aims at the location
     const shots = (await Promise.all([
-      fetchShot(GMAPS_KEY, lat, lng, head, 20, 55, 'zoom'),
+      fetchShot(GMAPS_KEY, lat, lng, head, 15, 78, 'overview'),
+      fetchShot(GMAPS_KEY, lat, lng, head, 15, 55, 'zoom'),
     ])).filter(Boolean);
     if (!shots.length) {
       return res.status(200).json({ score: 'pass', confidence: 'low', reasoning: 'No Street View imagery for this address.', address, image_date, geo_precision, image_count: 0, roof_visible: false, version: VERSION });
