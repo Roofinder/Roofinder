@@ -412,6 +412,21 @@ main{max-width:1300px;margin:0 auto;padding:32px 24px}
 </div>
 
 <script>
+// ── Firebase ─────────────────────────────────────────────────────
+var db = null;
+try {
+  var _fbCfg = {
+    apiKey: "AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U",
+    authDomain: "roofinder-1c01f.firebaseapp.com",
+    projectId: "roofinder-1c01f",
+    storageBucket: "roofinder-1c01f.firebasestorage.app",
+    messagingSenderId: "620983726110",
+    appId: "1:620983726110:web:6088bd5c53a9a8e0b27e0f"
+  };
+  firebase.initializeApp(_fbCfg);
+  db = firebase.firestore();
+} catch(e) { console.warn('Firebase init:', e.message); }
+
 // ── Auth ─────────────────────────────────────────────────────────
 var ADMIN_PW = 'ROOFADMIN1';
 function tryLogin() {
@@ -431,20 +446,7 @@ if (localStorage.getItem('rf_admin_auth') === '1') {
   initDashboard();
 }
 
-// ── Firebase ─────────────────────────────────────────────────────
-var db = null;
-try {
-  var _fbCfg = {
-    apiKey: "AIzaSyBopCB1AwXGJmFh7xkDpxKzbhzlqAD6M1U",
-    authDomain: "roofinder-1c01f.firebaseapp.com",
-    projectId: "roofinder-1c01f",
-    storageBucket: "roofinder-1c01f.firebasestorage.app",
-    messagingSenderId: "620983726110",
-    appId: "1:620983726110:web:6088bd5c53a9a8e0b27e0f"
-  };
-  firebase.initializeApp(_fbCfg);
-  db = firebase.firestore();
-} catch(e) { console.warn('Firebase init:', e.message); }
+
 
 // ── Zip Queue ────────────────────────────────────────────────────
 var _addressQueue = [];
