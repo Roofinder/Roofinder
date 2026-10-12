@@ -17,7 +17,18 @@ const LABELS = {
   },
   roofAge: { u10: 'Under 10 years', '10to20': '10 to 20 years', o20: 'Over 20 years', unsure: 'Not sure' },
   timeline: { asap: 'ASAP', '1month': 'Within a month', '3months': 'Within 3 months', justlooking: 'Just getting estimates' },
-  solar: { yes: 'Yes', maybe: 'Maybe', no: 'No' }
+  solar: { yes: 'Yes', maybe: 'Maybe', no: 'No' },
+  // /attic-check
+  atticProblem: {
+    hot_cold: 'Upstairs too hot or too cold',
+    bills: 'Energy bills feel high',
+    drafts: 'Drafts or uneven temperatures',
+    moisture: 'Moisture, mold or musty attic',
+    thin: 'Insulation looks thin or old',
+    check: 'Just wants it checked'
+  },
+  homeAge: { pre1980: 'Before 1980', '1980to2000': '1980 to 2000', '2000to2015': '2000 to 2015', post2015: 'After 2015', unsure: 'Not sure' },
+  roofToo: { yes: 'Yes', maybe: 'Maybe', no: 'No' }
 };
 
 function clean(v, max) {
@@ -28,18 +39,23 @@ function esc(s) {
 }
 function label(group, v) { return (LABELS[group] && LABELS[group][v]) || v || '--'; }
 
-async function sendAlert(lead) {
+async function sendAlert(lead, extra) {
   const key = process.env.RESEND_API_KEY;
   const to = (process.env.LEAD_TO || '').split(',').map(s => s.trim()).filter(Boolean);
   if (!key || !to.length) return { ok: false, skipped: true };
 
+  const attic = extra.service === 'attic';
   const digits = lead.phone.replace(/\D/g, '');
   const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(lead.address + ' ' + lead.zip);
+  const problemLabel = attic ? label('atticProblem', extra.problem) : label('problem', lead.problem);
   const rows = [
-    ['Problem', label('problem', lead.problem)],
-    ['Roof age', label('roofAge', lead.roofAge)],
+    ['Service', attic ? 'Attic insulation / ventilation' : 'Roof'],
+    ['Problem', problemLabel],
+    ...(attic
+      ? [['Home built', label('homeAge', extra.homeAge)], ['Roof check too', label('roofToo', extra.roofToo)]]
+      : [['Roof age', label('roofAge', lead.roofAge)]]),
     ['Timeline', label('timeline', lead.timeline)],
-    ['Solar too', label('solar', lead.solar)],
+    ...(attic ? [] : [['Solar too', label('solar', lead.solar)]]),
     ['Address', lead.address + ', ' + lead.zip],
     ['Email', lead.email || '--'],
     ['Source', [lead.utm_source, lead.utm_campaign, lead.utm_content].filter(Boolean).join(' / ') || lead.area || 'direct']
@@ -60,7 +76,7 @@ async function sendAlert(lead) {
     body: JSON.stringify({
       from: process.env.LEAD_FROM || 'RooFinder Leads <leads@notify.nicelywebdesign.com>',
       to,
-      subject: 'Roof lead: ' + lead.name + ', ' + lead.zip + ' (' + label('problem', lead.problem) + ')',
+      subject: (attic ? 'Attic lead: ' : 'Roof lead: ') + lead.name + ', ' + lead.zip + ' (' + problemLabel + ')',
       html
     })
   });
@@ -85,6 +101,14 @@ export default async function handler(req, res) {
   // Honeypot: real people never see or fill this field.
   if (clean(b.company)) return res.status(200).json({ ok: true });
 
+  // Attic leads keep their extra answers out of the Firestore document (the security rule
+  // whitelists field names) and fold a readable summary into `problem` instead.
+  const extra = {
+    service: b.service === 'attic' ? 'attic' : 'roof',
+    problem: clean(b.problem, 20),
+    homeAge: clean(b.homeAge, 20),
+    roofToo: clean(b.roofToo, 10)
+  };
   const lead = {
     name: clean(b.name, 80),
     phone: clean(b.phone, 20),
@@ -102,7 +126,7 @@ export default async function handler(req, res) {
     utm_content: clean(b.utm_content, 120),
     consent: b.consent ? 'yes' : 'no',
     consentText: clean(b.consentText, 600),
-    page: '/roof-check',
+    page: extra.service === 'attic' ? '/attic-check' : '/roof-check',
     type: 'homeowner_lead',
     status: 'new',
     createdAt: new Date().toISOString()
@@ -113,9 +137,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'Missing or invalid fields' });
   }
   lead.phone = '(' + digits.slice(0, 3) + ') ' + digits.slice(3, 6) + '-' + digits.slice(6);
+  if (extra.service === 'attic') {
+    lead.problem = ['ATTIC', label('atticProblem', extra.problem), 'built ' + label('homeAge', extra.homeAge),
+      'roof too: ' + label('roofToo', extra.roofToo)].join(' | ').slice(0, 300);
+    lead.roofAge = '';
+    lead.solar = '';
+  }
 
   let alert = { ok: false }, saved = { ok: false };
-  try { alert = await sendAlert(lead); } catch (e) { alert = { ok: false, error: String(e) }; }
+  try { alert = await sendAlert(lead, extra); } catch (e) { alert = { ok: false, error: String(e) }; }
   try { saved = await saveLead(lead); } catch (e) { saved = { ok: false, error: String(e) }; }
 
   if (!alert.ok && !saved.ok) {

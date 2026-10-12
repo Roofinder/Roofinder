@@ -12,7 +12,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/roof-check", "destination": "/roof-check.html" }
+    { "source": "/roof-check", "destination": "/roof-check.html" },
+    { "source": "/attic-check", "destination": "/attic-check.html" }
   ],
   "redirects": [
     { "source": "/homeowners.html", "destination": "/roof-check", "permanent": false },

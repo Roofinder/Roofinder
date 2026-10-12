@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Free Attic Insulation Check for Homeowners | RooFinder</title>
+<meta name="description" content="A local pro measures your attic insulation, checks ventilation and air leaks, and shows you photos. Free, and you decide what happens next."/>
+<meta name="robots" content="noindex, follow"/>
+<link rel="canonical" href="https://roofinder.online/attic-check"/>
+<meta property="og:title" content="Upstairs too hot? Check the attic first"/>
+<meta property="og:description" content="A free attic insulation and ventilation check from a local pro, with photos of what they find."/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://roofinder.online/attic-check"/>
+<meta property="og:image" content="https://roofinder.online/og-image.png"/>
+<link rel="icon" href="/favicon.ico"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f6f5f1;
+  --card:#fff;
+  --ink:#15171a;
+  --muted:#5b6068;
+  --line:#e3e1da;
+  --green:#2e7d32;
+  --green-hi:#4caf50;
+  --green-tint:#eaf4ea;
+  --warn:#8a5a00;
+  --warn-tint:#fff6e0;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.55;overflow-x:hidden}
+a{color:var(--green)}
+button,input{font-family:inherit}
+
+/* header */
+.top{border-bottom:1px solid var(--line);background:var(--bg)}
+.top-in{max-width:1120px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:900;font-size:18px;letter-spacing:-.5px;color:var(--ink);text-decoration:none}
+.logo span{color:var(--green-hi)}
+.top-link{font-size:14px;font-weight:600;color:var(--muted);text-decoration:none}
+.top-link:hover{color:var(--ink)}
+
+/* hero */
+.hero{max-width:1120px;margin:0 auto;padding:48px 20px 64px;display:grid;grid-template-columns:1fr 460px;gap:56px;align-items:start}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--green);background:var(--green-tint);padding:6px 12px;border-radius:100px;margin-bottom:22px}
+.eyebrow svg{flex-shrink:0}
+h1{font-size:clamp(36px,5.2vw,60px);font-weight:900;letter-spacing:-.035em;line-height:1.04;margin-bottom:22px}
+h1 em{font-style:normal;color:var(--green);background:linear-gradient(transparent 68%,rgba(76,175,80,.22) 68%)}
+.lede{font-size:19px;color:var(--muted);max-width:520px;margin-bottom:30px}
+.points{list-style:none;display:grid;gap:14px;max-width:500px}
+.points li{display:flex;gap:12px;font-size:16px}
+.points svg{flex-shrink:0;margin-top:3px;color:var(--green)}
+.points b{font-weight:700}
+
+/* form card */
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 12px 32px rgba(20,24,20,.07);padding:26px 24px 22px;scroll-margin-top:16px}
+.progress{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.progress-txt{font-size:13px;font-weight:600;color:var(--muted)}
+.bars{display:flex;gap:6px}
+.bars i{width:34px;height:5px;border-radius:5px;background:var(--line)}
+.bars i.on{background:var(--green-hi)}
+.q{font-size:21px;font-weight:800;letter-spacing:-.02em;line-height:1.25;margin-bottom:16px}
+.sub-q{font-size:14px;font-weight:700;margin:18px 0 9px}
+.sub-q:first-of-type{margin-top:0}
+.opts{display:grid;gap:9px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:14px 15px;font-size:16px;font-weight:600;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+.opt:hover{border-color:#c9c6bb}
+.opt .dot{width:20px;height:20px;border-radius:50%;border:2px solid #c9c6bb;flex-shrink:0;display:grid;place-items:center}
+.opt[aria-pressed="true"]{border-color:var(--green-hi);background:var(--green-tint)}
+.opt[aria-pressed="true"] .dot{border-color:var(--green);background:var(--green)}
+.opt[aria-pressed="true"] .dot::after{content:"";width:7px;height:7px;border-radius:50%;background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:#fff;border:1.5px solid var(--line);border-radius:100px;padding:10px 15px;font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;transition:border-color .15s,background .15s}
+.chip:hover{border-color:#c9c6bb}
+.chip[aria-pressed="true"]{border-color:var(--green-hi);background:var(--green-tint);color:var(--green)}
+.note{display:none;margin-top:12px;font-size:14px;background:var(--warn-tint);color:var(--warn);border-radius:10px;padding:11px 13px}
+.note.show{display:block}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.field label small{font-weight:500;color:var(--muted)}
+.field input{width:100%;font-size:16px;padding:13px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--green-hi)}
+.field input.bad{border-color:#c0392b}
+.row2{display:grid;grid-template-columns:1fr 120px;gap:10px}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--muted);line-height:1.5;margin:6px 0 16px;cursor:pointer}
+.consent input{width:18px;height:18px;margin-top:1px;flex-shrink:0;accent-color:var(--green)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--green);color:#fff;border:none;border-radius:12px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;transition:background .15s,opacity .15s;text-decoration:none}
+.btn:hover{background:#256b29}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.nav-row{display:flex;gap:10px;margin-top:18px}
+.back{background:none;border:1.5px solid var(--line);border-radius:12px;padding:0 18px;font-size:15px;font-weight:700;color:var(--muted);cursor:pointer}
+.under{font-size:13px;color:var(--muted);text-align:center;margin-top:12px}
+.err{display:none;font-size:14px;color:#a3281b;background:#fdecea;border-radius:10px;padding:11px 13px;margin-bottom:12px}
+.err.show{display:block}
+.step{display:none}
+.step.on{display:block}
+.done{text-align:center;padding:10px 4px 6px}
+.done-mark{width:56px;height:56px;border-radius:50%;background:var(--green-tint);color:var(--green);display:grid;place-items:center;margin:0 auto 16px}
+.done h2{font-size:24px;font-weight:900;letter-spacing:-.02em;margin-bottom:10px}
+.done p{color:var(--muted);margin-bottom:10px}
+
+/* sections */
+.sec{border-top:1px solid var(--line);padding:72px 20px}
+.sec-in{max-width:1120px;margin:0 auto}
+.kicker{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:12px}
+h2.t{font-size:clamp(28px,3.6vw,40px);font-weight:900;letter-spacing:-.03em;line-height:1.1;margin-bottom:14px;max-width:720px}
+.t-sub{font-size:17px;color:var(--muted);max-width:620px}
+.steps{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px;counter-reset:s}
+.steps li{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 22px;counter-increment:s}
+.steps li::before{content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;font-weight:800;font-size:15px;margin-bottom:14px}
+.steps h3{font-size:18px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em}
+.steps p{color:var(--muted);font-size:15px}
+
+.check{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;margin-top:36px}
+.house{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.house svg{display:block;width:100%;height:auto}
+.check-list{list-style:none;display:grid;gap:16px}
+.check-list li{display:grid;grid-template-columns:30px 1fr;gap:12px}
+.num{width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;font-weight:800;font-size:14px;display:grid;place-items:center}
+.check-list h3{font-size:16px;font-weight:800;margin-bottom:2px}
+.check-list p{font-size:15px;color:var(--muted)}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.prose p{font-size:17px;color:var(--muted);margin-bottom:14px}
+.prose p b{color:var(--ink)}
+.signs{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+.signs h3{font-size:17px;font-weight:800;margin-bottom:14px}
+.signs ul{list-style:none;display:grid;gap:12px}
+.signs li{display:flex;gap:10px;font-size:15px}
+.signs svg{flex-shrink:0;margin-top:3px;color:var(--green)}
+
+.solar{background:var(--ink);color:#fff;border-radius:20px;padding:40px 36px;display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center}
+.solar-ico{width:64px;height:64px;border-radius:16px;background:rgba(76,175,80,.16);color:var(--green-hi);display:grid;place-items:center}
+.solar h2{font-size:clamp(24px,3vw,32px);font-weight:900;letter-spacing:-.02em;margin-bottom:8px}
+.solar p{color:#c4c8ce;font-size:16px;max-width:680px}
+
+.faq{max-width:780px;margin-top:28px}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;cursor:pointer;padding:20px 36px 20px 0;font-size:17px;font-weight:700;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"";position:absolute;right:6px;top:50%;width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.faq details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.faq p{color:var(--muted);font-size:16px;padding:0 0 20px}
+
+.final{text-align:center}
+.final .t,.final .t-sub{margin-left:auto;margin-right:auto}
+.final .btn{display:inline-flex;width:auto;padding:16px 32px;margin-top:26px}
+
+.quick{display:none;flex-wrap:wrap;gap:6px 14px;margin-top:16px;font-size:14px;font-weight:600;color:var(--ink)}
+.quick span{display:inline-flex;align-items:center;gap:6px}
+.quick span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green-hi)}
+.area{font-size:13px;color:var(--muted);text-align:center;margin-top:14px}
+.btn-inline{display:inline-flex;width:auto;padding:14px 24px;margin-top:22px;font-size:16px}
+.report-wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:center}
+.report{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px rgba(20,24,20,.07);overflow:hidden}
+.report-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);font-size:15px}
+.report-head span{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:3px 9px}
+.report ul{list-style:none}
+.report li{display:flex;gap:14px;align-items:flex-start;padding:14px 20px;border-bottom:1px solid var(--line)}
+.report li b{display:block;font-size:15px}
+.report li small{display:block;font-size:14px;color:var(--muted);line-height:1.45}
+.tag{flex:none;width:88px;text-align:center;font-size:12px;font-weight:800;border-radius:7px;padding:4px 0;margin-top:1px}
+.tag.ok{background:var(--green-tint);color:var(--green)}
+.tag.fix{background:#fdecea;color:#a3281b}
+.tag.plan{background:var(--warn-tint);color:var(--warn)}
+.report-foot{padding:14px 20px;font-size:14px;background:#fafaf7}
+.sticky{display:none}
+@media(max-width:960px){.report-wrap{grid-template-columns:1fr;gap:28px}}
+@media(max-width:700px){
+  .quick{display:flex}
+  .sticky{display:block;position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--green);color:#fff;text-align:center;font-weight:800;font-size:16px;padding:15px;border-radius:12px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.18);transform:translateY(140%);transition:transform .2s}
+  .sticky.show{transform:none}
+  footer{padding-bottom:90px}
+}
+footer{border-top:1px solid var(--line);padding:32px 20px 40px;text-align:center;font-size:13px;color:var(--muted)}
+footer p{max-width:640px;margin:0 auto 8px}
+.verse{font-style:italic;margin-top:14px}
+
+@media(max-width:960px){
+  .hero{grid-template-columns:1fr;gap:32px;padding-top:32px}
+  .points{display:none}
+  .check,.split{grid-template-columns:1fr;gap:28px}
+}
+@media(max-width:700px){
+  .steps{grid-template-columns:1fr}
+  .solar{grid-template-columns:1fr;padding:30px 24px}
+  .sec{padding:56px 16px}
+  .hero{padding-left:16px;padding-right:16px}
+  .top-in{padding:0 16px}
+  .lede{font-size:17px;margin-bottom:0}
+  .card{padding:22px 16px 18px}
+  .row2{grid-template-columns:1fr 104px}
+}
+</style>
+<style>
+.joists{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+.joist-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.joist-card svg{display:block;width:100%;height:auto}
+.joist-card b{display:block;font-size:16px;margin-top:10px}
+.joist-card span{font-size:14px;color:var(--muted)}
+.stat{font-size:clamp(40px,6vw,64px);font-weight:900;letter-spacing:-.04em;color:var(--green);line-height:1}
+.src{font-size:13px;color:var(--muted);margin-top:10px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a href="/" class="logo">ROOF<span>FINDER</span></a>
+    <a href="#how" class="top-link">How it works</a>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <div>
+    <div class="eyebrow">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+      <span id="eyebrow-txt">For homeowners</span>
+    </div>
+    <h1>Upstairs too hot? Check the <em>attic</em> first.</h1>
+    <p class="lede">A local pro measures how much insulation you have, checks how the attic breathes, and finds where air leaks in. Free, with photos, and no pressure.</p>
+    <p class="quick"><span>About a minute</span><span>No account, no card</span><span>One company, not ten</span></p>
+    <ul class="points">
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>Measured, not guessed.</b> You see the depth and what it adds up to.</span></li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>One company, not ten.</b> Your number goes to one local pro.</span></li>
+      <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>A written quote</b> if it needs work. You decide from there.</span></li>
+    </ul>
+  </div>
+
+  <div class="card" id="start">
+    <form id="lead" novalidate>
+      <div class="progress" id="progress">
+        <span class="progress-txt" id="progress-txt">Step 1 of 3</span>
+        <span class="bars"><i class="on"></i><i></i><i></i></span>
+      </div>
+
+      <div class="step on" data-step="1">
+        <div class="q">What's bothering you?</div>
+        <div class="opts" data-name="problem">
+          <button type="button" class="opt" data-v="hot_cold"><span class="dot"></span>Upstairs rooms too hot or too cold</button>
+          <button type="button" class="opt" data-v="bills"><span class="dot"></span>Energy bills feel high</button>
+          <button type="button" class="opt" data-v="drafts"><span class="dot"></span>Drafts or uneven temperatures</button>
+          <button type="button" class="opt" data-v="moisture"><span class="dot"></span>Moisture, mold or a musty attic</button>
+          <button type="button" class="opt" data-v="thin"><span class="dot"></span>The insulation looks thin or old</button>
+          <button type="button" class="opt" data-v="check"><span class="dot"></span>Nothing obvious, I just want it checked</button>
+        </div>
+      </div>
+
+      <div class="step" data-step="2">
+        <div class="q">A few quick details</div>
+        <div class="sub-q">Do you own the home?</div>
+        <div class="chips" data-name="owner">
+          <button type="button" class="chip" data-v="yes">Yes, I own it</button>
+          <button type="button" class="chip" data-v="no">No, I rent</button>
+        </div>
+        <div class="note" id="renter-note">The check has to be set up by the owner. If you rent, send this page to your landlord or property manager.</div>
+
+        <div class="sub-q">About when was the home built?</div>
+        <div class="chips" data-name="homeAge">
+          <button type="button" class="chip" data-v="pre1980">Before 1980</button>
+          <button type="button" class="chip" data-v="1980to2000">1980 to 2000</button>
+          <button type="button" class="chip" data-v="2000to2015">2000 to 2015</button>
+          <button type="button" class="chip" data-v="post2015">After 2015</button>
+          <button type="button" class="chip" data-v="unsure">Not sure</button>
+        </div>
+
+        <div class="sub-q">When do you want it looked at?</div>
+        <div class="chips" data-name="timeline">
+          <button type="button" class="chip" data-v="asap">As soon as possible</button>
+          <button type="button" class="chip" data-v="1month">This month</button>
+          <button type="button" class="chip" data-v="3months">In the next few months</button>
+          <button type="button" class="chip" data-v="justlooking">Just getting an idea</button>
+        </div>
+
+        <div class="sub-q">Want the roof looked at while they're up there?</div>
+        <div class="chips" data-name="roofToo">
+          <button type="button" class="chip" data-v="yes">Yes</button>
+          <button type="button" class="chip" data-v="maybe">Maybe</button>
+          <button type="button" class="chip" data-v="no">No</button>
+        </div>
+
+        <div class="nav-row">
+          <button type="button" class="back" data-back>Back</button>
+          <button type="button" class="btn" id="next2" disabled>Continue</button>
+        </div>
+      </div>
+
+      <div class="step" data-step="3">
+        <div class="q">Where should they come?</div>
+        <div class="err" id="err"></div>
+        <div class="field">
+          <label for="address">Street address</label>
+          <input id="address" name="address" autocomplete="street-address" placeholder="123 Oak St"/>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="name">Your name</label>
+            <input id="name" name="name" autocomplete="name" placeholder="First and last"/>
+          </div>
+          <div class="field">
+            <label for="zip">ZIP</label>
+            <input id="zip" name="zip" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="27601"/>
+          </div>
+        </div>
+        <div class="field">
+          <label for="phone">Mobile number</label>
+          <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(919) 555-0134"/>
+        </div>
+        <div class="field">
+          <label for="email">Email <small>(optional)</small></label>
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com"/>
+        </div>
+        <div class="hp" aria-hidden="true"><label>Company<input id="company" name="company" tabindex="-1" autocomplete="off"/></label></div>
+        <label class="consent">
+          <input type="checkbox" id="consent"/>
+          <span id="consent-txt">I agree that RooFinder and one local insulation or roofing company may call or text me at this number about my attic and roof, including by automated means. This is not a condition of buying anything. Message and data rates may apply. Reply STOP to opt out.</span>
+        </label>
+        <div class="nav-row" style="margin-top:0">
+          <button type="button" class="back" data-back>Back</button>
+          <button type="submit" class="btn" id="submit">Book my free attic check</button>
+        </div>
+        <p class="under">One company gets your details. Not a list of ten.</p>
+      </div>
+    </form>
+
+    <div class="done" id="done" hidden>
+      <div class="done-mark"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <h2 id="done-title">You're all set.</h2>
+      <p>We'll call you to set a time that works. If you miss us, we'll text.</p>
+      <p>Clear a path to the attic hatch or pull-down stairs if you can. That's all they need.</p>
+    </div>
+    <p class="area" id="area-line" hidden></p>
+  </div>
+</section>
+
+<section class="sec" id="how">
+  <div class="sec-in">
+    <div class="kicker">How it works</div>
+    <h2 class="t">Three steps, and most checks take under an hour.</h2>
+    <ol class="steps">
+      <li><h3>Tell us what's going on</h3><p>The form above takes about a minute. No account, no credit card.</p></li>
+      <li><h3>A local pro calls</h3><p>You pick a time. They'll tell you their company name before anyone shows up.</p></li>
+      <li><h3>See what they found</h3><p>They measure, take photos, and if it needs work, give you a written quote. Yes or no is up to you.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-in split">
+    <div class="prose">
+      <div class="kicker">Check it yourself first</div>
+      <h2 class="t">The joist test takes two minutes.</h2>
+      <p>Pop your head up through the attic hatch and look at the wooden beams running across the floor.</p>
+      <p>If you can <b>see the tops of the beams</b>, the insulation is level with them or lower, and there is probably not enough.</p>
+      <p>If the beams are <b>buried and you can't see them</b>, you may already be fine. The check will confirm it either way, and there's no charge to hear "you're good".</p>
+      <a href="#start" class="btn btn-inline">Book my free attic check</a>
+    </div>
+    <div class="joists">
+      <div class="joist-card"><svg viewBox="0 0 320 110" role="img" aria-hidden="true">
+  <rect x="0" y="90" width="320" height="8" fill="#e6e1d6"/>
+  <rect x="0" y="56" width="320" height="34" fill="#f2c98a" opacity=".9"/>
+  <g><rect x="10" y="20" width="10" height="70" fill="#b98a5a"/><rect x="70" y="20" width="10" height="70" fill="#b98a5a"/><rect x="130" y="20" width="10" height="70" fill="#b98a5a"/><rect x="190" y="20" width="10" height="70" fill="#b98a5a"/><rect x="250" y="20" width="10" height="70" fill="#b98a5a"/><rect x="310" y="20" width="10" height="70" fill="#b98a5a"/></g>
+  <rect x="0" y="56" width="320" height="2" fill="#a3281b" opacity=".7"/>
+</svg><b>Beams showing</b><span>Probably not enough</span></div>
+      <div class="joist-card"><svg viewBox="0 0 320 110" role="img" aria-hidden="true">
+  <rect x="0" y="90" width="320" height="8" fill="#e6e1d6"/>
+  <rect x="0" y="6" width="320" height="84" fill="#f2c98a" opacity=".9"/>
+  <g><rect x="10" y="20" width="10" height="70" fill="#b98a5a"/><rect x="70" y="20" width="10" height="70" fill="#b98a5a"/><rect x="130" y="20" width="10" height="70" fill="#b98a5a"/><rect x="190" y="20" width="10" height="70" fill="#b98a5a"/><rect x="250" y="20" width="10" height="70" fill="#b98a5a"/><rect x="310" y="20" width="10" height="70" fill="#b98a5a"/></g>
+  <rect x="0" y="6" width="320" height="2" fill="#2e7d32" opacity=".7"/>
+</svg><b>Beams buried</b><span>May already be fine</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-in">
+    <div class="kicker">What gets checked</div>
+    <h2 class="t">Insulation is only half of it.</h2>
+    <p class="t-sub">More insulation over leaky gaps or a stuffy attic doesn't do much. A proper check covers all four.</p>
+    <ol class="check-list" style="margin-top:28px;max-width:760px">
+      <li><span class="num">1</span><div><h3>Depth and coverage</h3><p>How many inches you have, what it adds up to, and any bare or packed-down patches.</p></div></li>
+      <li><span class="num">2</span><div><h3>Air leaks</h3><p>Gaps around light fixtures, pipes, wiring, the attic hatch and wall tops let conditioned air escape. These get sealed before anything is added.</p></div></li>
+      <li><span class="num">3</span><div><h3>Ventilation</h3><p>Air should come in low at the eaves and leave high at the ridge. If it can't, the attic cooks in summer and holds moisture in winter.</p></div></li>
+      <li><span class="num">4</span><div><h3>Moisture</h3><p>Bath fans venting into the attic, damp wood, dark stains or mold.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-in split">
+    <div>
+      <div class="stat">15%</div>
+      <p class="t-sub" style="margin-top:12px">ENERGY STAR estimates homeowners save an average of 15% on heating and cooling costs by sealing air leaks and adding insulation.</p>
+      <p class="src">Source: ENERGY STAR, U.S. EPA. Your savings depend on your home, what's there now and your energy rates.</p>
+    </div>
+    <div class="prose">
+      <div class="kicker">The roof connection</div>
+      <h2 class="t">A hot attic is hard on the roof, too.</h2>
+      <p>When an attic can't breathe, summer heat builds up under the shingles and they age faster. Winter moisture can rot the decking from the inside.</p>
+      <p>That's why we ask if you want the roof looked at on the same visit. One trip up the ladder, one set of photos. <a href="/roof-check">Roof check only?</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-in">
+    <div class="kicker">Questions</div>
+    <h2 class="t">Before you book</h2>
+    <div class="faq">
+      <details><summary>Is the check really free?</summary><p>Yes. If it needs work, you get a written quote. You can say no and owe nothing.</p></details>
+      <details><summary>Who actually comes out?</summary><p>A local insulation or roofing company we work with. They'll give you their company name when they call, before anyone comes to the house.</p></details>
+      <details><summary>Am I going to get a pile of calls?</summary><p>No. Your details go to one company, not a list of contractors bidding for the job.</p></details>
+      <details><summary>Is there a tax credit?</summary><p>The federal tax credit for insulation ended for work done after 2025. Duke Energy has run insulation rebates in North Carolina before. Ask the company what's available now, and don't let anyone promise you a rebate they can't show you in writing.</p></details>
+      <details><summary>How long does the work take?</summary><p>For most homes, adding blown-in insulation is a single day. Air sealing and ventilation work can add time. The quote will say.</p></details>
+      <details><summary>Do I need to be home?</summary><p>Yes for the check. They need to get into the attic and walk you through the photos.</p></details>
+      <details><summary>Who is RooFinder?</summary><p>We connect homeowners with local roofing and insulation companies. We don't do the work ourselves, and the company pays us a referral fee if you hire them. You deal with them directly and pay them, not us.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="sec final">
+  <div class="sec-in">
+    <h2 class="t">Find out what's actually up there.</h2>
+    <p class="t-sub">It takes about a minute to ask.</p>
+    <a href="#start" class="btn">Book my free attic check</a>
+  </div>
+</section>
+</main>
+
+<a href="#start" class="sticky" id="sticky" aria-hidden="true" tabindex="-1">Book my free attic check</a>
+
+<footer>
+  <p>RooFinder is a referral service. We don't perform roofing, insulation or solar work. Work is done by independent local contractors.</p>
+  <p><a href="/privacy.html">Privacy policy</a> &middot; &copy; 2026 RooFinder</p>
+  <p class="verse">"I am the way, the truth, and the life." John 14:6</p>
+</footer>
+
+<script>
+(function(){
+  // Meta Pixel. This is the US Laundry Rentals dataset, shared because a second pixel needs a
+  // Business Portfolio. Attic leads fire a CUSTOM event (AtticLead), never the standard Lead, so
+  // they stay separate from laundry leads. Optimise attic ads on an AtticLead custom conversion.
+  var PIXEL_ID = '27803890155906066';
+
+  var state = { problem:'', owner:'', homeAge:'', timeline:'', roofToo:'' };
+  var params = new URLSearchParams(location.search);
+  var area = (params.get('area') || '').replace(/[^A-Za-z .'-]/g, '').trim().slice(0, 30);
+  if (area) document.getElementById('eyebrow-txt').textContent = area + '-area homeowners';
+  var TOWNS = { raleigh: 'Raleigh, Cary, Apex, Garner, Wake Forest, Knightdale, Holly Springs and nearby' };
+  if (area && TOWNS[area.toLowerCase()]) {
+    var al = document.getElementById('area-line');
+    al.textContent = 'Serving ' + TOWNS[area.toLowerCase()];
+    al.hidden = false;
+  }
+
+  // Sticky "book" button on phones: shown once the form card has scrolled away, hidden after submit.
+  var sticky = document.getElementById('sticky');
+  var submitted = false;
+  function stickyCheck(){
+    var r = document.getElementById('start').getBoundingClientRect();
+    sticky.classList.toggle('show', !submitted && (r.bottom < 0 || r.top > innerHeight));
+  }
+  addEventListener('scroll', stickyCheck, { passive:true });
+
+  // Funnel tracking: custom events only, so laundry pixel data stays untouched.
+  var seen = {};
+  function track(name){ if (PIXEL_ID && window.fbq && !seen[name]) { seen[name] = 1; fbq('trackCustom', name); } }
+
+  if (PIXEL_ID) {
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', PIXEL_ID); fbq('track', 'PageView');
+  }
+
+  var form = document.getElementById('lead');
+  var steps = form.querySelectorAll('.step');
+  var bars = document.querySelectorAll('.bars i');
+  var cur = 1;
+
+  function go(n){
+    cur = n;
+    if (n === 2) track('AtticStep2');
+    if (n === 3) track('AtticStep3');
+    steps.forEach(function(s){ s.classList.toggle('on', +s.dataset.step === n); });
+    bars.forEach(function(b, i){ b.classList.toggle('on', i < n); });
+    document.getElementById('progress-txt').textContent = 'Step ' + n + ' of 3';
+    var card = document.getElementById('start');
+    if (card.getBoundingClientRect().top < 0) card.scrollIntoView({ behavior:'smooth', block:'start' });
+    if (n === 3) setTimeout(function(){ document.getElementById('address').focus({ preventScroll:true }); }, 50);
+  }
+
+  function step2Ready(){
+    return state.owner === 'yes' && state.homeAge && state.timeline && state.roofToo;
+  }
+
+  form.querySelectorAll('[data-name]').forEach(function(group){
+    var name = group.dataset.name;
+    group.querySelectorAll('button').forEach(function(btn){
+      btn.setAttribute('aria-pressed', 'false');
+      btn.addEventListener('click', function(){
+        group.querySelectorAll('button').forEach(function(b){ b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        state[name] = btn.dataset.v;
+        if (name === 'problem') { setTimeout(function(){ go(2); }, 160); }
+        if (name === 'owner') document.getElementById('renter-note').classList.toggle('show', state.owner === 'no');
+        document.getElementById('next2').disabled = !step2Ready();
+      });
+    });
+  });
+
+  document.getElementById('next2').addEventListener('click', function(){ if (step2Ready()) go(3); });
+  form.querySelectorAll('[data-back]').forEach(function(b){ b.addEventListener('click', function(){ go(cur - 1); }); });
+
+  var phone = document.getElementById('phone');
+  phone.addEventListener('input', function(){
+    var d = phone.value.replace(/\D/g, '').replace(/^1/, '').slice(0, 10);
+    var out = d;
+    if (d.length > 6) out = '(' + d.slice(0,3) + ') ' + d.slice(3,6) + '-' + d.slice(6);
+    else if (d.length > 3) out = '(' + d.slice(0,3) + ') ' + d.slice(3);
+    phone.value = out;
+  });
+  document.getElementById('zip').addEventListener('input', function(e){ e.target.value = e.target.value.replace(/\D/g, '').slice(0, 5); });
+
+  function showErr(msg){ var e = document.getElementById('err'); e.textContent = msg; e.classList.add('show'); }
+
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var err = document.getElementById('err'); err.classList.remove('show');
+    form.querySelectorAll('input.bad').forEach(function(i){ i.classList.remove('bad'); });
+
+    var v = function(id){ return document.getElementById(id).value.trim(); };
+    var bad = [];
+    if (!v('address')) bad.push('address');
+    if (!v('name')) bad.push('name');
+    if (!/^\d{5}$/.test(v('zip'))) bad.push('zip');
+    if (v('phone').replace(/\D/g, '').length !== 10) bad.push('phone');
+    if (v('email') && !/^\S+@\S+\.\S+$/.test(v('email'))) bad.push('email');
+    if (bad.length) {
+      bad.forEach(function(id){ document.getElementById(id).classList.add('bad'); });
+      showErr(bad.indexOf('phone') > -1 && bad.length === 1 ? 'Please enter a 10 digit phone number.' : 'Please fill in the highlighted fields.');
+      return;
+    }
+    if (!document.getElementById('consent').checked) { showErr('Please tick the box so they can call you.'); return; }
+
+    var btn = document.getElementById('submit');
+    btn.disabled = true; btn.textContent = 'Sending...';
+
+    var payload = {
+      name: v('name'), phone: v('phone'), email: v('email'), address: v('address'), zip: v('zip'),
+      service: 'attic', problem: state.problem, owner: state.owner, homeAge: state.homeAge, timeline: state.timeline, roofToo: state.roofToo,
+      area: area, utm_source: params.get('utm_source') || '', utm_campaign: params.get('utm_campaign') || '',
+      utm_content: params.get('utm_content') || '', company: v('company'),
+      consent: true, consentText: document.getElementById('consent-txt').textContent
+    };
+
+    fetch('/api/lead', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(payload) })
+      .then(function(r){ return r.json().then(function(j){ return { ok: r.ok && j.ok, j: j }; }); })
+      .then(function(res){
+        if (!res.ok) throw new Error('not ok');
+        if (PIXEL_ID && window.fbq) fbq('trackCustom', 'AtticLead', { problem: state.problem, roofToo: state.roofToo });
+        form.hidden = true;
+        submitted = true; sticky.classList.remove('show');
+        var first = payload.name.split(' ')[0];
+        document.getElementById('done-title').textContent = "You're all set, " + first + '.';
+        document.getElementById('done').hidden = false;
+        document.getElementById('start').scrollIntoView({ behavior:'smooth', block:'start' });
+      })
+      .catch(function(){
+        btn.disabled = false; btn.textContent = 'Book my free attic check';
+        showErr('That did not go through. Please check your connection and try again.');
+      });
+  });
+})();
+</script>
+</body>
+</html>
