@@ -10,5 +10,12 @@
         { "key": "Permissions-Policy", "value": "geolocation=(), microphone=(), camera=()" }
       ]
     }
+  ],
+  "rewrites": [
+    { "source": "/roof-check", "destination": "/roof-check.html" }
+  ],
+  "redirects": [
+    { "source": "/homeowners.html", "destination": "/roof-check", "permanent": false },
+    { "source": "/homeowners", "destination": "/roof-check", "permanent": false }
   ]
 }
