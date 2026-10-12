@@ -428,8 +428,10 @@ footer p{max-width:640px;margin:0 auto 8px}
 
 <script>
 (function(){
-  // Meta Pixel: paste the pixel ID here to track PageView + Lead for ad optimisation.
-  var PIXEL_ID = '';
+  // Meta Pixel. This is the US Laundry Rentals dataset, shared because a second pixel needs a
+  // Business Portfolio. Roof leads fire a CUSTOM event (RoofLead), never the standard Lead, so
+  // they stay separate from laundry leads. Optimise roof ads on the RoofLead custom conversion.
+  var PIXEL_ID = '27803890155906066';
 
   var state = { problem:'', owner:'', roofAge:'', timeline:'', solar:'' };
   var params = new URLSearchParams(location.search);
@@ -524,7 +526,7 @@ footer p{max-width:640px;margin:0 auto 8px}
       .then(function(r){ return r.json().then(function(j){ return { ok: r.ok && j.ok, j: j }; }); })
       .then(function(res){
         if (!res.ok) throw new Error('not ok');
-        if (PIXEL_ID && window.fbq) fbq('track', 'Lead');
+        if (PIXEL_ID && window.fbq) fbq('trackCustom', 'RoofLead', { problem: state.problem, solar: state.solar });
         form.hidden = true;
         var first = payload.name.split(' ')[0];
         document.getElementById('done-title').textContent = "You're all set, " + first + '.';
