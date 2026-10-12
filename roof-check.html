@@ -150,6 +150,32 @@ h2.t{font-size:clamp(28px,3.6vw,40px);font-weight:900;letter-spacing:-.03em;line
 .final .t,.final .t-sub{margin-left:auto;margin-right:auto}
 .final .btn{display:inline-flex;width:auto;padding:16px 32px;margin-top:26px}
 
+.quick{display:none;flex-wrap:wrap;gap:6px 14px;margin-top:16px;font-size:14px;font-weight:600;color:var(--ink)}
+.quick span{display:inline-flex;align-items:center;gap:6px}
+.quick span::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green-hi)}
+.area{font-size:13px;color:var(--muted);text-align:center;margin-top:14px}
+.btn-inline{display:inline-flex;width:auto;padding:14px 24px;margin-top:22px;font-size:16px}
+.report-wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:center}
+.report{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 32px rgba(20,24,20,.07);overflow:hidden}
+.report-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line);font-size:15px}
+.report-head span{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:3px 9px}
+.report ul{list-style:none}
+.report li{display:flex;gap:14px;align-items:flex-start;padding:14px 20px;border-bottom:1px solid var(--line)}
+.report li b{display:block;font-size:15px}
+.report li small{display:block;font-size:14px;color:var(--muted);line-height:1.45}
+.tag{flex:none;width:88px;text-align:center;font-size:12px;font-weight:800;border-radius:7px;padding:4px 0;margin-top:1px}
+.tag.ok{background:var(--green-tint);color:var(--green)}
+.tag.fix{background:#fdecea;color:#a3281b}
+.tag.plan{background:var(--warn-tint);color:var(--warn)}
+.report-foot{padding:14px 20px;font-size:14px;background:#fafaf7}
+.sticky{display:none}
+@media(max-width:960px){.report-wrap{grid-template-columns:1fr;gap:28px}}
+@media(max-width:700px){
+  .quick{display:flex}
+  .sticky{display:block;position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:var(--green);color:#fff;text-align:center;font-weight:800;font-size:16px;padding:15px;border-radius:12px;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.18);transform:translateY(140%);transition:transform .2s}
+  .sticky.show{transform:none}
+  footer{padding-bottom:90px}
+}
 footer{border-top:1px solid var(--line);padding:32px 20px 40px;text-align:center;font-size:13px;color:var(--muted)}
 footer p{max-width:640px;margin:0 auto 8px}
 .verse{font-style:italic;margin-top:14px}
@@ -189,6 +215,7 @@ footer p{max-width:640px;margin:0 auto 8px}
     </div>
     <h1>Find out what your roof <em>actually</em> needs.</h1>
     <p class="lede">A local roofer comes out, checks it top to bottom, and shows you photos of what they found. The inspection is free, and so is saying no.</p>
+    <p class="quick"><span>About a minute</span><span>No account, no card</span><span>One roofer, not ten</span></p>
     <ul class="points">
       <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>Photos, not a sales pitch.</b> You see what they see.</span></li>
       <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>One roofer, not ten.</b> Your number goes to one local company.</span></li>
@@ -299,6 +326,7 @@ footer p{max-width:640px;margin:0 auto 8px}
       <p>We'll call you to set a time that works. If you miss us, we'll text.</p>
       <p>Nothing to prepare. If you have photos of a leak or damage, keep them handy.</p>
     </div>
+    <p class="area" id="area-line" hidden></p>
   </div>
 </section>
 
@@ -311,6 +339,28 @@ footer p{max-width:640px;margin:0 auto 8px}
       <li><h3>A local roofer calls</h3><p>You pick a time. They'll tell you their company name before anyone shows up.</p></li>
       <li><h3>See what they found</h3><p>They inspect, show you photos, and if it needs work, give you a written estimate. Yes or no is up to you.</p></li>
     </ol>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="sec-in report-wrap">
+    <div>
+      <div class="kicker">What you get</div>
+      <h2 class="t">A plain answer on every part of the roof.</h2>
+      <p class="t-sub">Each spot gets a photo and one of three calls: fine, fix it, or plan for it. You keep the photos either way, so you can get a second opinion if you want one.</p>
+      <a href="#start" class="btn btn-inline">Book my free roof check</a>
+    </div>
+    <div class="report" aria-label="Example inspection summary">
+      <div class="report-head"><b>Inspection summary</b><span>Example</span></div>
+      <ul>
+        <li><span class="tag ok">Fine</span><div><b>Shingles</b><small>Wear is even. Roughly 8 to 10 years left.</small></div></li>
+        <li><span class="tag fix">Fix it</span><div><b>Pipe boot, back slope</b><small>Rubber seal cracked. Likely source of the hall stain.</small></div></li>
+        <li><span class="tag fix">Fix it</span><div><b>Chimney flashing</b><small>Lifting on the upper side. Reseal.</small></div></li>
+        <li><span class="tag ok">Fine</span><div><b>Gutters and drip edge</b><small>Light grit, nothing unusual for the age.</small></div></li>
+        <li><span class="tag plan">Plan for it</span><div><b>Attic ventilation</b><small>Underventilated. Worth fixing at the next reroof.</small></div></li>
+      </ul>
+      <div class="report-foot">Verdict: <b>repair, not replace</b>. Written estimate attached.</div>
+    </div>
   </div>
 </section>
 
@@ -370,6 +420,7 @@ footer p{max-width:640px;margin:0 auto 8px}
       <p>Most people who see a leak assume they need a whole new roof. A lot of the time it's a <b>cracked pipe boot or a lifted piece of flashing</b>, which is a small repair.</p>
       <p>That's the point of the inspection: you find out which one you have, with photos, <b>before</b> anyone quotes you a number.</p>
       <p>If it is time for a new roof, you'll know why, and you'll have it in writing.</p>
+      <a href="#start" class="btn btn-inline">Find out which one you have</a>
     </div>
     <div class="signs">
       <h3>Signs a roof is near the end</h3>
@@ -420,6 +471,8 @@ footer p{max-width:640px;margin:0 auto 8px}
 </section>
 </main>
 
+<a href="#start" class="sticky" id="sticky" aria-hidden="true" tabindex="-1">Book my free roof check</a>
+
 <footer>
   <p>RooFinder is a referral service. We don't perform roofing or solar work. Work is done by independent local contractors.</p>
   <p><a href="/privacy.html">Privacy policy</a> &middot; &copy; 2026 RooFinder</p>
@@ -437,6 +490,25 @@ footer p{max-width:640px;margin:0 auto 8px}
   var params = new URLSearchParams(location.search);
   var area = (params.get('area') || '').replace(/[^A-Za-z .'-]/g, '').trim().slice(0, 30);
   if (area) document.getElementById('eyebrow-txt').textContent = area + '-area homeowners';
+  var TOWNS = { raleigh: 'Raleigh, Cary, Apex, Garner, Wake Forest, Knightdale, Holly Springs and nearby' };
+  if (area && TOWNS[area.toLowerCase()]) {
+    var al = document.getElementById('area-line');
+    al.textContent = 'Serving ' + TOWNS[area.toLowerCase()];
+    al.hidden = false;
+  }
+
+  // Sticky "book" button on phones: shown once the form card has scrolled away, hidden after submit.
+  var sticky = document.getElementById('sticky');
+  var submitted = false;
+  function stickyCheck(){
+    var r = document.getElementById('start').getBoundingClientRect();
+    sticky.classList.toggle('show', !submitted && (r.bottom < 0 || r.top > innerHeight));
+  }
+  addEventListener('scroll', stickyCheck, { passive:true });
+
+  // Funnel tracking: custom events only, so laundry pixel data stays untouched.
+  var seen = {};
+  function track(name){ if (PIXEL_ID && window.fbq && !seen[name]) { seen[name] = 1; fbq('trackCustom', name); } }
 
   if (PIXEL_ID) {
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
@@ -450,6 +522,8 @@ footer p{max-width:640px;margin:0 auto 8px}
 
   function go(n){
     cur = n;
+    if (n === 2) track('RoofStep2');
+    if (n === 3) track('RoofStep3');
     steps.forEach(function(s){ s.classList.toggle('on', +s.dataset.step === n); });
     bars.forEach(function(b, i){ b.classList.toggle('on', i < n); });
     document.getElementById('progress-txt').textContent = 'Step ' + n + ' of 3';
@@ -528,6 +602,7 @@ footer p{max-width:640px;margin:0 auto 8px}
         if (!res.ok) throw new Error('not ok');
         if (PIXEL_ID && window.fbq) fbq('trackCustom', 'RoofLead', { problem: state.problem, solar: state.solar });
         form.hidden = true;
+        submitted = true; sticky.classList.remove('show');
         var first = payload.name.split(' ')[0];
         document.getElementById('done-title').textContent = "You're all set, " + first + '.';
         document.getElementById('done').hidden = false;
