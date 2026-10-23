@@ -98,6 +98,33 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
 
   const b = req.body || {};
+
+  // Contractor "Talk to Dalton" form on /contractors.html. Email only: the old Firestore
+  // `applications` write had expired rules and the hello@roofinder.online inbox has no MX,
+  // so applications were silently lost. Success is reported only if the alert really sent.
+  if (b.kind === 'contractor') {
+    const c = { company: clean(b.companyName, 120), phone: clean(b.phone, 20), email: clean(b.email, 120), zip: clean(b.zip, 5) };
+    if (!c.company || c.phone.replace(/\D/g, '').length < 10) return res.status(400).json({ ok: false, error: 'Missing fields' });
+    const key = process.env.RESEND_API_KEY;
+    const to = (process.env.LEAD_TO || '').split(',').map(s => s.trim()).filter(Boolean);
+    if (!key || !to.length) return res.status(503).json({ ok: false, error: 'Alerts not configured' });
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.LEAD_FROM || 'RooFinder Leads <leads@notify.nicelywebdesign.com>',
+        to,
+        subject: 'Roofing contractor wants to talk: ' + c.company + (c.zip ? ', ' + c.zip : ''),
+        html: '<div style="font-family:Arial,sans-serif;font-size:15px;color:#111"><h2 style="margin:0 0 6px">' + esc(c.company) + '</h2>' +
+          '<p><a href="tel:+1' + c.phone.replace(/\D/g, '').slice(-10) + '" style="font-size:20px;font-weight:bold">' + esc(c.phone) + '</a></p>' +
+          '<p>Email: ' + esc(c.email || '--') + '<br>Target zip: ' + esc(c.zip || '--') + '</p>' +
+          '<p style="color:#888;font-size:12px">From the RooFinder contractor page.</p></div>'
+      })
+    }).catch(() => null);
+    if (!r || !r.ok) return res.status(502).json({ ok: false, error: 'Could not send' });
+    return res.status(200).json({ ok: true });
+  }
+
   // Honeypot: real people never see or fill this field.
   if (clean(b.company)) return res.status(200).json({ ok: true });
 
